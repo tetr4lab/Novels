@@ -1,0 +1,141 @@
+﻿<MudItem>
+    @if (!IsHomePage) {
+        <MudText Class="pr-8" Typo="Typo.h4">Novels</MudText>
+    } else {
+        <MudText Class="pb-2" Typo="Typo.h4">Contents</MudText>
+    }
+</MudItem>
+@if (!IsHomePage) {
+    <MudItem>
+        <MudNavLink Href="./" Match="NavLinkMatch.All">
+            <MudText Class="d-flex align-center gap-1" Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.LibraryBooks" />List
+            </MudText>
+        </MudNavLink>
+    </MudItem>
+}
+<MudItem>
+    <MudNavLink Href="book">
+        <MudText Class="d-flex align-center gap-1" Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Book" />Publish
+        </MudText>
+    </MudNavLink>
+</MudItem>
+<MudItem>
+    <MudNavLink Href="page">
+        <MudText Class="d-flex align-center gap-1" Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.MenuBook" />Read
+        </MudText>
+    </MudNavLink>
+</MudItem>
+<MudItem>
+    <MudNavLink Href="settings">
+        <MudText Class="d-flex align-center gap-1" Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Settings" />Settings
+        </MudText>
+    </MudNavLink>
+</MudItem>
+@if (!IsHomePage) {
+    <MudSpacer />
+    @if (RevisionInfo.Valid) {
+        <MudItem Class="mr-4 align-self-end">
+            <MudText Style="font-size:var(--mud-typography-caption-size); color:var(--mud-palette-action-disabled);">
+                @($"revision: {RevisionInfo.Branch} - {RevisionInfo.Id}")
+            </MudText>
+        </MudItem>
+    }
+    <MudItem>
+        <MudStack Row Class="align-center">
+            <MudTooltip Duration="1000">
+                <ChildContent>
+                    <MudTextField @bind-Value="_filterText" @ref="searchField"
+                        OnKeyUp="OnKeyUp"
+                        OnBlur="OnClick"
+                        OnAdornmentClick="OnClick" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
+                        OnClearButtonClick="OnClick" Clearable 
+                        Label="Search" Margin="Margin.Dense" Variant="Variant.Outlined" Underline="false" />
+                </ChildContent>
+                <TooltipContent>
+                    <MudText Typo="Typo.inherit" Align="Align.Left">
+                        <p>検索文字列</p>
+                        <p>空白文字で区切られた部分が全て含まれると適合します。</p>
+                        <p>'␣'(U+2423)または'&nbsp;'(U+00A0)は区切られない空白文字として使えます。</p>
+                        <p>'='が先行する部分は一致すると適合します。</p>
+                        <p>'!'が先行する部分は一致すると適合しません。</p>
+                        <p>'^'が先行する部分は含まれると適合しません。</p>
+                        <p>'|'で区切られた部分はいずれか一つで適合します。</p>
+                        <p>'c~.'カテゴリ番号</p>
+                        <p>'p~.'製品番号</p>
+                        <p>'s~.'店舗番号</p>
+                        <p>'#~.'価格番号</p>
+                        <p>'¥~.'価格</p>
+                        <p>'x~.'数量</p>
+                        <p>'y~.'優先順</p>
+                        <p>'_is_food_'/'_not_food_'食品</p>
+                        <p>'_lowest_'/'_not_low_'最安値</p>
+                        <p>'_too_old_'/'_not_old_'情報が古い</p>
+                        <p>'_no_confirm_'/'_confirmed_'未確認</p>
+                    </MudText>
+                </TooltipContent>
+            </MudTooltip>
+            <MudTooltip Text="古い情報を除外" Duration="1000">
+                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.FiberNew" OnClick="@(() => {
+                    var newText = $"=_not_old_";
+                    _filterText = _filterText == newText ? "" : newText;
+                    OnClick ();
+                })" />
+            </MudTooltip>
+            @if (!OnClickChangeModeButton.Equals (EventCallback.Empty)) {
+                <MudIconButton Size="Size.Small" Icon="@(IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" OnClick="(async () => await OnClickChangeModeButton.InvokeAsync ())" />
+            }
+        </MudStack>
+    </MudItem>
+}
+
+@code {
+    /// <summary>サーチボタンが押されたときの処理</summary>
+    [Parameter] public EventCallback<string?> OnClickSearchButton { get; set; } = EventCallback<string?>.Empty;
+    /// <summary>ダークモード</summary>
+    [Parameter] public bool IsDarkMode { get; set; }
+    /// <summary>モード切替ボタンが押されたときの処理</summary>
+    [Parameter] public EventCallback OnClickChangeModeButton { get; set; } = EventCallback.Empty;
+    /// <summary>検索文字列</summary>
+    [CascadingParameter (Name = "Filter")] protected string FilterText { get; set; } = string.Empty;
+
+    /// <summary>検索文字列</summary>
+    private string _filterText = string.Empty;
+
+    /// <summary>
+    /// ホームページの判定
+    /// サーチボタンのアクションが指定されていればナビゲーションバー
+    /// 指定されなければホームページのコンテンツ
+    /// </summary>
+    private bool IsHomePage => OnClickSearchButton.Equals (EventCallback<string?>.Empty);
+
+    /// <summary>検索フィールドへの参照</summary>
+    private MudTextField<string> searchField { get; set; } = new MudTextField<string>();
+
+    /// <summary>検索フィールドでキーが押された</summary>
+    protected void OnKeyUp (KeyboardEventArgs eventArgs) {
+        if (eventArgs.Key == "Enter") {
+            OnClick();
+        }
+    }
+
+    /// <summary>パラメータが更新された</summary>
+    protected override void OnParametersSet () {
+        base.OnParametersSet ();
+        if (_filterText != FilterText) {
+            _filterText = FilterText;
+        }
+    }
+
+    /// <summary>検索ボタン(またはフィールドクリアボタン)が押された</summary>
+    public void OnClick () {
+        if (FilterText != _filterText) {
+            OnClickSearchButton.InvokeAsync(_filterText);
+            searchField.BlurAsync();
+        }
+    }
+
+}

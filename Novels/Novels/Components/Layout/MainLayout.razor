@@ -1,23 +1,132 @@
-﻿@inherits LayoutComponentBase
+﻿@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@inject ProtectedLocalStorage Storage
+@inject NavigationManager Navi
+
+@inherits LayoutComponentBase
+
+<PageTitle>Novels</PageTitle>
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
+    <AuthorizeView Policy="Users">
+        <Authorized>
+            <nav>
+                <MudHidden Breakpoint="Breakpoint.Xs" Invert="true">
+                    <MudFab Class="fixed ma-2 z-100" Style="right: 0px;" Color="Color.Transparent" Ripple="false" StartIcon="@Icons.Material.Filled.Menu" Size="Size.Small" OnClick="@(() => _drawerOpen = true)" />
+                    <MudDrawer Class="fixed" @bind-Open="@_drawerOpen" Anchor="Anchor.Top" Elevation="1" Variant="@DrawerVariant.Temporary">
+                        <MudNavMenu Dense Color="Color.Dark" Class="px-4 my-2">
+                            <CascadingValue Value="@_filterText" Name="Filter">
+                                <NavBar OnClickSearchButton="SetFilterText" IsDarkMode="_isDarkMode" OnClickChangeModeButton="ChangeModeAsync" />
+                            </CascadingValue>
+                        </MudNavMenu>
+                    </MudDrawer>
+                </MudHidden>
+                <MudHidden Breakpoint="Breakpoint.Xs">
+                    <MudAppBar Color="Color.Transparent" Dense Fixed="true">
+                        <MudGrid Class="align-center flex-nowrap" Spacing="0">
+                            <CascadingValue Value="@_filterText" Name="Filter">
+                                <NavBar OnClickSearchButton="SetFilterText" IsDarkMode="_isDarkMode" OnClickChangeModeButton="ChangeModeAsync" />
+                            </CascadingValue>
+                        </MudGrid>
+                    </MudAppBar>
+                </MudHidden>
+            </nav>
+            <main>
+                <MudHidden Breakpoint="Breakpoint.Xs">
+                    <MudAppBar Color="Color.Transparent" Style="z-index:0;" Elevation="0" Dense Fixed="false">
+                        @*hidden spacer*@
+                    </MudAppBar>
+                </MudHidden>
+                <MudStack Row Class="px-4" Justify="Justify.SpaceBetween">
+                    <MudText Typo="Typo.h5">@_sectionTitle</MudText>
+                    <MudText Typo="Typo.h5"><SessionCounter /></MudText>
+                </MudStack>
+                <article class="content px-4">
+                    <CascadingValue Value="@_filterText" Name="Filter">
+                        <CascadingValue Value="@(EventCallback.Factory.Create<string> (this, SetFilterText))" Name="SetFilter">
+                            <CascadingValue Value="@(EventCallback.Factory.Create<string> (this, SetSectionTitle))" Name="Section">
+                                <CascadingValue Value="@_isTaxExcluded" Name="TaxExcluded">
+                                    <CascadingValue Value="@(EventCallback.Factory.Create<bool> (this, SetTaxExcludedAsync))" Name="SetTaxExcluded">
+                                        @Body
+                                    </CascadingValue>
+                                </CascadingValue>
+                            </CascadingValue>
+                        </CascadingValue>
+                    </CascadingValue>
+                </article>
+            </main>
+        </Authorized>
+        <NotAuthorized>
+            <main>
+                <article class="content px-4">
+                    @Body
+                </article>
+            </main>
+        </NotAuthorized>
+    </AuthorizeView>
 </div>
+<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
-<div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
-</div>
+@code {
+    /// <summary>テーマ ストレージキー</summary>
+    protected const string DarkModeStorageKey = "IsDarkTheme";
+
+    /// <summary>テーマ ストレージキー</summary>
+    protected const string TaxExcludedStorageKey = "IsTaxExcluded";
+
+    /// <summary>テーマプロバイダへの参照</summary>
+    protected MudThemeProvider _mudThemeProvider = default!;
+
+    /// <summary>ダークモード</summary>
+    protected bool _isDarkMode;
+
+    /// <summary>外税モード</summary>
+    protected bool? _isTaxExcluded = null;
+
+    /// <summary>テーマ切替ボタンが押された</summary>
+    protected async Task ChangeModeAsync () {
+        _isDarkMode = !_isDarkMode;
+        await Storage.SetValueAsync (DarkModeStorageKey, _isDarkMode);
+    }
+
+    /// <summary>税切り替えボタンが押された</summary>
+    protected async Task SetTaxExcludedAsync (bool taxExcluded) {
+        _isTaxExcluded = taxExcluded;
+        await Storage.SetValueAsync (TaxExcludedStorageKey, _isTaxExcluded.Value);
+    }
+
+    /// <summary>遅延初期化</summary>
+    protected override async Task OnAfterRenderAsync (bool firstRender) {
+        if (firstRender) {
+            // テーマ
+            var darkMode = await Storage.GetValueAsync<bool> (DarkModeStorageKey);
+            _isDarkMode = darkMode.Success ? darkMode.Value : await _mudThemeProvider.GetSystemPreference ();
+            await Storage.SetValueAsync (DarkModeStorageKey, _isDarkMode);
+            // 外税
+            var taxExclueded = await Storage.GetValueAsync<bool> (TaxExcludedStorageKey);
+            _isTaxExcluded = taxExclueded.Success ? taxExclueded.Value : false;
+            await Storage.SetValueAsync (TaxExcludedStorageKey, _isTaxExcluded.Value);
+            StateHasChanged ();
+        }
+    }
+
+    /// <summary>ドロワーの状態</summary>
+    protected bool _drawerOpen = false;
+    /// <summary>セクションタイトル</summary>
+    protected string _sectionTitle = string.Empty;
+    /// <summary>検索文字列 (カスケーディングパラメータ)</summary>
+    protected string _filterText = string.Empty;
+
+    /// <summary>セクションタイトルが変更された</summary>
+    protected void SetSectionTitle (string title) {
+        _sectionTitle = title;
+    }
+
+    /// <summary>検索ボタンが押された</summary>
+    protected void SetFilterText (string text) {
+        _filterText = text;
+        _drawerOpen = false;
+    }
+}
