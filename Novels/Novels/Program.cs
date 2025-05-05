@@ -4,6 +4,7 @@ using MudBlazor.Services;
 using PetaPoco;
 using Novels.Client.Pages;
 using Novels.Components;
+using Novels.Services;
 using Tetr4lab;
 
 var builder = WebApplication.CreateBuilder (args);
@@ -57,7 +58,7 @@ builder.Services.AddScoped (_ => (Database) new MySqlDatabase (connectionString,
 builder.Services.AddHttpClient ();
 
 // DataSet
-//builder.Services.AddScoped<NovelsDataSet> ();
+builder.Services.AddScoped<NovelsDataSet> ();
 
 var app = builder.Build ();
 

@@ -1,7 +1,33 @@
-﻿@page "/"
+﻿@inherits ItemListBase<Book>
 
-<PageTitle>Home</PageTitle>
+@page "/"
 
-<h1>Hello, world!</h1>
+<PageTitle>Novels Home</PageTitle>
 
-Welcome to your new app.
+@if (DataSet.IsUnavailable) {
+    <MudAlert Severity="Severity.Error" Elevation="3">Unable to connect to any of the specified database management hosts.</MudAlert>
+} else if (!DataSet.IsReady || items is null) {
+    <MudProgressCircular Indeterminate="true" />
+} else if (items.Count > 0) {
+    @foreach (var item in items) {
+        @if (FilterFunc (item)) {
+            <div>
+                <h2>@item.Title</h2>
+                <p>@item.Author</p>
+                <p>@item.Site</p>
+            </div>
+        }
+    }
+} else {
+    <MudText>No items found.</MudText>
+}
+
+@code {
+
+    /// <summary>パラメータに変更があった (検索条件が変化した可能性)</summary>
+    protected override void OnParametersSet () {
+        base.OnParametersSet ();
+        StateHasChanged ();
+    }
+
+}
