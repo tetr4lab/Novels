@@ -9,25 +9,33 @@
 } else if (!DataSet.IsReady || items is null) {
     <MudProgressCircular Indeterminate="true" />
 } else if (items.Count > 0) {
-    @foreach (var item in items) {
-        @if (FilterFunc (item)) {
-            <div>
-                <h2>@item.Title</h2>
-                <p>@item.Author</p>
-                <p>@item.Site</p>
-            </div>
+    <MudSimpleTable>
+        @foreach (var item in items) {
+            @if (FilterFunc (item)) {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>
+                        <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="async () => await SetCurrentBookId.InvokeAsync (item.Id)">
+                            @(item.Id == CurrentBookId ? ">" : " ")
+                        </MudButton>
+                    </td>
+                    <td>@item.Title</td>
+                    <td>@item.Author</td>
+                    <td>@item.Site</td>
+                    <td>@item.CountOfSheets</td>
+                </tr>
+            }
         }
-    }
+    </MudSimpleTable>
 } else {
     <MudText>No items found.</MudText>
 }
 
 @code {
+    /// <summary>着目中の書籍</summary>
+    [CascadingParameter (Name = "CurrentBookId")] protected long CurrentBookId { get; set; } = 0;
+    /// <summary>着目中の書籍設定</summary>
+    [CascadingParameter (Name = "SetCurrentBookId")] protected EventCallback<long> SetCurrentBookId { get; set; }
 
-    /// <summary>パラメータに変更があった (検索条件が変化した可能性)</summary>
-    protected override void OnParametersSet () {
-        base.OnParametersSet ();
-        StateHasChanged ();
-    }
 
 }

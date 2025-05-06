@@ -60,7 +60,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     };
 
     /// <inheritdoc/>
-    public static string BaseSelectSql => @$"select * from books;";
+    public static string BaseSelectSql => @$"select * from `books`;";
 
     /// <inheritdoc/>
     public static string UniqueKeysSql => "";

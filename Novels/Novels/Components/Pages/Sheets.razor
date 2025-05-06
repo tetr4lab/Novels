@@ -1,0 +1,36 @@
+﻿@inherits ItemListBase<Sheet>
+
+@page "/book"
+
+<PageTitle>Book</PageTitle>
+
+@if (DataSet.IsUnavailable) {
+    <MudAlert Severity="Severity.Error" Elevation="3">Unable to connect to any of the specified database management hosts.</MudAlert>
+} else if (!DataSet.IsReady || items is null) {
+    <MudProgressCircular Indeterminate="true" />
+} else if (items.Count > 0) {
+    var book = DataSet.Books.Find (s => s.Id == CurrentBookId);
+    <MudText>『@(book.Title)』 @(book.Author)</MudText>
+    @foreach (var item in items) {
+        @if (FilterFunc (item)) {
+            <div>
+                <h2>@item.NovelNumber</h2>
+                <p>@item.Url</p>
+            </div>
+        }
+    }
+} else {
+    <MudText>No items found.</MudText>
+}
+selected: @CurrentBookId
+
+@code {
+    /// <summary>着目中の書籍</summary>
+    [CascadingParameter (Name = "CurrentBookId")] protected long CurrentBookId { get; set; } = 0;
+
+    /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
+    protected override async Task OnInitializedAsync() {
+        DataSet.CurrentBookId = CurrentBookId;
+        await base.OnInitializedAsync ();
+    }
+}
