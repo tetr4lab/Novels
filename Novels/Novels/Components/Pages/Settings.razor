@@ -9,20 +9,133 @@
 } else if (!DataSet.IsReady || items is null) {
     <MudProgressCircular Indeterminate="true" />
 } else if (items.Count > 0) {
-    <MudSimpleTable>
-        @foreach (var item in items) {
-            @if (FilterFunc (item)) {
-                <tr>
-                    <td>@item.Id</td>
-                    <td>@item.PersonalDocumentLimitSize</td>
-                    <td>@item.SmtpAccount</td>
-                    <td>@item.SmtpMailAddress</td>
-                    <td>@item.SmtpReplyTo</td>
-                    <td>@item.SmtpServer</td>
-                </tr>
-            }
-        }
+    selectedItem = items [0];
+    <MudSimpleTable Elevation="0" Dense>
+        <thead>
+            <tr>
+                <th style="width: 10em;"></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>@(Setting.Label [nameof (Setting.Id)])</td>
+                <td>@selectedItem.Id</td>
+            </tr>
+            <tr>
+                <td>@(Setting.Label [nameof (Setting.PersonalDocumentLimitSize)])</td>
+                <td><MudTextField T="int" @bind-Value="selectedItem.PersonalDocumentLimitSize" /></td>
+            </tr>
+            <tr>
+                <td>@(Setting.Label [nameof (Setting.SmtpAccount)])</td>
+                <td><MudTextField T="string" @bind-Value="selectedItem.SmtpAccount" /></td>
+            </tr>
+            <tr>
+                <td>@(Setting.Label [nameof (Setting.SmtpMailAddress)])</td>
+                <td><MudTextField T="string" @bind-Value="selectedItem.SmtpMailAddress" /></td>
+            </tr>
+            <tr>
+                <td>@(Setting.Label [nameof (Setting.SmtpReplyTo)])</td>
+                <td><MudTextField T="string" @bind-Value="selectedItem.SmtpReplyTo" /></td>
+            </tr>
+            <tr>
+                <td>@(Setting.Label [nameof (Setting.SmtpServer)])</td>
+                <td><MudTextField T="string" @bind-Value="selectedItem.SmtpServer" /></td>
+            </tr>
+            <tr>
+                <td>@(Setting.Label [nameof (Setting.SmtpPort)])</td>
+                <td><MudTextField T="string" @bind-Value="selectedItem.SmtpPort" /></td>
+            </tr>
+            <tr>
+                <td>@(Setting.Label [nameof (Setting.SmtpUserName)])</td>
+                <td><MudTextField T="string" @bind-Value="selectedItem.SmtpUserName" /></td>
+            </tr>
+            <tr>
+                <td>@(Setting.Label [nameof (Setting.SmtpPassword)])</td>
+                <td><MudTextField T="string" @bind-Value="selectedItem.SmtpPassword" InputType="@PasswordInputType" Adornment="Adornment.End" AdornmentIcon="@PasswordInputIcon" OnAdornmentClick="ButtonTestclick" AdornmentAriaLabel="Show Password" /></td>
+            </tr>
+            <tr>
+                <td>@(Setting.Label [nameof (Setting.SmtpMailto)])</td>
+                <td><MudTextField T="string" @bind-Value="selectedItem.SmtpMailto" /></td>
+            </tr>
+            <tr>
+                <td>@(Setting.Label [nameof (Setting.SmtpCc)])</td>
+                <td><MudTextField T="string" @bind-Value="selectedItem.SmtpCc" /></td>
+            </tr>
+            <tr>
+                <td>@(Setting.Label [nameof (Setting.SmtpBcc)])</td>
+                <td><MudTextField T="string" @bind-Value="selectedItem.SmtpBcc" /></td>
+            </tr>
+            <tr>
+                <td>@(Setting.Label [nameof (Setting.SmtpSubject)])</td>
+                <td><MudTextField T="string" @bind-Value="selectedItem.SmtpSubject" /></td>
+            </tr>
+            <tr>
+                <td>@(Setting.Label [nameof (Setting.SmtpBody)])</td>
+                <td><MudTextField T="string" @bind-Value="selectedItem.SmtpBody" /></td>
+            </tr>
+            <tr>
+                <td>@(Setting.Label [nameof (Setting.ImportLog)])</td>
+                <td>
+                    <style>.horizontal-scroll textarea { overflow-x: auto; white-space: nowrap; }</style>
+                    <MudTextField Class="horizontal-scroll" T="string" @bind-Value="selectedItem.ImportLog" Lines="10" />
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <MudStack Row Class="justify-center">
+                        <MudTooltip Arrow="true" Text="復旧">
+                            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="() => { Cancel (editingItem); StartEdit (); }" />
+                        </MudTooltip>
+                        <MudTooltip Arrow="true" Text="保存">
+                            <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="() => { Commit (editingItem); StartEdit (); }" />
+                        </MudTooltip>
+                    </MudStack>
+                </td>
+            </tr>
+        </tbody>
     </MudSimpleTable>
 } else {
     <MudText>No items found.</MudText>
+}
+
+@code {
+    /// <summary>編集されていない</summary>
+    protected bool IsNotDirty => editingItem is null || backupedItem is null || editingItem.Equals (backupedItem);
+
+    /// <summary>パスワード欄の可視性</summary>
+    protected bool PasswordIsShow;
+    /// <summary>パスワード欄のタイプ</summary>
+    protected InputType PasswordInputType = InputType.Password;
+    /// <summary>パスワード欄のアイコン</summary>
+    protected string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+    /// <summary>パスワード欄のアイコンボタンが押された</summary>
+    protected void ButtonTestclick () {
+        if (PasswordIsShow) {
+            PasswordIsShow = false;
+            PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+            PasswordInputType = InputType.Password;
+        } else {
+            PasswordIsShow = true;
+            PasswordInputIcon = Icons.Material.Filled.Visibility;
+            PasswordInputType = InputType.Text;
+        }
+    }
+
+    /// <summary>編集開始</summary>
+    protected void StartEdit () {
+        if (editingItem is null) {
+            editingItem = selectedItem;
+            backupedItem = selectedItem.Clone ();
+        }
+    }
+
+    /// <summary>遅延初期化</summary>
+    protected override async Task OnAfterRenderAsync (bool firstRender) {
+        await base.OnAfterRenderAsync (firstRender);
+        if (firstRender) {
+            selectedItem = items [0];
+            StartEdit ();
+        }
+    }
 }

@@ -14,7 +14,7 @@ namespace Novels.Data;
 public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
 
     /// <inheritdoc/>
-    public static string TableLabel => "書籍";
+    public static string TableLabel => "シート";
 
     /// <inheritdoc/>
     public static Dictionary<string, string> Label { get; } = new () {
@@ -37,7 +37,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     public static string UniqueKeysSql => "";
 
     [Column ("book_id"), Required] public long BookId { get; set; } = 0;
-    [Column ("url"), Required] public string Url { get; set; } = "";
+    [Column ("url")] public string Url { get; set; } = "";
     [Column ("html")] public string? Html { get; set; } = null;
     [Column ("sheet_update")] public DateTime? SheetUpdatedAt { get; set; } = null;
     [Column ("novel_no"), Required] public int NovelNumber { get; set; } = 0;

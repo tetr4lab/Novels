@@ -14,7 +14,7 @@ namespace Novels.Data;
 public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
 
     /// <inheritdoc/>
-    public static string TableLabel => "書籍";
+    public static string TableLabel => "設定";
 
     /// <inheritdoc/>
     public static Dictionary<string, string> Label { get; } = new () {
@@ -45,19 +45,19 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
     public static string UniqueKeysSql => "";
 
     [Column ("personal_document_limit_size"), Required] public int PersonalDocumentLimitSize { get; set; } = 0;
-    [Column ("smtp_account"), Required] public string SmtpAccount { get; set; } = "";
-    [Column ("smtp_mailaddress"), Required] public string SmtpMailAddress { get; set; } = "";
-    [Column ("smtp_replyto"), Required] public string SmtpReplyTo { get; set; } = "";
-    [Column ("smtp_server"), Required] public string SmtpServer { get; set; } = "";
-    [Column ("smtp_port"), Required] public string SmtpPort { get; set; } = "";
-    [Column ("smtp_username"), Required] public string SmtpUserName { get; set; } = "";
-    [Column ("smtp_password"), Required] public string SmtpPassword { get; set; } = "";
-    [Column ("smtp_mailto"), Required] public string SmtpMailto { get; set; } = "";
-    [Column ("smtp_cc"), Required] public string SmtpCc { get; set; } = "";
-    [Column ("smtp_bcc"), Required] public string SmtpBcc { get; set; } = "";
-    [Column ("smtp_subject"), Required] public string SmtpSubject { get; set; } = "";
-    [Column ("smtp_body"), Required] public string SmtpBody { get; set; } = "";
-    [Column ("import_log"), Required] public string ImportLog { get; set; } = "";
+    [Column ("smtp_account")] public string SmtpAccount { get; set; } = "";
+    [Column ("smtp_mailaddress")] public string SmtpMailAddress { get; set; } = "";
+    [Column ("smtp_replyto")] public string SmtpReplyTo { get; set; } = "";
+    [Column ("smtp_server")] public string SmtpServer { get; set; } = "";
+    [Column ("smtp_port")] public string SmtpPort { get; set; } = "";
+    [Column ("smtp_username")] public string SmtpUserName { get; set; } = "";
+    [Column ("smtp_password")] public string SmtpPassword { get; set; } = "";
+    [Column ("smtp_mailto")] public string SmtpMailto { get; set; } = "";
+    [Column ("smtp_cc")] public string SmtpCc { get; set; } = "";
+    [Column ("smtp_bcc")] public string SmtpBcc { get; set; } = "";
+    [Column ("smtp_subject")] public string SmtpSubject { get; set; } = "";
+    [Column ("smtp_body")] public string SmtpBody { get; set; } = "";
+    [Column ("import_log")] public string ImportLog { get; set; } = "";
 
     /// <inheritdoc/>
     public override string? [] SearchTargets => [ ];

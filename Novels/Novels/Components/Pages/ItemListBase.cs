@@ -65,15 +65,6 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
         }
     }
 
-    /// <summary>描画後処理</summary>
-    protected override async void OnAfterRender (bool firstRender) {
-        base.OnAfterRender (firstRender);
-        if (firstRender) {
-            await DataSet.InitializeAsync ();
-            StateHasChanged ();
-        }
-    }
-
     /// <summary>表示の更新</summary>
     protected void Update () { }// `=> StateHasChanged();`の処理は、コールバックを受けた時点で内部的に呼ばれているため、明示的な呼び出しは不要
 
@@ -83,12 +74,18 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
         await TaskEx.DelayOneFrame;
     }
 
-    /// <summary>デフォルト項目数の設定</summary>
+    /// <summary>描画後処理</summary>
     protected override async Task OnAfterRenderAsync (bool firstRender) {
         await base.OnAfterRenderAsync (firstRender);
         if (_table != null && !_inited) {
+            // デフォルト項目数の設定
             _inited = true;
             InitRowsPerPage ();
+        }
+        if (firstRender) {
+            // 遅延初期化
+            await DataSet.InitializeAsync ();
+            StateHasChanged ();
         }
     }
     protected bool _inited;
