@@ -19,9 +19,10 @@
                             @(item.Id == CurrentBookId ? ">" : " ")
                         </MudButton>
                     </td>
-                    <td>@item.Title</td>
+                    <td>@(item.DetectedTitle != item.Title ? "×" : "◯") @item.Title</td>
+                    <td>@(item.DetectedTitle)</td>
                     <td>@item.Author</td>
-                    <td>@item.Site</td>
+                    <td>@(item.DetectedSite != @item.Site ? "×" : "◯") @item.Site</td>
                     <td>@item.CountOfSheets</td>
                 </tr>
             }

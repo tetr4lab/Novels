@@ -16,8 +16,9 @@
         if (item is not null) {
             var page = items.IndexOf (item) + 1;
             <MudText>『@(book.Title)』 @(book.Author) #@(item.NovelNumber) @(page)/@(book.CountOfSheets)</MudText>
+            <MudText>『@(book.DetectedTitle)』</MudText>
             <MudPaper>
-                @(item.Html)
+                @(item.Document.Body.InnerHtml)
             </MudPaper>
         } else {
             <MudText>No page found.</MudText>

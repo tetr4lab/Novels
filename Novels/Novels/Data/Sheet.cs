@@ -7,6 +7,8 @@ using Novels.Components.Pages;
 using Novels.Services;
 using System.Data;
 using Tetr4lab;
+using AngleSharp.Html.Parser;
+using AngleSharp.Html.Dom;
 
 namespace Novels.Data;
 
@@ -38,17 +40,40 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
 
     [Column ("book_id"), Required] public long BookId { get; set; } = 0;
     [Column ("url")] public string Url { get; set; } = "";
-    [Column ("html")] public string? Html { get; set; } = null;
+    [Column ("html")] public string? html { get; set; } = null;
     [Column ("sheet_update")] public DateTime? SheetUpdatedAt { get; set; } = null;
     [Column ("novel_no"), Required] public int NovelNumber { get; set; } = 0;
     [Column ("direct_content")] public string? DirectContent { get; set; } = null;
     [Column ("errata")] public string? Errata { get; set; } = null;
 
+    /// <summary>外向けのHTML</summary>
+    public string? Html {
+        get => html;
+        set {
+            if (value != html) {
+                html = value;
+                _htmlDocument = null; // パース結果をクリア
+            }
+        }
+    }
+
+    /// <summary>パース結果</summary>
+    public IHtmlDocument? Document {
+        get {
+            if (_htmlDocument is null && html is not null) {
+                var parser = new HtmlParser ();
+                _htmlDocument = parser.ParseDocument (html);
+            }
+            return _htmlDocument;
+        }
+    }
+    protected IHtmlDocument? _htmlDocument = null;
+
     /// <inheritdoc/>
     public override string? [] SearchTargets => [
         $"#{BookId}.",
         $"@{NovelNumber}.",
-        Html, DirectContent,
+        html, DirectContent,
     ];
 
     /// <summary>ノーマルコンストラクタ</summary>
@@ -59,7 +84,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         var item = base.Clone ();
         item.BookId = BookId;
         item.Url = Url;
-        item.Html = Html;
+        item.Html = html;
         item.DirectContent = DirectContent;
         item.NovelNumber = NovelNumber;
         item.SheetUpdatedAt = SheetUpdatedAt;
@@ -71,7 +96,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     public override Sheet CopyTo (Sheet destination) {
         destination.BookId = BookId;
         destination.Url = Url;
-        destination.Html = Html;
+        destination.Html = html;
         destination.DirectContent = DirectContent;
         destination.NovelNumber = NovelNumber;
         destination.SheetUpdatedAt = SheetUpdatedAt;
@@ -85,7 +110,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         && Id == other.Id
         && BookId == other.BookId
         && Url == other.Url
-        && Html == other.Html
+        && html == other.html
         && DirectContent == other.DirectContent
         && NovelNumber == other.NovelNumber
         && SheetUpdatedAt == other.SheetUpdatedAt
@@ -95,7 +120,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
 
     /// <inheritdoc/>
     public override int GetHashCode () => HashCode.Combine (
-        HashCode.Combine (Url, Html, DirectContent, NovelNumber, SheetUpdatedAt, Errata, BookId, Remarks),
+        HashCode.Combine (Url, html, DirectContent, NovelNumber, SheetUpdatedAt, Errata, BookId, Remarks),
         base.GetHashCode ());
 
     /// <inheritdoc/>
