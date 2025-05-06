@@ -35,11 +35,15 @@ public sealed class NovelsDataSet : BasicDataSet {
     /// <summary>ロード済みのモデルインスタンス</summary>
     public List<Sheet> Sheets => GetList<Sheet> ();
 
+    /// <summary>ロード済みのモデルインスタンス</summary>
+    public List<Setting> Settings => GetList<Setting> ();
+
     /// <summary>有効性の検証</summary>
     public bool Valid
         => IsReady
         && ListSet.ContainsKey (typeof (Book)) && ListSet [typeof (Book)] is List<Book>
         && ListSet.ContainsKey (typeof (Sheet)) && ListSet [typeof (Sheet)] is List<Sheet>
+        && ListSet.ContainsKey (typeof (Setting)) && ListSet [typeof (Setting)] is List<Setting>
         ;
 
     /// <summary>一覧セットをアトミックに取得</summary>
@@ -47,12 +51,16 @@ public sealed class NovelsDataSet : BasicDataSet {
         var result = await ProcessAndCommitAsync<bool> (async () => {
             var books = await database.FetchAsync<Book> (Book.BaseSelectSql);
             var sheets = await database.FetchAsync<Sheet> (Sheet.BaseSelectSql, new { BookId = CurrentBookId, });
-            if (books is not null && sheets is not null) {
+            var settings = await database.FetchAsync<Setting> (Setting.BaseSelectSql);
+            if (books is not null && sheets is not null && settings is not null) {
                 ListSet [typeof (Book)] = books;
                 ListSet [typeof (Sheet)] = sheets;
+                ListSet [typeof (Setting)] = settings;
                 return true;
             }
             ListSet.Remove (typeof (Book));
+            ListSet.Remove (typeof (Sheet));
+            ListSet.Remove (typeof (Setting));
             return false;
         });
         if (result.IsSuccess && !result.Value) {
