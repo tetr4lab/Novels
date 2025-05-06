@@ -44,7 +44,7 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
     /// <inheritdoc/>
     public static string UniqueKeysSql => "";
 
-    [Column ("personal_document_limit_size"), Required] public string PersonalDocumentLimitSize { get; set; } = "";
+    [Column ("personal_document_limit_size"), Required] public int PersonalDocumentLimitSize { get; set; } = 0;
     [Column ("smtp_account"), Required] public string SmtpAccount { get; set; } = "";
     [Column ("smtp_mailaddress"), Required] public string SmtpMailAddress { get; set; } = "";
     [Column ("smtp_replyto"), Required] public string SmtpReplyTo { get; set; } = "";
