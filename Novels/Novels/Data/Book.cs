@@ -312,6 +312,49 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         }
     }
 
+    /// <summary>検出された説明</summary>
+    /// <remarks>
+    /// Correct ( Case ( 
+    /// site = 1 ; TrimLFx ( TagRemove ( Let ( [
+    ///   tmp = sExtract ( html ; "<div id=\"novel_ex\">" ; "</div>" ) ;
+    ///   tmp = If ( tmp <> "" ; tmp ; sExtract ( html ; "<div id=\"novel_ex\" class=\"p-novel__summary\">" ; "</div>" ) )
+    ///  ];
+    ///   tmp
+    /// ) ) ) ;
+    /// site = 2 ; TrimLFx ( TagRemove ( sExtract ( Substitute ( html ; "<span class=\"ui-truncateTextButton-expandButton-label\" aria-hidden=\"true\">…続きを読む</span>" ; "" ) ; "<p id=\"introduction\" class=\"ui-truncateTextButton js-work-introduction\">" ; "</p>" ) ) ) ;
+    /// site = 3 ; Substitute ( TrimLFx ( TagRemove ( sExtract ( html ; "<div class=\"novel_synopsis\">" ; "</div>" ) ) ) ; [Char(13) & Char(10) ; ¶] ) ;
+    /// site = 5 ; TrimLFx ( TagRemove ( sExtractEnclosed ( html ; "<div class=\"CollapseTextWithKakuyomuLinks" ; "</div>" ) ) ) ;
+    /// ) ; errata )
+    /// </remarks>
+    public string DetectedExplanation {
+        get {
+            var explanation = "";
+            if (!string.IsNullOrEmpty (html) && Document is not null) {
+                switch (DetectedSite) {
+                    case Site.Narow:
+                    case Site.Novel18:
+                        explanation = (Document.QuerySelector ("div#novel_ex")?.TextContent
+                            ?? Document.QuerySelector ("div#novel_ex.p-novel__summary")?.TextContent
+                            ?? "").Trim ();
+                        break;
+                    case Site.KakuyomuOld:
+                        explanation = Document.QuerySelector ("p#introduction")?.TextContent ?? "";
+                        break;
+                    case Site.Novelup:
+                        explanation = (Document.QuerySelector ("div.novel_synopsis")?.TextContent ?? "");
+                        break;
+                    case Site.Dyreitou:
+                        explanation = Document.QuerySelector ("div.CollapseTextWithKakuyomuLinks")?.TextContent ?? "";
+                        break;
+                    case Site.Kakuyomu:
+                        explanation = Document.QuerySelector ("p#introduction")?.TextContent ?? "";
+                        break;
+                }
+            }
+            return Correct (explanation) ?? "";
+        }
+    }
+
     /// <summary>名前の標準化</summary>
     /// <param name="name">名前</param>
     /// <param name="monadic">単独記号以降を削除するか</param>
