@@ -87,23 +87,31 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     [Column ("wish"), Required] public bool Wish { get; set; } = false;
     [Column ("bookmark")] public long? Bookmark { get; set; } = null;
 
+    /// <summary>更新されている</summary>
+    public bool Dirty { get; protected set; } = false;
+
     /// <summary>検出されたサイト</summary>
     public Site DetectedSite {
         get {
+            var site = Site.Unknown;
             if (Url1.Contains ("ncode.syosetu.com")) {
-                return Site.Narow;
+                site = Site.Narow;
             } else if (Url1.Contains ("novel18.syosetu.com")) {
-                return Site.Novel18;
+                site = Site.Novel18;
             } else if (Url1.Contains ("kakuyomu.jp") && Document?.QuerySelector ("h1#workTitle") is not null) {
-                return Site.KakuyomuOld;
+                site = Site.KakuyomuOld;
             } else if (Url1.Contains ("novelup.plus")) {
-                return Site.Novelup;
+                site = Site.Novelup;
             } else if (Url1.Contains ("dyreitou.com")) {
-                return Site.Dyreitou;
+                site = Site.Dyreitou;
             } else if (Url1.Contains ("kakuyomu.jp")) {
-                return Site.Kakuyomu;
+                site = Site.Kakuyomu;
             }
-            return Site.Unknown;
+            if (site != Site.Unknown && Site != site) {
+                Site = site;
+                Dirty = true;
+            }
+            return site;
         }
     }
 
@@ -201,8 +209,12 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
             if (string.IsNullOrEmpty (title)) {
                 title = Url1;
             }
-            Title = (Correct (title) ?? "").Replace ('　', ' ').Trim ();
-            return Title;
+            title = (Correct (title) ?? "").Replace ('　', ' ').Trim ();
+            if (string.IsNullOrEmpty (title) && title != Title) {
+                Title = title;
+                Dirty = true;
+            }
+            return title;
         }
     }
 
@@ -308,8 +320,12 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
             if (string.IsNullOrEmpty (author)) {
                 author = Url1;
             }
-            Author = GetNormalizedName (Correct (author) ?? "");
-            return Author;
+            author = GetNormalizedName (Correct (author) ?? "");
+            if (string.IsNullOrEmpty (author) && author != Author) {
+                Author = author;
+                Dirty = true;
+            }
+            return author;
         }
     }
 
