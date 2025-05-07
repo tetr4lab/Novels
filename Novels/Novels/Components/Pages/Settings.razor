@@ -85,10 +85,10 @@
                 <td colspan="2">
                     <MudStack Row Class="justify-center">
                         <MudTooltip Arrow="true" Text="復旧">
-                            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="() => { Cancel (editingItem); StartEdit (); }" />
+                            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="() => { if (editingItem is not null) { Cancel (editingItem); StartEdit (); } }" />
                         </MudTooltip>
                         <MudTooltip Arrow="true" Text="保存">
-                            <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="() => { Commit (editingItem); StartEdit (); }" />
+                            <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="() => { if (editingItem is not null) { Commit (editingItem); StartEdit (); } }" />
                         </MudTooltip>
                     </MudStack>
                 </td>
@@ -133,7 +133,7 @@
     /// <summary>遅延初期化</summary>
     protected override async Task OnAfterRenderAsync (bool firstRender) {
         await base.OnAfterRenderAsync (firstRender);
-        if (firstRender) {
+        if (firstRender && items is not null) {
             selectedItem = items [0];
             StartEdit ();
         }

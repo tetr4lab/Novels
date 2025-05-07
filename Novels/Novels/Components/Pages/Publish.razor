@@ -10,7 +10,7 @@
     <MudProgressCircular Indeterminate="true" />
 } else if (items.Count > 0) {
     var book = DataSet.Books.Find (s => s.Id == CurrentBookId);
-    <MudText>『@(book.Title)』 @(book.Author)</MudText>
+    <MudText>『@(book?.Title ?? "")』 @(book?.Author ?? "")</MudText>
     @foreach (var item in items) {
         @if (FilterFunc (item)) {
             <div>

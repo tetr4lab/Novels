@@ -138,7 +138,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// 	)
     ///  )
     /// </remarks>
-    public string? DetectedTitle {
+    public string DetectedTitle {
         get {
             var title = "";
             if (!string.IsNullOrEmpty (html) && Document is not null) {
@@ -175,6 +175,255 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
             title = Correct (title) ?? "";
             return title.Replace ("　", " ").Trim ();
         }
+    }
+
+    /// <summary>検出された著者</summary>
+    /// <remarks>
+    /// Let ( [
+    /// Author = If ( IsEmpty ( html ) ; "" ; Correct ( Substitute ( TrimLF ( TagRemove ( Case (
+    /// site = 1 ; Substitute ( Let ( [
+    ///   tmp = sExtract ( html ; "<div class=\"novel_writername\">" ; "</div>" ) ;
+    ///   tmp = If ( tmp <> "" ; tmp ; sExtract ( html ; "<div class=\"p-novel__author\">" ; "</div>" ) )
+    ///  ];
+    ///   tmp
+    ///  ) ; "作者：" ; "" )  ;
+    /// site = 2 ; sExtract ( html ; "<span id=\"workAuthor-activityName\">" ; "</span>" ) ;
+    /// site = 3 ; TrimLFx ( sExtract ( html ; "<div class=\"novel_author\">" ; "</div>" ) ) ;
+    /// site = 4 ; "dy冷凍" ;
+    /// site = 5 ; TagRemove ( sExtractEnclosed ( html ; "<a href=\"/users" ; "</a>" ) ) ;
+    ///  ) ) ) ; "　" ; " " ) ; errata ) );
+    /// memo2 = GetValue ( direct_title_writername ; 2 )
+    ///  ] ; 
+    /// GetNormalizedAuthorName ( 
+    /// 	If ( IsEmpty ( Author ) ; 
+    /// 		If ( IsEmpty ( memo2 ) ; 
+    /// 			If ( IsEmpty ( direct_title_writername ) ;
+    /// 				If ( IsEmpty ( memo ) ; 
+    /// 					TextColor ( url ; RGB ( 100 ; 100 ; 100 ) ) ; 
+    /// 					TextColor ( GetValue ( memo ; 2 ) ; RGB ( 100 ; 100 ; 100 ) ) 
+    /// 				) ;
+    /// 				TextColor ( GetValue ( direct_title_writername ; 2 ) ; RGB ( 100 ; 100 ; 100 ) ) 
+    /// 			) ; 
+    /// 			TextColor ( memo2 ; RGB ( 100 ; 100 ; 100 ) ) 
+    /// 		) ; 
+    /// 		Author 
+    /// 	)
+    ///  )
+    ///  )
+    /// </remarks>
+    public string DetectedAuther {
+        get {
+            var author = "";
+            if (!string.IsNullOrEmpty (html) && Document is not null) {
+                switch (DetectedSite) {
+                    case Site.Narow:
+                    case Site.Novel18:
+                        author = (Document.QuerySelector ("div.novel_writername")?.TextContent
+                            ?? Document.QuerySelector ("div.p-novel__author")?.TextContent
+                            ?? "").Replace ("作者：", "");
+                        break;
+                    case Site.KakuyomuOld:
+                        author = Document.QuerySelector ("span#workAuthor-activityName")?.TextContent ?? "";
+                        break;
+                    case Site.Novelup:
+                        author = (Document.QuerySelector ("div.novel_author")?.TextContent ?? "");
+                        break;
+                    case Site.Dyreitou:
+                        author = "dy冷凍";
+                        break;
+                    case Site.Kakuyomu:
+                        author = Document.QuerySelector ("a[href^='/users']")?.TextContent ?? "";
+                        break;
+                }
+            }
+            if (string.IsNullOrEmpty (author)) {
+                var s = (DirectTitleWriterName ?? Remarks)?.Split ('\n');
+                if (s is not null && s.Length > 1) {
+                    author = s [1];
+                }
+            }
+            if (string.IsNullOrEmpty (author)) {
+                author = Url1;
+            }
+            author = Correct (author) ?? "";
+            return GetNormalizedAuthorName (author).Trim ();
+        }
+    }
+
+    /// <summary>著者名の標準化</summary>
+    /// <remarks>
+    /// Let ([
+    /// 	s = Position ( text ; "【" ; 1 ; 1 );
+    /// 	e = Position ( text ; "】" ; -1 ; 1 );
+    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    /// 
+    /// 	s = Position ( text ; "【" ; 1 ; 1 );
+    /// 	e = Position ( text ; "】" ; -1 ; 1 );
+    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    /// 
+    /// 	s = Position ( text ; "【" ; 1 ; 1 );
+    /// 	e = Position ( text ; "】" ; -1 ; 1 );
+    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    /// 
+    /// 	s = Position ( text ; "[" ; 1 ; 1 );
+    /// 	e = Position ( text ; "]" ; -1 ; 1 );
+    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    /// 
+    /// //	s = Position ( text ; "(" ; 1 ; 1 );
+    /// //	e = Position ( text ; ")" ; -1 ; 1 );
+    /// //	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    /// 
+    /// 	s = Position ( text ; "{" ; 1 ; 1 );
+    /// 	e = Position ( text ; "}" ; -1 ; 1 );
+    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    /// 
+    /// 	s = Position ( text ; "<" ; 1 ; 1 );
+    /// 	e = Position ( text ; ">" ; -1 ; 1 );
+    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    /// 
+    /// 	s = Position ( text ; "［" ; 1 ; 1 );
+    /// 	e = Position ( text ; "］" ; -1 ; 1 );
+    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    /// 
+    /// //	s = Position ( text ; "（" ; 1 ; 1 );
+    /// //	e = Position ( text ; "）" ; -1 ; 1 );
+    /// //	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    /// 
+    /// 	s = Position ( text ; "｛" ; 1 ; 1 );
+    /// 	e = Position ( text ; "｝" ; -1 ; 1 );
+    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    /// 
+    /// 	s = Position ( text ; "〔" ; 1 ; 1 );
+    /// 	e = Position ( text ; "〕" ; -1 ; 1 );
+    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    /// 
+    /// 	s = Position ( text ; "＜" ; 1 ; 1 );
+    /// 	e = Position ( text ; "＞" ; -1 ; 1 );
+    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    /// 
+    /// 	text = Trim ( text );
+    /// 	s = Position ( text ; "@" ; 1 ; 1 );
+    /// 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
+    /// 
+    /// 	text = Trim ( text );
+    /// 	s = Position ( text ; "＠" ; 1 ; 1 );
+    /// 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
+    /// 
+    /// 	text = Trim ( text );
+    /// 	s = Position ( text ; "～" ; 1 ; 1 );
+    /// 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
+    /// 
+    /// 	text = Trim ( text );
+    /// 	s = Position ( text ; "〜" ; 1 ; 1 );
+    /// 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
+    /// 
+    /// 	text = Trim ( text );
+    /// 	s = Position ( text ; "─" ; 1 ; 1 );
+    /// 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
+    /// 
+    /// 	text = Trim ( text );
+    /// 	s = Position ( text ; "…" ; 1 ; 1 );
+    /// 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
+    /// 
+    /// 	text = Trim ( text );
+    /// 	s = Position ( text ; "、" ; 1 ; 1 );
+    /// 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
+    /// 
+    /// 	text = Trim ( text );
+    /// 	s = Position ( text ; "。" ; 1 ; 1 );
+    /// 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
+    /// 
+    /// _ = "" ] ;
+    /// 	
+    /// 	Trim ( text )
+    /// )    /// </remarks>
+    public string GetNormalizedAuthorName (string author) {
+        if (string.IsNullOrEmpty (author)) {
+            return "";
+        }
+        var s = author.IndexOf ('【');
+        var e = author.IndexOf ('】');
+        if (s > 0 && e > s) {
+            author = author.Remove (s, e - s + 1);
+        }
+        s = author.IndexOf ('【');
+        e = author.IndexOf ('】');
+        if (s > 0 && e > s) {
+            author = author.Remove (s, e - s + 1);
+        }
+        s = author.IndexOf ('【');
+        e = author.IndexOf ('】');
+        if (s > 0 && e > s) {
+            author = author.Remove (s, e - s + 1);
+        }
+        s = author.IndexOf ('[');
+        e = author.IndexOf (']');
+        if (s > 0 && e > s) {
+            author = author.Remove (s, e - s + 1);
+        }
+        s = author.IndexOf ('{');
+        e = author.IndexOf ('}');
+        if (s > 0 && e > s) {
+            author = author.Remove (s, e - s + 1);
+        }
+        s = author.IndexOf ('<');
+        e = author.IndexOf ('>');
+        if (s > 0 && e > s) {
+            author = author.Remove (s, e - s + 1);
+        }
+        s = author.IndexOf ('［');
+        e = author.IndexOf ('］');
+        if (s > 0 && e > s) {
+            author = author.Remove (s, e - s + 1);
+        }
+        s = author.IndexOf ('｛');
+        e = author.IndexOf ('｝');
+        if (s > 0 && e > s) {
+            author = author.Remove (s, e - s + 1);
+        }
+        s = author.IndexOf ('〔');
+        e = author.IndexOf ('〕');
+        if (s > 0 && e > s) {
+            author = author.Remove (s, e - s + 1);
+        }
+        s = author.IndexOf ('＜');
+        e = author.IndexOf ('＞');
+        if (s > 0 && e > s) {
+            author = author.Remove (s, e - s + 1);
+        }
+        s = author.IndexOf ('@');
+        if (s > 0) {
+            author = author.Remove (s);
+        }
+        s = author.IndexOf ('＠');
+        if (s > 0) {
+            author = author.Remove (s);
+        }
+        s = author.IndexOf ('～');
+        if (s > 0) {
+            author = author.Remove (s);
+        }
+        s = author.IndexOf ('〜');
+        if (s > 0) {
+            author = author.Remove (s);
+        }
+        s = author.IndexOf ('─');
+        if (s > 0) {
+            author = author.Remove (s);
+        }
+        s = author.IndexOf ('…');
+        if (s > 0) {
+            author = author.Remove (s);
+        }
+        s = author.IndexOf ('、');
+        if (s > 0) {
+            author = author.Remove (s);
+        }
+        s = author.IndexOf ('。');
+        if (s > 0) {
+            author = author.Remove (s);
+        }
+        return author.Replace ("　", " ").Trim ();
     }
 
     /// <summary>文字校正</summary>

@@ -19,10 +19,12 @@
                             @(item.Id == CurrentBookId ? ">" : " ")
                         </MudButton>
                     </td>
-                    <td>@(item.DetectedTitle != item.Title ? "×" : "◯") @item.Title</td>
-                    <td>@(item.DetectedTitle)</td>
-                    <td>@item.Author</td>
-                    <td>@(item.DetectedSite != @item.Site ? "×" : "◯") @item.Site</td>
+                    @* <td>@(item.DetectedTitle != item.Title ? "×" : "◯") @item.DetectedTitle</td> *@
+                    <td>@(item.Title)</td>
+                    @* <td>@(item.DetectedAuther != item.Author ? "×" : "◯") @item.DetectedAuther</td> *@
+                    <td>@(item.Author)</td>
+                    @* <td>@(item.DetectedSite != item.Site ? "×" : "◯") @item.DetectedSite</td> *@
+                    <td>@item.Site</td>
                     <td>@item.CountOfSheets</td>
                 </tr>
             }
@@ -42,7 +44,7 @@
     protected override async Task OnAfterRenderAsync (bool firstRender) {
         await base.OnAfterRenderAsync (firstRender);
         if (firstRender && items?.Count > 0) {
-            SetCurrentBookId.InvokeAsync (items [0].Id);
+            await SetCurrentBookId.InvokeAsync (items [0].Id);
         }
     }
 

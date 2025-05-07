@@ -18,7 +18,7 @@
             <MudText>『@(book.Title)』 @(book.Author) #@(item.NovelNumber) @(page)/@(book.CountOfSheets)</MudText>
             <MudText>『@(book.DetectedTitle)』</MudText>
             <MudPaper>
-                @(item.Document.Body.InnerHtml)
+                @(item.Document?.Body?.InnerHtml ?? "")
             </MudPaper>
         } else {
             <MudText>No page found.</MudText>
