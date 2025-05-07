@@ -49,7 +49,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (Author), "著者" },
         { nameof (DirectTitleWriterName), "著作/著者" },
         { nameof (DirectContent), "本文" },
-        { nameof (CountOfSheets), "シート数" },
+        { nameof (NumberOfSheets), "シート数" },
         { nameof (NumberOfPublished), "発行済みシート数" },
         { nameof (PublishedAt), "発行日時" },
         { nameof (Readed), "既読" },
@@ -75,7 +75,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     [Column ("author")] public string? Author { get; set; } = null;
     [Column ("direct_title_writername")] public string? DirectTitleWriterName { get; set; } = null;
     [Column ("direct_content")] public string? DirectContent { get; set; } = null;
-    [Column ("count_of_sheets")] public int? CountOfSheets { get; set; } = null;
+    [Column ("number_of_sheets")] public int? NumberOfSheets { get; set; } = null;
     [Column ("number_of_published")] public int? NumberOfPublished { get; set; } = null;
     [Column ("published_at")] public DateTime? PublishedAt { get; set; } = null;
     [Column ("read"), Required] public bool Readed { get; set; } = false;
@@ -355,6 +355,89 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         }
     }
 
+    /// <summary>
+    /// 検出されたシートURL
+    /// サイト別に異なる場所に格納された従属ページのUrlを収集し、リストにして返す
+    /// </summary>
+    /// <remarks>
+    /// Case (
+    /// site = 1 ; Let ( [
+    ///   urls = Substitute ( ¶ & sExtract2List ( Let ( [
+    ///     tmp = sExtract2List ( Book::html ; "<dl class=\"novel_sublist2\">" ; "</dl>" ) ;
+    ///     tmp = If ( tmp <> "" ; tmp ; sExtract2List ( Book::html ; "<div class=\"p-eplist__sublist\">" ; "</div>" ) )
+    ///   ];
+    ///     tmp
+    ///   ) ; "<a href=\"" ; "\"" ) ; "¶/" ; ¶ & Left ( Book::url ; Position ( Book::url ; "/" ; 1 ; 3 ) ) )
+    /// ] ;
+    ///   Right ( urls ; Length ( urls ) - 1 )
+    /// ) ;
+    /// site = 2 ; Let ( [
+    /// urls = sExtract2List ( sExtract2List ( html ; "<li class=\"widget-toc-episode\">" ; "</li>" ) ; "<a href" ; "\" class=\"widget-toc-episode-episodeTitle\">" )
+    /// ] ; Case (
+    /// Left (urls ; 3 ) = "=\"/" ; Substitute ( urls ; "=\"/" ; Left ( url ; Position ( url ; "/" ; 1 ; 3 ) ) ) ;
+    /// Right (url ; 1 ) = "/" ; Substitute ( urls ; "=\"/" ; url ) ;
+    /// Substitute ( urls ; "=\"" ; url )
+    ///  ) ) ;
+    /// site = 3 ; Let ( [
+    /// urls = sExtract2List ( sExtract2List ( html ; "<div class=\"episode_link episode_show_visited\">" ; "</div>" ) ; "<a href" ; "\">" )
+    /// ] ; Case (
+    /// Left (urls ; 3 ) = "=\"/" ; Substitute ( urls ; "=\"/" ; Left ( url ; Position ( url ; "/" ; 1 ; 3 ) ) ) ;
+    /// Right (url ; 1 ) = "/" ; Substitute ( urls ; "=\"/" ; url ) ;
+    /// Substitute ( urls ; "=\"" ; "" )
+    ///  ) ) ;
+    /// site = 4 ; Let ( [
+    /// urls = sExtract2List ( sExtract2List ( html ; "<div class=\"mokuji\">" ; "</div>" ) ; "<a href" ; "\">" )
+    /// ] ; Case (
+    /// Left (urls ; 6 ) = "=\"http" ; Substitute ( urls ; "=\"http" ; "http" ) ;
+    /// Left (urls ; 3 ) = "=\"/" ; Substitute ( urls ; "=\"/" ; Left ( url ; Position ( url ; "/" ; 1 ; 3 ) ) ) ;
+    /// Right (url ; 1 ) = "/" ; Substitute ( urls ; "=\"/" ; url ) ;
+    /// Substitute ( urls ; "=\"" ; url )
+    ///  ) ) ;
+    /// site = 5 ; Let ( [
+    /// urls = Substitute ( Trim ( sExtract2List ( html ; "\"__typename\":\"Episode\"," ; "\"title\":" ) ) ; [ "\"id\":\"" ; url & "/episodes/" ] ; [ "\"," ; "" ] )
+    /// ] ; urls ) ;
+    ///  "" )
+    /// </remarks>
+    public List<string> DetectedSheetUrls {
+        get {
+            var sheetUrls = new List<string> ();
+            AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement>? atags = null;
+            if (!string.IsNullOrEmpty (html) && Document is not null) {
+                switch (DetectedSite) {
+                    case Site.Narow:
+                    case Site.Novel18:
+                        atags = Document.QuerySelectorAll ("dl.novel_sublist2 a");
+                        if (atags.Length == 0) {
+                            atags = Document.QuerySelectorAll ("div.p-eplist__sublist a");
+                        }
+                        break;
+                    case Site.KakuyomuOld:
+                        atags = Document.QuerySelectorAll ("li.widget-toc-episode a");
+                        break;
+                    case Site.Novelup:
+                        atags = Document.QuerySelectorAll ("div.episode_link a");
+                        break;
+                    case Site.Dyreitou:
+                        atags = Document.QuerySelectorAll ("div.mokuji a");
+                        break;
+                    case Site.Kakuyomu:
+                        atags = Document.QuerySelectorAll ("a[href^='/works/']");
+                        break;
+                }
+                if (atags?.Count () > 0) {
+                    var baseUrl = Url1.Substring (0, Url1.IndexOf ('/', 8));
+                    foreach (var atag in atags) {
+                        var url = atag.GetAttribute ("href");
+                        if (!string.IsNullOrEmpty (url)) {
+                            sheetUrls.Add ((!url.StartsWith ("http") ? baseUrl : "") + url);
+                        }
+                    }
+                }
+            }
+            return sheetUrls;
+        }
+    }
+
     /// <summary>名前の標準化</summary>
     /// <param name="name">名前</param>
     /// <param name="monadic">単独記号以降を削除するか</param>
@@ -626,7 +709,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         item.Author = Author;
         item.DirectTitleWriterName = DirectTitleWriterName;
         item.DirectContent = DirectContent;
-        item.CountOfSheets = CountOfSheets;
+        item.NumberOfSheets = NumberOfSheets;
         item.NumberOfPublished = NumberOfPublished;
         item.PublishedAt = PublishedAt;
         item.Readed = Readed;
@@ -649,7 +732,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         destination.Author = Author;
         destination.DirectTitleWriterName = DirectTitleWriterName;
         destination.DirectContent = DirectContent;
-        destination.CountOfSheets = CountOfSheets;
+        destination.NumberOfSheets = NumberOfSheets;
         destination.NumberOfPublished = NumberOfPublished;
         destination.PublishedAt = PublishedAt;
         destination.Readed = Readed;
@@ -674,7 +757,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         && Author == other.Author
         && DirectTitleWriterName == other.DirectTitleWriterName
         && DirectContent == other.DirectContent
-        && CountOfSheets == other.CountOfSheets
+        && NumberOfSheets == other.NumberOfSheets
         && NumberOfPublished == other.NumberOfPublished
         && PublishedAt == other.PublishedAt
         && Readed == other.Readed
@@ -689,10 +772,10 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
 
     /// <inheritdoc/>
     public override int GetHashCode () => HashCode.Combine (
-        HashCode.Combine (Url1, Url2, html, DirectTitleWriterName, DirectContent, CountOfSheets, NumberOfPublished, PublishedAt),
+        HashCode.Combine (Url1, Url2, html, DirectTitleWriterName, DirectContent, NumberOfSheets, NumberOfPublished, PublishedAt),
         HashCode.Combine (Readed, ReadedMemo, Status, HtmlBackup, Errata, Wish, Bookmark, Remarks),
         base.GetHashCode ());
 
     /// <inheritdoc/>
-    public override string ToString () => $"{TableLabel} {Id}: {Url1} {Site} {Title} {Author} {NumberOfPublished}/{CountOfSheets} {PublishedAt} \"{Remarks}\"";
+    public override string ToString () => $"{TableLabel} {Id}: {Url1} {Site} {Title} {Author} {NumberOfPublished}/{NumberOfSheets} {PublishedAt} \"{Remarks}\"";
 }

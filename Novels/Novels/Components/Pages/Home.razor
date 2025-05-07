@@ -12,6 +12,8 @@
     <MudSimpleTable>
         @foreach (var item in items) {
             @if (FilterFunc (item)) {
+                var urls = item.DetectedSheetUrls;
+                var count = urls.Count;
                 <tr>
                     <td>@item.Id</td>
                     <td>
@@ -19,6 +21,7 @@
                             @(item.Id == CurrentBookId ? ">" : "　")
                         </MudButton>
                     </td>
+                    <td>@(count != item.NumberOfSheets ? $"×{count}:{item.NumberOfSheets}\n{string.Join ("\n", urls)}" : "")</td>
                     @* <td>@item.DetectedSeriesTitle</td> *@
                     <td>@(item.Title)</td>
                     @* <td>@(item.DetectedTitle != item.Title ? "×" : "◯") @item.DetectedTitle</td> *@
@@ -28,7 +31,7 @@
                     <td><MudText Typo="Typo.caption" Style="white-space: pre-line;">@item.DetectedExplanation</MudText></td>
                     <td>@item.Site</td>
                     @* <td>@(item.DetectedSite != item.Site ? "×" : "◯") @item.DetectedSite</td> *@
-                    <td>@item.CountOfSheets</td>
+                    <td>@item.NumberOfSheets</td>
                 </tr>
             }
         }
