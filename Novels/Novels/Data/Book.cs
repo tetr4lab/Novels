@@ -502,7 +502,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                         foreach (var tag in tags) {
                             var date = tag.GetAttribute ("datetime");
                             if (!string.IsNullOrEmpty (date)) {
-                                date = date.Replace ("T", " ").Replace ("Z", "");
                                 if (DateTime.TryParse (date, out var dt)) {
                                     sheetDates.Add (dt);
                                 }
