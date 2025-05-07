@@ -509,10 +509,26 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                         }
                         break;
                     case Site.Novelup:
-                        break;
-                    case Site.Dyreitou:
+                        tags = Document.QuerySelectorAll ("div.update_date span span");
+                        foreach (var tag in tags) {
+                            var date = tag.TextContent;
+                            if (!string.IsNullOrEmpty (date)) {
+                                if (DateTime.TryParse (date, out var dt)) {
+                                    sheetDates.Add (dt);
+                                }
+                            }
+                        }
                         break;
                     case Site.Kakuyomu:
+                        var regex = new Regex ("(?<=\"editedAt\":\")[^\"]+(?=\")");
+                        var match = regex.Match (html);
+                        if (match.Success) {
+                            if (DateTime.TryParse (match.Value, out var dt)) {
+                                for (var i = 0; i < NumberOfSheets; i++) {
+                                    sheetDates.Add (dt);
+                                }
+                            }
+                        }
                         break;
                 }
             }
