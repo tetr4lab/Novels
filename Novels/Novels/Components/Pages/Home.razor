@@ -21,14 +21,14 @@
                             @(item.Id == CurrentBookId ? ">" : "　")
                         </MudButton>
                     </td>
-                    <td>@(count != item.NumberOfSheets ? $"×{count}:{item.NumberOfSheets}\n{string.Join ("\n", urls)}" : "")</td>
+                    @* <td>@(count != (item.NumberOfSheets ?? 0) ? $"×{count}:{item.NumberOfSheets}, {string.Join (", ", urls)}" : string.Join (", ", urls))</td> *@
                     @* <td>@item.DetectedSeriesTitle</td> *@
                     <td>@(item.Title)</td>
                     @* <td>@(item.DetectedTitle != item.Title ? "×" : "◯") @item.DetectedTitle</td> *@
                     @* <td>@(item.DetectedMainTitle != item.Title ? item.DetectedMainTitle : "")</td> *@
                     <td>@(item.Author)</td>
                     @* <td>@(item.DetectedAuther != item.Author ? "×" : "◯") @item.DetectedAuther</td> *@
-                    <td><MudText Typo="Typo.caption" Style="white-space: pre-line;">@item.DetectedExplanation</MudText></td>
+                    @* <td><MudText Typo="Typo.caption" Style="white-space: pre-line;">@item.DetectedExplanation</MudText></td> *@
                     <td>@item.Site</td>
                     @* <td>@(item.DetectedSite != item.Site ? "×" : "◯") @item.DetectedSite</td> *@
                     <td>@item.NumberOfSheets</td>

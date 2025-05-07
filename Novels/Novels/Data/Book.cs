@@ -1,6 +1,7 @@
 ﻿using PetaPoco;
 using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 using MudBlazor;
 using System.Xml.Linq;
 using Novels.Components.Pages;
@@ -130,7 +131,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                         break;
                 }
             }
-            return (Correct (seriesTitle) ?? "").Replace ("　", " ").Trim ();
+            return (Correct (seriesTitle) ?? "").Replace ('　', ' ').Trim ();
         }
     }
 
@@ -200,7 +201,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
             if (string.IsNullOrEmpty (title)) {
                 title = Url1;
             }
-            Title = (Correct (title) ?? "").Replace ("　", " ").Trim ();
+            Title = (Correct (title) ?? "").Replace ('　', ' ').Trim ();
             return Title;
         }
     }
@@ -363,11 +364,11 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// Case (
     /// site = 1 ; Let ( [
     ///   urls = Substitute ( ¶ & sExtract2List ( Let ( [
-    ///     tmp = sExtract2List ( Book::html ; "<dl class=\"novel_sublist2\">" ; "</dl>" ) ;
-    ///     tmp = If ( tmp <> "" ; tmp ; sExtract2List ( Book::html ; "<div class=\"p-eplist__sublist\">" ; "</div>" ) )
+    ///     tmp = sExtract2List ( html ; "<dl class=\"novel_sublist2\">" ; "</dl>" ) ;
+    ///     tmp = If ( tmp <> "" ; tmp ; sExtract2List ( html ; "<div class=\"p-eplist__sublist\">" ; "</div>" ) )
     ///   ];
     ///     tmp
-    ///   ) ; "<a href=\"" ; "\"" ) ; "¶/" ; ¶ & Left ( Book::url ; Position ( Book::url ; "/" ; 1 ; 3 ) ) )
+    ///   ) ; "<a href=\"" ; "\"" ) ; "¶/" ; ¶ & Left ( url ; Position ( url ; "/" ; 1 ; 3 ) ) )
     /// ] ;
     ///   Right ( urls ; Length ( urls ) - 1 )
     /// ) ;
@@ -401,35 +402,39 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public List<string> DetectedSheetUrls {
         get {
             var sheetUrls = new List<string> ();
-            AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement>? atags = null;
+            AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement>? tags = null;
             if (!string.IsNullOrEmpty (html) && Document is not null) {
                 switch (DetectedSite) {
                     case Site.Narow:
                     case Site.Novel18:
-                        atags = Document.QuerySelectorAll ("dl.novel_sublist2 a");
-                        if (atags.Length == 0) {
-                            atags = Document.QuerySelectorAll ("div.p-eplist__sublist a");
+                        tags = Document.QuerySelectorAll ("dl.novel_sublist2 a");
+                        if (tags.Length == 0) {
+                            tags = Document.QuerySelectorAll ("div.p-eplist__sublist a");
                         }
                         break;
                     case Site.KakuyomuOld:
-                        atags = Document.QuerySelectorAll ("li.widget-toc-episode a");
+                        tags = Document.QuerySelectorAll ("li.widget-toc-episode a");
                         break;
                     case Site.Novelup:
-                        atags = Document.QuerySelectorAll ("div.episode_link a");
+                        tags = Document.QuerySelectorAll ("div.episode_link a");
                         break;
                     case Site.Dyreitou:
-                        atags = Document.QuerySelectorAll ("div.mokuji a");
+                        tags = Document.QuerySelectorAll ("div.mokuji a");
                         break;
                     case Site.Kakuyomu:
-                        atags = Document.QuerySelectorAll ("a[href^='/works/']");
+                        var regex = new Regex ("(?<=\"__typename\":\"Episode\",\"id\":\")\\d+(?=\")");
+                        foreach (Match match in regex.Matches (html)) {
+                            if (match.Success) {
+                                sheetUrls.Add ($"/episodes/{match.Value}");
+                            }
+                        }
                         break;
                 }
-                if (atags?.Count () > 0) {
-                    var baseUrl = Url1.Substring (0, Url1.IndexOf ('/', 8));
-                    foreach (var atag in atags) {
+                if (sheetUrls.Count <= 0 && tags?.Count () > 0) {
+                    foreach (var atag in tags) {
                         var url = atag.GetAttribute ("href");
                         if (!string.IsNullOrEmpty (url)) {
-                            sheetUrls.Add ((!url.StartsWith ("http") ? baseUrl : "") + url);
+                            sheetUrls.Add (url);
                         }
                     }
                 }
@@ -633,7 +638,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                 name = name.Remove (s);
             }
         }
-        return name.Replace ("　", " ").Trim ();
+        return name.Replace ('　', ' ').Trim ();
     }
 
     /// <summary>文字校正</summary>
