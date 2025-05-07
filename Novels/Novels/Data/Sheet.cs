@@ -46,6 +46,11 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     [Column ("direct_content")] public string? DirectContent { get; set; } = null;
     [Column ("errata")] public string? Errata { get; set; } = null;
 
+    /// <summary>最終更新日時</summary>
+    public DateTime LastUpdated {
+        get;
+    }
+
     /// <summary>外向けのHTML</summary>
     public string? Html {
         get => html;

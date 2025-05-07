@@ -536,6 +536,27 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         }
     }
 
+    /// <summary>検出された最終更新日時</summary>
+    /// <remarks
+    /// Case (
+    /// not IsEmpty ( direct_content ) ; modified ;
+    /// not IsEmpty ( sheet_updates ) ; MaxTimestamp ( sheet_updates ) + Case ( site = 2 ; Time ( 9 ; 0 ; 0 ) ; 0 ) ;
+    /// Count ( Sheet::sheet_lastupdate ) ; Max ( Sheet::sheet_lastupdate ) ;
+    ///  modified )
+    /// </remarks>
+    public DateTime DetecteLastUpdated (NovelsDataSet dataset) {
+        if (!string.IsNullOrEmpty (DirectContent)) {
+            return Modified;
+        }
+        var sheetDates = DetectedSheetUpdated;
+        if (sheetDates.Count > 0) {
+            return sheetDates.Max ();
+        }
+        if (dataset.Sheets.Count > 0) {
+            return dataset.Sheets.Max (s => s.LastUpdated);
+        }
+        return Modified;
+    }
 
     /// <summary>名前の標準化</summary>
     /// <param name="name">名前</param>
