@@ -443,6 +443,69 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         }
     }
 
+    /// <summary>検出されたシートの更新日時</summary>
+    /// <remarks>
+    /// Case (
+    /// site = 1 ; sExtracts2List ( Let ( [
+    ///   tmp = sExtract2List ( html ; "<dl class=\"novel_sublist2\">" ; "</dl>" ) ;
+    ///   tmp = If (tmp <> "" ; tmp ; sExtract2List ( html ; "<div class=\"p-eplist__sublist\">" ; "</div>" ) )
+    ///  ];
+    ///   tmp
+    /// ) ; "<span title=\"" ; " 改稿\">" ; "<dt class=\"long_update\">" ; "</dt>" ) ;
+    /// site = 2 ; Substitute ( sExtract2List ( sExtract2List ( html ; "<li class=\"widget-toc-episode\">" ; "</li>" ) ; "<time class=\"widget-toc-episode-datePublished\" datetime=\"" ; "Z\">" ) ; ["T" ; " "] ; ["-" ; "/"] ) ;
+    /// site = 3 ; sExtract2List ( sExtract2List ( html ; "<div class=\"update_date\">" ; "</div>" ) ; "<span>投稿日<span>" ; "</span>" ) ;
+    /// site = 5 ; repeat ( Substitute ( sExtract2List ( html ; "\"editedAt\":\"" ; "\"," ) ; ["T" ; " "] ; ["Z" ; ¶] ; ["-" ; "/"] ) ; number_of_sheets ) ;
+    ///  "" )
+    /// </remarks>
+    public List<DateTime> DetectedSheetUpdated {
+        get {
+            var sheetDates = new List<DateTime> ();
+            if (!string.IsNullOrEmpty (html) && Document is not null) {
+                switch (DetectedSite) {
+                    case Site.Narow:
+                    case Site.Novel18:
+                        var tags = Document.QuerySelectorAll ("dl.novel_sublist2 dt.long_update");
+                        if (tags.Length == 0) {
+                            tags = Document.QuerySelectorAll ("div.p-eplist__sublist div.p-eplist__update");
+                        }
+                        foreach (var tag in tags) {
+                            var date = tag.TextContent;
+                            var update = tag.QuerySelector ("span[title]");
+                            if (update is not null) {
+                                date = update.GetAttribute ("title")?.Replace ("改稿", "");
+                            }
+                            if (!string.IsNullOrEmpty (date)) {
+                                if (DateTime.TryParse (date, out var dt)) {
+                                    sheetDates.Add (dt);
+                                }
+                            }
+                        }
+                        break;
+                    case Site.KakuyomuOld:
+                        tags = Document.QuerySelectorAll ("li.widget-toc-episode time.widget-toc-episode-datePublished");
+                        foreach (var tag in tags) {
+                            var date = tag.GetAttribute ("datetime");
+                            if (!string.IsNullOrEmpty (date)) {
+                                date = date.Replace ("T", " ").Replace ("Z", "");
+                                if (DateTime.TryParse (date, out var dt)) {
+                                    sheetDates.Add (dt);
+                                }
+                            }
+                        }
+                        break;
+                    case Site.Novelup:
+                        break;
+                    case Site.Dyreitou:
+                        break;
+                    case Site.Kakuyomu:
+                        break;
+                }
+            }
+            return sheetDates;
+        }
+    }
+
+
     /// <summary>名前の標準化</summary>
     /// <param name="name">名前</param>
     /// <param name="monadic">単独記号以降を削除するか</param>
