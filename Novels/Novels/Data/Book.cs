@@ -106,6 +106,34 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         }
     }
 
+    /// <summary>検出されたシリーズタイトル</summary>
+    /// <remarks>
+    /// Correct ( Substitute ( TrimLF ( TagRemove ( Case (
+    /// site = 1; sExtract ( html ; "<p class=\"series_title\">" ; "</p>" ) ;
+    /// site = 4; sExtract ( novel_title ; "『" ; "』" ) ;
+    /// "" ) ) ) ; "　" ; " " ) ; errata )
+    /// </remarks>
+    public string DetectedSeriesTitle {
+        get {
+            var seriesTitle = "";
+            if (!string.IsNullOrEmpty (html) && Document is not null) {
+                switch (DetectedSite) {
+                    case Site.Narow:
+                    case Site.Novel18:
+                        seriesTitle = Document.QuerySelector ("p.series_title")?.TextContent ?? "";
+                        break;
+                    case Site.Dyreitou:
+                        seriesTitle = Document.QuerySelector ("div.cat-title")?.TextContent ?? "";
+                        var s = seriesTitle.IndexOf ('『');
+                        var e = seriesTitle.IndexOf ('』');
+                        seriesTitle = s > 0 && e > s ? seriesTitle.Substring (s + 1, e - s - 1) : Title;
+                        break;
+                }
+            }
+            return (Correct (seriesTitle) ?? "").Replace ("　", " ").Trim ();
+        }
+    }
+
     /// <summary>検出されたタイトル</summary>
     /// <remarks>
     /// Let ( [
@@ -172,8 +200,42 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
             if (string.IsNullOrEmpty (title)) {
                 title = Url1;
             }
-            title = Correct (title) ?? "";
-            return title.Replace ("　", " ").Trim ();
+            Title = (Correct (title) ?? "").Replace ("　", " ").Trim ();
+            return Title;
+        }
+    }
+
+    /// <summary>検出されたメインタイトル</summary>
+    /// <remarks>
+    /// Correct ( Case ( 
+    /// PatternCount ( novel_title ; "～" ) = 2 ; Trim ( Left ( novel_title ; Position ( novel_title ; "～" ; 1 ; 1 ) - 1 ) );
+    /// PatternCount ( novel_title ; "〜" ) = 2 ; Trim ( Left ( novel_title ; Position ( novel_title ; "〜" ; 1 ; 1 ) - 1 ) );
+    /// PatternCount ( novel_title ; "－" ) = 2 ; Trim ( Left ( novel_title ; Position ( novel_title ; "－" ; 1 ; 1 ) - 1 ) );
+    ///  novel_title ) ; errata )    /// </remarks>
+    public string DetectedMainTitle {
+        get {
+            var title = Correct (Title ?? DetectedTitle);
+            if (string.IsNullOrEmpty (title)) {
+                return "";
+            }
+            var s = title.IndexOf ('～');
+            var e = title.LastIndexOf ('～');
+            if (s > 0 && e > s) {
+                title = title.Substring (0, s);
+            } else {
+                s = title.IndexOf ('〜');
+                e = title.LastIndexOf ('〜');
+                if (s > 0 && e > s) {
+                    title = title.Substring (0, s);
+                } else {
+                    s = title.IndexOf ('－');
+                    e = title.LastIndexOf ('－');
+                    if (s > 0 && e > s) {
+                        title = title.Substring (0, s);
+                    }
+                }
+            }
+            return GetNormalizedName (title, monadic: false, brackets: true);
         }
     }
 
@@ -245,12 +307,16 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
             if (string.IsNullOrEmpty (author)) {
                 author = Url1;
             }
-            author = Correct (author) ?? "";
-            return GetNormalizedAuthorName (author).Trim ();
+            Author = GetNormalizedName (Correct (author) ?? "");
+            return Author;
         }
     }
 
-    /// <summary>著者名の標準化</summary>
+    /// <summary>名前の標準化</summary>
+    /// <param name="name">名前</param>
+    /// <param name="monadic">単独記号以降を削除するか</param>
+    /// <param name="binary">対合記号を削除するか</param>
+    /// <param name="brackets">丸括弧を削除するか</param>
     /// <remarks>
     /// Let ([
     /// 	s = Position ( text ; "【" ; 1 ; 1 );
@@ -337,93 +403,111 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// 	
     /// 	Trim ( text )
     /// )    /// </remarks>
-    public string GetNormalizedAuthorName (string author) {
-        if (string.IsNullOrEmpty (author)) {
+    public string GetNormalizedName (string name, bool monadic = true, bool binary = true, bool brackets = false) {
+        if (string.IsNullOrEmpty (name)) {
             return "";
         }
-        var s = author.IndexOf ('【');
-        var e = author.IndexOf ('】');
-        if (s > 0 && e > s) {
-            author = author.Remove (s, e - s + 1);
+        int s, e;
+        var len = name.Length;
+        if (binary) {
+            s = name.IndexOf ('【');
+            e = name.IndexOf ('】');
+            if (s >= 0 && e > s && e - s + 1 < len) {
+                name = name.Remove (s, e - s + 1);
+            }
+            s = name.IndexOf ('【');
+            e = name.IndexOf ('】');
+            if (s >= 0 && e > s && e - s + 1 < len) {
+                name = name.Remove (s, e - s + 1);
+            }
+            s = name.IndexOf ('【');
+            e = name.IndexOf ('】');
+            if (s >= 0 && e > s && e - s + 1 < len) {
+                name = name.Remove (s, e - s + 1);
+            }
+            s = name.IndexOf ('[');
+            e = name.IndexOf (']');
+            if (s >= 0 && e > s && e - s + 1 < len) {
+                name = name.Remove (s, e - s + 1);
+            }
+            s = name.IndexOf ('{');
+            e = name.IndexOf ('}');
+            if (s >= 0 && e > s && e - s + 1 < len) {
+                name = name.Remove (s, e - s + 1);
+            }
+            s = name.IndexOf ('<');
+            e = name.IndexOf ('>');
+            if (s >= 0 && e > s && e - s + 1 < len) {
+                name = name.Remove (s, e - s + 1);
+            }
+            s = name.IndexOf ('［');
+            e = name.IndexOf ('］');
+            if (s >= 0 && e > s && e - s + 1 < len) {
+                name = name.Remove (s, e - s + 1);
+            }
+            s = name.IndexOf ('｛');
+            e = name.IndexOf ('｝');
+            if (s >= 0 && e > s && e - s + 1 < len) {
+                name = name.Remove (s, e - s + 1);
+            }
+            s = name.IndexOf ('〔');
+            e = name.IndexOf ('〕');
+            if (s >= 0 && e > s && e - s + 1 < len) {
+                name = name.Remove (s, e - s + 1);
+            }
+            s = name.IndexOf ('＜');
+            e = name.IndexOf ('＞');
+            if (s >= 0 && e > s && e - s + 1 < len) {
+                name = name.Remove (s, e - s + 1);
+            }
+            if (brackets) {
+                s = name.IndexOf ('(');
+                e = name.IndexOf (')');
+                if (s >= 0 && e > s && e - s + 1 < len) {
+                    name = name.Remove (s, e - s + 1);
+                }
+                s = name.IndexOf ('（');
+                e = name.IndexOf ('）');
+                if (s >= 0 && e > s && e - s + 1 < len) {
+                    name = name.Remove (s, e - s + 1);
+                }
+            }
         }
-        s = author.IndexOf ('【');
-        e = author.IndexOf ('】');
-        if (s > 0 && e > s) {
-            author = author.Remove (s, e - s + 1);
+        if (monadic) {
+            s = name.IndexOf ('@');
+            if (s > 0) {
+                name = name.Remove (s);
+            }
+            s = name.IndexOf ('＠');
+            if (s > 0) {
+                name = name.Remove (s);
+            }
+            s = name.IndexOf ('～');
+            if (s > 0) {
+                name = name.Remove (s);
+            }
+            s = name.IndexOf ('〜');
+            if (s > 0) {
+                name = name.Remove (s);
+            }
+            s = name.IndexOf ('─');
+            if (s > 0) {
+                name = name.Remove (s);
+            }
+            s = name.IndexOf ('…');
+            if (s > 0) {
+                name = name.Remove (s);
+            }
+            s = name.IndexOf ('、');
+            if (s > 0) {
+                name = name.Remove (s);
+            }
+            s = name.IndexOf ('。');
+            if (s > 0) {
+                name = name.Remove (s);
+            }
         }
-        s = author.IndexOf ('【');
-        e = author.IndexOf ('】');
-        if (s > 0 && e > s) {
-            author = author.Remove (s, e - s + 1);
-        }
-        s = author.IndexOf ('[');
-        e = author.IndexOf (']');
-        if (s > 0 && e > s) {
-            author = author.Remove (s, e - s + 1);
-        }
-        s = author.IndexOf ('{');
-        e = author.IndexOf ('}');
-        if (s > 0 && e > s) {
-            author = author.Remove (s, e - s + 1);
-        }
-        s = author.IndexOf ('<');
-        e = author.IndexOf ('>');
-        if (s > 0 && e > s) {
-            author = author.Remove (s, e - s + 1);
-        }
-        s = author.IndexOf ('［');
-        e = author.IndexOf ('］');
-        if (s > 0 && e > s) {
-            author = author.Remove (s, e - s + 1);
-        }
-        s = author.IndexOf ('｛');
-        e = author.IndexOf ('｝');
-        if (s > 0 && e > s) {
-            author = author.Remove (s, e - s + 1);
-        }
-        s = author.IndexOf ('〔');
-        e = author.IndexOf ('〕');
-        if (s > 0 && e > s) {
-            author = author.Remove (s, e - s + 1);
-        }
-        s = author.IndexOf ('＜');
-        e = author.IndexOf ('＞');
-        if (s > 0 && e > s) {
-            author = author.Remove (s, e - s + 1);
-        }
-        s = author.IndexOf ('@');
-        if (s > 0) {
-            author = author.Remove (s);
-        }
-        s = author.IndexOf ('＠');
-        if (s > 0) {
-            author = author.Remove (s);
-        }
-        s = author.IndexOf ('～');
-        if (s > 0) {
-            author = author.Remove (s);
-        }
-        s = author.IndexOf ('〜');
-        if (s > 0) {
-            author = author.Remove (s);
-        }
-        s = author.IndexOf ('─');
-        if (s > 0) {
-            author = author.Remove (s);
-        }
-        s = author.IndexOf ('…');
-        if (s > 0) {
-            author = author.Remove (s);
-        }
-        s = author.IndexOf ('、');
-        if (s > 0) {
-            author = author.Remove (s);
-        }
-        s = author.IndexOf ('。');
-        if (s > 0) {
-            author = author.Remove (s);
-        }
-        return author.Replace ("　", " ").Trim ();
+        return name.Replace ("　", " ").Trim ();
     }
 
     /// <summary>文字校正</summary>

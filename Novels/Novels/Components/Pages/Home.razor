@@ -19,12 +19,14 @@
                             @(item.Id == CurrentBookId ? ">" : " ")
                         </MudButton>
                     </td>
-                    @* <td>@(item.DetectedTitle != item.Title ? "×" : "◯") @item.DetectedTitle</td> *@
+                    @* <td>@item.DetectedSeriesTitle</td> *@
                     <td>@(item.Title)</td>
-                    @* <td>@(item.DetectedAuther != item.Author ? "×" : "◯") @item.DetectedAuther</td> *@
+                    @* <td>@(item.DetectedTitle != item.Title ? "×" : "◯") @item.DetectedTitle</td> *@
+                    @* <td>@(item.DetectedMainTitle != item.Title ? item.DetectedMainTitle : "")</td> *@
                     <td>@(item.Author)</td>
-                    @* <td>@(item.DetectedSite != item.Site ? "×" : "◯") @item.DetectedSite</td> *@
+                    @* <td>@(item.DetectedAuther != item.Author ? "×" : "◯") @item.DetectedAuther</td> *@
                     <td>@item.Site</td>
+                    @* <td>@(item.DetectedSite != item.Site ? "×" : "◯") @item.DetectedSite</td> *@
                     <td>@item.CountOfSheets</td>
                 </tr>
             }
