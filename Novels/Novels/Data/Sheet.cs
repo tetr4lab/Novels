@@ -46,10 +46,8 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     [Column ("direct_content")] public string? DirectContent { get; set; } = null;
     [Column ("errata")] public string? Errata { get; set; } = null;
 
-    /// <summary>最終更新日時</summary>
-    public DateTime LastUpdated {
-        get;
-    }
+    /// <summary>シートが所属する書籍</summary>
+    public Book Book (NovelsDataSet dataset) => dataset.Books.FirstOrDefault (x => x.Id == BookId) ?? new Book ();
 
     /// <summary>外向けのHTML</summary>
     public string? Html {
