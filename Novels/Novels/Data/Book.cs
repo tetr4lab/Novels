@@ -88,7 +88,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     [Column ("bookmark")] public long? Bookmark { get; set; } = null;
 
     /// <summary>更新されている</summary>
-    public bool Dirty { get; protected set; } = false;
+    public bool IsDirty { get; protected set; } = false;
 
     /// <summary>検出されたサイト (結果が<see cref="Site" />に反映される)</summary>
     public Site DetectedSite {
@@ -109,7 +109,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
             }
             if (site != Site.Unknown && Site != site) {
                 Site = site;
-                Dirty = true;
+                IsDirty = true;
             }
             return site;
         }
@@ -208,7 +208,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
             title = (Correct (title) ?? "").Replace ('　', ' ').Trim ();
             if (string.IsNullOrEmpty (title) && title != Title) {
                 Title = title;
-                Dirty = true;
+                IsDirty = true;
             }
             return title;
         }
@@ -316,7 +316,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
             author = GetNormalizedName (Correct (author) ?? "");
             if (string.IsNullOrEmpty (author) && author != Author) {
                 Author = author;
-                Dirty = true;
+                IsDirty = true;
             }
             return author;
         }
@@ -529,7 +529,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     // not IsEmpty ( sheet_updates ) ; MaxTimestamp ( sheet_updates ) + Case ( site = 2 ; Time ( 9 ; 0 ; 0 ) ; 0 ) ;
     // Count ( Sheet::sheet_lastupdate ) ; Max ( Sheet::sheet_lastupdate ) ;
     //  modified )
-    public DateTime DetecteLastUpdated (NovelsDataSet dataset) {
+    public DateTime LastUpdated (NovelsDataSet dataset) {
         if (!string.IsNullOrEmpty (DirectContent)) {
             return Modified;
         }
@@ -542,6 +542,12 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         }
         return Modified;
     }
+
+    /// <summary>リリース済みである</summary>
+    // If ( not IsEmpty ( number_of_published ) and number_of_published ≥ number_of_sheets and ( IsEmpty ( published_at ) or published_at ≥ last_update ) ; 1 )
+    public bool IsReleased (NovelsDataSet dataSet) =>
+        NumberOfPublished is not null && NumberOfPublished >= NumberOfSheets
+        && (PublishedAt is null || PublishedAt >= LastUpdated (dataSet));
 
     /// <summary>名前の標準化</summary>
     /// <param name="name">名前</param>

@@ -16,6 +16,7 @@
                 var count = urls.Count; *@
                 var updates = item.DetectedSheetUpdated;
                 <tr>
+                    <td>@(item.IsReleased (DataSet) ? "✔" : "")</td>
                     <td>@item.Id</td>
                     <td>
                         <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="async () => await SetCurrentBookId.InvokeAsync (item.Id)">
@@ -36,7 +37,7 @@
                     @* @{ var site = item.Site; }
                     <td>@(item.DetectedSite != site ? "×" : "◯") @item.DetectedSite</td> *@
                     <td>@item.NumberOfSheets</td>
-                    <td>@(updates.Count != item.NumberOfSheets ? $"×{updates.Count}" : "") @(string.Join (", ", updates.ConvertAll (d => $"{d.ToShortDateString ()} {d.ToShortTimeString ()}")))</td>
+                    @* <td>@(updates.Count != item.NumberOfSheets ? $"×{updates.Count}" : "") @(string.Join (", ", updates.ConvertAll (d => $"{d.ToShortDateString ()} {d.ToShortTimeString ()}")))</td> *@
                 </tr>
             }
         }
