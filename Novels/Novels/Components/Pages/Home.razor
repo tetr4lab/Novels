@@ -14,9 +14,9 @@
             @if (FilterFunc (item)) {
                 @* var urls = item.DetectedSheetUrls;
                 var count = urls.Count; *@
-                var updates = item.DetectedSheetUpdated;
+                @* var updates = item.DetectedSheetUpdated; *@
                 <tr>
-                    <td>@(item.IsReleased (DataSet) ? "✔" : "")</td>
+                    @* <td>@(item.IsReleased (DataSet) ? "✔" : "")</td> *@
                     <td>@item.Id</td>
                     <td>
                         <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="async () => await SetCurrentBookId.InvokeAsync (item.Id)">
@@ -25,10 +25,10 @@
                     </td>
                     @* <td>@(count != (item.NumberOfSheets ?? 0) ? $"×{count}:{item.NumberOfSheets}, {string.Join (", ", urls)}" : string.Join (", ", urls))</td> *@
                     @* <td>@item.DetectedSeriesTitle</td> *@
-                    <td>@(item.Title)</td>
+                    @* <td>@(item.Title)</td> *@
                     @* @{ var title = item.Title; }
                     <td>@(item.DetectedTitle != title ? "×" : "◯") @item.DetectedTitle</td> *@
-                    @* <td>@(item.DetectedMainTitle != item.Title ? item.DetectedMainTitle : "")</td> *@
+                    <td>@item.DetectedMainTitle<br />　@item.DetectedSubTitle</td>
                     <td>@(item.Author)</td>
                     @* @{ var author = item.Author; }
                     <td>@(item.DetectedAuther != author ? "×" : "◯") @item.DetectedAuther</td> *@

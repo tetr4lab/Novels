@@ -214,7 +214,10 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         }
     }
 
-    /// <summary>検出されたメインタイトル</summary>
+    /// <summary>メインタイトルとサブタイトル分ける文字</summary>
+    protected char [] TitleSeparator = { '～', '〜', '－', };
+
+    /// <summary>検出されたメインタイトル (<see cref="DetectedTitle"/>が先行することが前提)</summary>
     // Correct ( Case ( 
     // PatternCount ( novel_title ; "～" ) = 2 ; Trim ( Left ( novel_title ; Position ( novel_title ; "～" ; 1 ; 1 ) - 1 ) );
     // PatternCount ( novel_title ; "〜" ) = 2 ; Trim ( Left ( novel_title ; Position ( novel_title ; "〜" ; 1 ; 1 ) - 1 ) );
@@ -226,26 +229,42 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
             if (string.IsNullOrEmpty (title)) {
                 return "";
             }
-            var s = title.IndexOf ('～');
-            var e = title.LastIndexOf ('～');
-            if (s > 0 && e > s) {
-                title = title.Substring (0, s);
-            } else {
-                s = title.IndexOf ('〜');
-                e = title.LastIndexOf ('〜');
+            foreach (var separatior in TitleSeparator) {
+                var s = title.IndexOf (separatior);
+                var e = title.LastIndexOf (separatior);
                 if (s > 0 && e > s) {
                     title = title.Substring (0, s);
-                } else {
-                    s = title.IndexOf ('－');
-                    e = title.LastIndexOf ('－');
-                    if (s > 0 && e > s) {
-                        title = title.Substring (0, s);
-                    }
+                    break;
                 }
             }
             return GetNormalizedName (title, monadic: false, brackets: true);
         }
     }
+
+    /// <summary>検出されたサブタイトル (<see cref="DetectedTitle"/>が先行することが前提)</summary>
+    // Correct ( Case ( 
+    // PatternCount ( novel_title ; "～" ) = 2 ; Trim ( Right ( novel_title ; Length ( novel_title ) + 1 - Position ( novel_title ; "～" ; 1 ; 1 ) ) );
+    // PatternCount ( novel_title ; "－" ) = 2 ; Trim ( Right ( novel_title ; Length ( novel_title ) + 1 - Position ( novel_title ; "－" ; 1 ; 1 ) ) );
+    //  "" ) ; errata )
+    public string DetectedSubTitle {
+        get {
+            var title = Correct (Title ?? DetectedTitle);
+            var subTitle = "";
+            if (string.IsNullOrEmpty (title)) {
+                return "";
+            }
+            foreach (var separatior in TitleSeparator) {
+                var s = title.IndexOf (separatior);
+                var e = title.LastIndexOf (separatior);
+                if (s > 0 && e > s) {
+                    subTitle = title.Substring (s);
+                    break;
+                }
+            }
+            return GetNormalizedName (subTitle, monadic: false, brackets: true);
+        }
+    }
+
 
     /// <summary>検出された著者 (結果が<see cref="Author" />に反映される)</summary>
     // Let ( [
