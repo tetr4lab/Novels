@@ -90,7 +90,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <summary>更新されている</summary>
     public bool Dirty { get; protected set; } = false;
 
-    /// <summary>検出されたサイト</summary>
+    /// <summary>検出されたサイト (結果が<see cref="Site" />に反映される)</summary>
     public Site DetectedSite {
         get {
             var site = Site.Unknown;
@@ -116,12 +116,10 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     }
 
     /// <summary>検出されたシリーズタイトル</summary>
-    /// <remarks>
-    /// Correct ( Substitute ( TrimLF ( TagRemove ( Case (
-    /// site = 1; sExtract ( html ; "<p class=\"series_title\">" ; "</p>" ) ;
-    /// site = 4; sExtract ( novel_title ; "『" ; "』" ) ;
-    /// "" ) ) ) ; "　" ; " " ) ; errata )
-    /// </remarks>
+    // Correct ( Substitute ( TrimLF ( TagRemove ( Case (
+    // site = 1; sExtract ( html ; "<p class=\"series_title\">" ; "</p>" ) ;
+    // site = 4; sExtract ( novel_title ; "『" ; "』" ) ;
+    // "" ) ) ) ; "　" ; " " ) ; errata )
     public string DetectedSeriesTitle {
         get {
             var seriesTitle = "";
@@ -144,37 +142,35 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     }
 
     /// <summary>検出されたタイトル</summary>
-    /// <remarks>
-    /// Let ( [
-    /// Title = If ( IsEmpty ( html ) ; "" ; Correct ( Substitute ( TrimLF ( TagRemove ( Case (
-    /// site = 1; Substitute ( Let ( [
-    ///   tmp = sExtract ( html ; "<p class=\"novel_title\">" ; "</p>" ) ;
-    ///   tmp = If ( tmp <> "" ; tmp ; sExtract ( html ; "<h1 class=\"p-novel__title\">" ; "</h1>" ) )
-    /// ];
-    ///   tmp
-    /// ) ; ["&quot;" ; "\""] ) ;
-    /// site = 2; sExtract ( html ; "<h1 id=\"workTitle\">" ; "</h1>" ) ;
-    /// site = 3; TrimLFx ( sExtract ( html ; "<div class=\"novel_title\">" ; "</div>" ) ) ;
-    /// site = 4; TagRemove ( sExtract ( html ; "<div class=\"cat-title\">" ; "</div>" ) ) ;
-    /// site = 5; TagRemove ( sExtractEnclosed ( html ; "<h1 class=\"Heading_heading" ; "</h1>" ) ) ;
-    ///  ) ) ) ; "　" ; " " ) ; errata ) );
-    /// memo1 = GetValue ( direct_title_writername ; 1 )
-    ///  ] ; 
-    /// 	If ( IsEmpty ( Title ) ; 
-    /// 		If ( IsEmpty ( memo1 ) ; 
-    /// 			If ( IsEmpty ( direct_title_writername ) ;
-    /// 				If ( IsEmpty ( memo ) ; 
-    /// 					TextColor ( url ; RGB ( 100 ; 100 ; 100 ) ) ; 
-    /// 					TextColor ( GetValue ( memo ; 1 ) ; RGB ( 100 ; 100 ; 100 ) ) 
-    /// 				) ;
-    /// 				TextColor ( GetValue ( direct_title_writername ; 1 ) ; RGB ( 100 ; 100 ; 100 ) ) 
-    /// 			) ; 
-    /// 			TextColor ( memo1 ; RGB ( 100 ; 100 ; 100 ) ) 
-    /// 		) ; 
-    /// 		Title 
-    /// 	)
-    ///  )
-    /// </remarks>
+    // Let ( [
+    // Title = If ( IsEmpty ( html ) ; "" ; Correct ( Substitute ( TrimLF ( TagRemove ( Case (
+    // site = 1; Substitute ( Let ( [
+    //   tmp = sExtract ( html ; "<p class=\"novel_title\">" ; "</p>" ) ;
+    //   tmp = If ( tmp <> "" ; tmp ; sExtract ( html ; "<h1 class=\"p-novel__title\">" ; "</h1>" ) )
+    // ];
+    //   tmp
+    // ) ; ["&quot;" ; "\""] ) ;
+    // site = 2; sExtract ( html ; "<h1 id=\"workTitle\">" ; "</h1>" ) ;
+    // site = 3; TrimLFx ( sExtract ( html ; "<div class=\"novel_title\">" ; "</div>" ) ) ;
+    // site = 4; TagRemove ( sExtract ( html ; "<div class=\"cat-title\">" ; "</div>" ) ) ;
+    // site = 5; TagRemove ( sExtractEnclosed ( html ; "<h1 class=\"Heading_heading" ; "</h1>" ) ) ;
+    //  ) ) ) ; "　" ; " " ) ; errata ) );
+    // memo1 = GetValue ( direct_title_writername ; 1 )
+    //  ] ; 
+    //     If ( IsEmpty ( Title ) ; 
+    //         If ( IsEmpty ( memo1 ) ; 
+    //             If ( IsEmpty ( direct_title_writername ) ;
+    //                 If ( IsEmpty ( memo ) ; 
+    //                     TextColor ( url ; RGB ( 100 ; 100 ; 100 ) ) ; 
+    //                     TextColor ( GetValue ( memo ; 1 ) ; RGB ( 100 ; 100 ; 100 ) ) 
+    //                 ) ;
+    //                 TextColor ( GetValue ( direct_title_writername ; 1 ) ; RGB ( 100 ; 100 ; 100 ) ) 
+    //             ) ; 
+    //             TextColor ( memo1 ; RGB ( 100 ; 100 ; 100 ) ) 
+    //         ) ; 
+    //         Title 
+    //     )
+    //  )
     public string DetectedTitle {
         get {
             var title = "";
@@ -219,12 +215,11 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     }
 
     /// <summary>検出されたメインタイトル</summary>
-    /// <remarks>
-    /// Correct ( Case ( 
-    /// PatternCount ( novel_title ; "～" ) = 2 ; Trim ( Left ( novel_title ; Position ( novel_title ; "～" ; 1 ; 1 ) - 1 ) );
-    /// PatternCount ( novel_title ; "〜" ) = 2 ; Trim ( Left ( novel_title ; Position ( novel_title ; "〜" ; 1 ; 1 ) - 1 ) );
-    /// PatternCount ( novel_title ; "－" ) = 2 ; Trim ( Left ( novel_title ; Position ( novel_title ; "－" ; 1 ; 1 ) - 1 ) );
-    ///  novel_title ) ; errata )    /// </remarks>
+    // Correct ( Case ( 
+    // PatternCount ( novel_title ; "～" ) = 2 ; Trim ( Left ( novel_title ; Position ( novel_title ; "～" ; 1 ; 1 ) - 1 ) );
+    // PatternCount ( novel_title ; "〜" ) = 2 ; Trim ( Left ( novel_title ; Position ( novel_title ; "〜" ; 1 ; 1 ) - 1 ) );
+    // PatternCount ( novel_title ; "－" ) = 2 ; Trim ( Left ( novel_title ; Position ( novel_title ; "－" ; 1 ; 1 ) - 1 ) );
+    //  novel_title ) ; errata )
     public string DetectedMainTitle {
         get {
             var title = Correct (Title ?? DetectedTitle);
@@ -252,40 +247,38 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         }
     }
 
-    /// <summary>検出された著者</summary>
-    /// <remarks>
-    /// Let ( [
-    /// Author = If ( IsEmpty ( html ) ; "" ; Correct ( Substitute ( TrimLF ( TagRemove ( Case (
-    /// site = 1 ; Substitute ( Let ( [
-    ///   tmp = sExtract ( html ; "<div class=\"novel_writername\">" ; "</div>" ) ;
-    ///   tmp = If ( tmp <> "" ; tmp ; sExtract ( html ; "<div class=\"p-novel__author\">" ; "</div>" ) )
-    ///  ];
-    ///   tmp
-    ///  ) ; "作者：" ; "" )  ;
-    /// site = 2 ; sExtract ( html ; "<span id=\"workAuthor-activityName\">" ; "</span>" ) ;
-    /// site = 3 ; TrimLFx ( sExtract ( html ; "<div class=\"novel_author\">" ; "</div>" ) ) ;
-    /// site = 4 ; "dy冷凍" ;
-    /// site = 5 ; TagRemove ( sExtractEnclosed ( html ; "<a href=\"/users" ; "</a>" ) ) ;
-    ///  ) ) ) ; "　" ; " " ) ; errata ) );
-    /// memo2 = GetValue ( direct_title_writername ; 2 )
-    ///  ] ; 
-    /// GetNormalizedAuthorName ( 
-    /// 	If ( IsEmpty ( Author ) ; 
-    /// 		If ( IsEmpty ( memo2 ) ; 
-    /// 			If ( IsEmpty ( direct_title_writername ) ;
-    /// 				If ( IsEmpty ( memo ) ; 
-    /// 					TextColor ( url ; RGB ( 100 ; 100 ; 100 ) ) ; 
-    /// 					TextColor ( GetValue ( memo ; 2 ) ; RGB ( 100 ; 100 ; 100 ) ) 
-    /// 				) ;
-    /// 				TextColor ( GetValue ( direct_title_writername ; 2 ) ; RGB ( 100 ; 100 ; 100 ) ) 
-    /// 			) ; 
-    /// 			TextColor ( memo2 ; RGB ( 100 ; 100 ; 100 ) ) 
-    /// 		) ; 
-    /// 		Author 
-    /// 	)
-    ///  )
-    ///  )
-    /// </remarks>
+    /// <summary>検出された著者 (結果が<see cref="Author" />に反映される)</summary>
+    // Let ( [
+    // Author = If ( IsEmpty ( html ) ; "" ; Correct ( Substitute ( TrimLF ( TagRemove ( Case (
+    // site = 1 ; Substitute ( Let ( [
+    //   tmp = sExtract ( html ; "<div class=\"novel_writername\">" ; "</div>" ) ;
+    //   tmp = If ( tmp <> "" ; tmp ; sExtract ( html ; "<div class=\"p-novel__author\">" ; "</div>" ) )
+    //  ];
+    //   tmp
+    //  ) ; "作者：" ; "" )  ;
+    // site = 2 ; sExtract ( html ; "<span id=\"workAuthor-activityName\">" ; "</span>" ) ;
+    // site = 3 ; TrimLFx ( sExtract ( html ; "<div class=\"novel_author\">" ; "</div>" ) ) ;
+    // site = 4 ; "dy冷凍" ;
+    // site = 5 ; TagRemove ( sExtractEnclosed ( html ; "<a href=\"/users" ; "</a>" ) ) ;
+    //  ) ) ) ; "　" ; " " ) ; errata ) );
+    // memo2 = GetValue ( direct_title_writername ; 2 )
+    //  ] ; 
+    // GetNormalizedAuthorName ( 
+    //     If ( IsEmpty ( Author ) ; 
+    //         If ( IsEmpty ( memo2 ) ; 
+    //             If ( IsEmpty ( direct_title_writername ) ;
+    //                 If ( IsEmpty ( memo ) ; 
+    //                     TextColor ( url ; RGB ( 100 ; 100 ; 100 ) ) ; 
+    //                     TextColor ( GetValue ( memo ; 2 ) ; RGB ( 100 ; 100 ; 100 ) ) 
+    //                 ) ;
+    //                 TextColor ( GetValue ( direct_title_writername ; 2 ) ; RGB ( 100 ; 100 ; 100 ) ) 
+    //             ) ; 
+    //             TextColor ( memo2 ; RGB ( 100 ; 100 ; 100 ) ) 
+    //         ) ; 
+    //         Author 
+    //     )
+    //  )
+    //  )
     public string DetectedAuther {
         get {
             var author = "";
@@ -330,19 +323,17 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     }
 
     /// <summary>検出された説明</summary>
-    /// <remarks>
-    /// Correct ( Case ( 
-    /// site = 1 ; TrimLFx ( TagRemove ( Let ( [
-    ///   tmp = sExtract ( html ; "<div id=\"novel_ex\">" ; "</div>" ) ;
-    ///   tmp = If ( tmp <> "" ; tmp ; sExtract ( html ; "<div id=\"novel_ex\" class=\"p-novel__summary\">" ; "</div>" ) )
-    ///  ];
-    ///   tmp
-    /// ) ) ) ;
-    /// site = 2 ; TrimLFx ( TagRemove ( sExtract ( Substitute ( html ; "<span class=\"ui-truncateTextButton-expandButton-label\" aria-hidden=\"true\">…続きを読む</span>" ; "" ) ; "<p id=\"introduction\" class=\"ui-truncateTextButton js-work-introduction\">" ; "</p>" ) ) ) ;
-    /// site = 3 ; Substitute ( TrimLFx ( TagRemove ( sExtract ( html ; "<div class=\"novel_synopsis\">" ; "</div>" ) ) ) ; [Char(13) & Char(10) ; ¶] ) ;
-    /// site = 5 ; TrimLFx ( TagRemove ( sExtractEnclosed ( html ; "<div class=\"CollapseTextWithKakuyomuLinks" ; "</div>" ) ) ) ;
-    /// ) ; errata )
-    /// </remarks>
+    // Correct ( Case ( 
+    // site = 1 ; TrimLFx ( TagRemove ( Let ( [
+    //   tmp = sExtract ( html ; "<div id=\"novel_ex\">" ; "</div>" ) ;
+    //   tmp = If ( tmp <> "" ; tmp ; sExtract ( html ; "<div id=\"novel_ex\" class=\"p-novel__summary\">" ; "</div>" ) )
+    //  ];
+    //   tmp
+    // ) ) ) ;
+    // site = 2 ; TrimLFx ( TagRemove ( sExtract ( Substitute ( html ; "<span class=\"ui-truncateTextButton-expandButton-label\" aria-hidden=\"true\">…続きを読む</span>" ; "" ) ; "<p id=\"introduction\" class=\"ui-truncateTextButton js-work-introduction\">" ; "</p>" ) ) ) ;
+    // site = 3 ; Substitute ( TrimLFx ( TagRemove ( sExtract ( html ; "<div class=\"novel_synopsis\">" ; "</div>" ) ) ) ; [Char(13) & Char(10) ; ¶] ) ;
+    // site = 5 ; TrimLFx ( TagRemove ( sExtractEnclosed ( html ; "<div class=\"CollapseTextWithKakuyomuLinks" ; "</div>" ) ) ) ;
+    // ) ; errata )
     public string DetectedExplanation {
         get {
             var explanation = "";
@@ -376,45 +367,43 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// 検出されたシートURL
     /// サイト別に異なる場所に格納された従属ページのUrlを収集し、リストにして返す
     /// </summary>
-    /// <remarks>
-    /// Case (
-    /// site = 1 ; Let ( [
-    ///   urls = Substitute ( ¶ & sExtract2List ( Let ( [
-    ///     tmp = sExtract2List ( html ; "<dl class=\"novel_sublist2\">" ; "</dl>" ) ;
-    ///     tmp = If ( tmp <> "" ; tmp ; sExtract2List ( html ; "<div class=\"p-eplist__sublist\">" ; "</div>" ) )
-    ///   ];
-    ///     tmp
-    ///   ) ; "<a href=\"" ; "\"" ) ; "¶/" ; ¶ & Left ( url ; Position ( url ; "/" ; 1 ; 3 ) ) )
-    /// ] ;
-    ///   Right ( urls ; Length ( urls ) - 1 )
-    /// ) ;
-    /// site = 2 ; Let ( [
-    /// urls = sExtract2List ( sExtract2List ( html ; "<li class=\"widget-toc-episode\">" ; "</li>" ) ; "<a href" ; "\" class=\"widget-toc-episode-episodeTitle\">" )
-    /// ] ; Case (
-    /// Left (urls ; 3 ) = "=\"/" ; Substitute ( urls ; "=\"/" ; Left ( url ; Position ( url ; "/" ; 1 ; 3 ) ) ) ;
-    /// Right (url ; 1 ) = "/" ; Substitute ( urls ; "=\"/" ; url ) ;
-    /// Substitute ( urls ; "=\"" ; url )
-    ///  ) ) ;
-    /// site = 3 ; Let ( [
-    /// urls = sExtract2List ( sExtract2List ( html ; "<div class=\"episode_link episode_show_visited\">" ; "</div>" ) ; "<a href" ; "\">" )
-    /// ] ; Case (
-    /// Left (urls ; 3 ) = "=\"/" ; Substitute ( urls ; "=\"/" ; Left ( url ; Position ( url ; "/" ; 1 ; 3 ) ) ) ;
-    /// Right (url ; 1 ) = "/" ; Substitute ( urls ; "=\"/" ; url ) ;
-    /// Substitute ( urls ; "=\"" ; "" )
-    ///  ) ) ;
-    /// site = 4 ; Let ( [
-    /// urls = sExtract2List ( sExtract2List ( html ; "<div class=\"mokuji\">" ; "</div>" ) ; "<a href" ; "\">" )
-    /// ] ; Case (
-    /// Left (urls ; 6 ) = "=\"http" ; Substitute ( urls ; "=\"http" ; "http" ) ;
-    /// Left (urls ; 3 ) = "=\"/" ; Substitute ( urls ; "=\"/" ; Left ( url ; Position ( url ; "/" ; 1 ; 3 ) ) ) ;
-    /// Right (url ; 1 ) = "/" ; Substitute ( urls ; "=\"/" ; url ) ;
-    /// Substitute ( urls ; "=\"" ; url )
-    ///  ) ) ;
-    /// site = 5 ; Let ( [
-    /// urls = Substitute ( Trim ( sExtract2List ( html ; "\"__typename\":\"Episode\"," ; "\"title\":" ) ) ; [ "\"id\":\"" ; url & "/episodes/" ] ; [ "\"," ; "" ] )
-    /// ] ; urls ) ;
-    ///  "" )
-    /// </remarks>
+    // Case (
+    // site = 1 ; Let ( [
+    //   urls = Substitute ( ¶ & sExtract2List ( Let ( [
+    //     tmp = sExtract2List ( html ; "<dl class=\"novel_sublist2\">" ; "</dl>" ) ;
+    //     tmp = If ( tmp <> "" ; tmp ; sExtract2List ( html ; "<div class=\"p-eplist__sublist\">" ; "</div>" ) )
+    //   ];
+    //     tmp
+    //   ) ; "<a href=\"" ; "\"" ) ; "¶/" ; ¶ & Left ( url ; Position ( url ; "/" ; 1 ; 3 ) ) )
+    // ] ;
+    //   Right ( urls ; Length ( urls ) - 1 )
+    // ) ;
+    // site = 2 ; Let ( [
+    // urls = sExtract2List ( sExtract2List ( html ; "<li class=\"widget-toc-episode\">" ; "</li>" ) ; "<a href" ; "\" class=\"widget-toc-episode-episodeTitle\">" )
+    // ] ; Case (
+    // Left (urls ; 3 ) = "=\"/" ; Substitute ( urls ; "=\"/" ; Left ( url ; Position ( url ; "/" ; 1 ; 3 ) ) ) ;
+    // Right (url ; 1 ) = "/" ; Substitute ( urls ; "=\"/" ; url ) ;
+    // Substitute ( urls ; "=\"" ; url )
+    //  ) ) ;
+    // site = 3 ; Let ( [
+    // urls = sExtract2List ( sExtract2List ( html ; "<div class=\"episode_link episode_show_visited\">" ; "</div>" ) ; "<a href" ; "\">" )
+    // ] ; Case (
+    // Left (urls ; 3 ) = "=\"/" ; Substitute ( urls ; "=\"/" ; Left ( url ; Position ( url ; "/" ; 1 ; 3 ) ) ) ;
+    // Right (url ; 1 ) = "/" ; Substitute ( urls ; "=\"/" ; url ) ;
+    // Substitute ( urls ; "=\"" ; "" )
+    //  ) ) ;
+    // site = 4 ; Let ( [
+    // urls = sExtract2List ( sExtract2List ( html ; "<div class=\"mokuji\">" ; "</div>" ) ; "<a href" ; "\">" )
+    // ] ; Case (
+    // Left (urls ; 6 ) = "=\"http" ; Substitute ( urls ; "=\"http" ; "http" ) ;
+    // Left (urls ; 3 ) = "=\"/" ; Substitute ( urls ; "=\"/" ; Left ( url ; Position ( url ; "/" ; 1 ; 3 ) ) ) ;
+    // Right (url ; 1 ) = "/" ; Substitute ( urls ; "=\"/" ; url ) ;
+    // Substitute ( urls ; "=\"" ; url )
+    //  ) ) ;
+    // site = 5 ; Let ( [
+    // urls = Substitute ( Trim ( sExtract2List ( html ; "\"__typename\":\"Episode\"," ; "\"title\":" ) ) ; [ "\"id\":\"" ; url & "/episodes/" ] ; [ "\"," ; "" ] )
+    // ] ; urls ) ;
+    //  "" )
     public List<string> DetectedSheetUrls {
         get {
             var sheetUrls = new List<string> ();
@@ -460,19 +449,17 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     }
 
     /// <summary>検出されたシートの更新日時</summary>
-    /// <remarks>
-    /// Case (
-    /// site = 1 ; sExtracts2List ( Let ( [
-    ///   tmp = sExtract2List ( html ; "<dl class=\"novel_sublist2\">" ; "</dl>" ) ;
-    ///   tmp = If (tmp <> "" ; tmp ; sExtract2List ( html ; "<div class=\"p-eplist__sublist\">" ; "</div>" ) )
-    ///  ];
-    ///   tmp
-    /// ) ; "<span title=\"" ; " 改稿\">" ; "<dt class=\"long_update\">" ; "</dt>" ) ;
-    /// site = 2 ; Substitute ( sExtract2List ( sExtract2List ( html ; "<li class=\"widget-toc-episode\">" ; "</li>" ) ; "<time class=\"widget-toc-episode-datePublished\" datetime=\"" ; "Z\">" ) ; ["T" ; " "] ; ["-" ; "/"] ) ;
-    /// site = 3 ; sExtract2List ( sExtract2List ( html ; "<div class=\"update_date\">" ; "</div>" ) ; "<span>投稿日<span>" ; "</span>" ) ;
-    /// site = 5 ; repeat ( Substitute ( sExtract2List ( html ; "\"editedAt\":\"" ; "\"," ) ; ["T" ; " "] ; ["Z" ; ¶] ; ["-" ; "/"] ) ; number_of_sheets ) ;
-    ///  "" )
-    /// </remarks>
+    // Case (
+    // site = 1 ; sExtracts2List ( Let ( [
+    //   tmp = sExtract2List ( html ; "<dl class=\"novel_sublist2\">" ; "</dl>" ) ;
+    //   tmp = If (tmp <> "" ; tmp ; sExtract2List ( html ; "<div class=\"p-eplist__sublist\">" ; "</div>" ) )
+    //  ];
+    //   tmp
+    // ) ; "<span title=\"" ; " 改稿\">" ; "<dt class=\"long_update\">" ; "</dt>" ) ;
+    // site = 2 ; Substitute ( sExtract2List ( sExtract2List ( html ; "<li class=\"widget-toc-episode\">" ; "</li>" ) ; "<time class=\"widget-toc-episode-datePublished\" datetime=\"" ; "Z\">" ) ; ["T" ; " "] ; ["-" ; "/"] ) ;
+    // site = 3 ; sExtract2List ( sExtract2List ( html ; "<div class=\"update_date\">" ; "</div>" ) ; "<span>投稿日<span>" ; "</span>" ) ;
+    // site = 5 ; repeat ( Substitute ( sExtract2List ( html ; "\"editedAt\":\"" ; "\"," ) ; ["T" ; " "] ; ["Z" ; ¶] ; ["-" ; "/"] ) ; number_of_sheets ) ;
+    //  "" )
     public List<DateTime> DetectedSheetUpdated {
         get {
             var sheetDates = new List<DateTime> ();
@@ -537,13 +524,11 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     }
 
     /// <summary>検出された最終更新日時</summary>
-    /// <remarks
-    /// Case (
-    /// not IsEmpty ( direct_content ) ; modified ;
-    /// not IsEmpty ( sheet_updates ) ; MaxTimestamp ( sheet_updates ) + Case ( site = 2 ; Time ( 9 ; 0 ; 0 ) ; 0 ) ;
-    /// Count ( Sheet::sheet_lastupdate ) ; Max ( Sheet::sheet_lastupdate ) ;
-    ///  modified )
-    /// </remarks>
+    // Case (
+    // not IsEmpty ( direct_content ) ; modified ;
+    // not IsEmpty ( sheet_updates ) ; MaxTimestamp ( sheet_updates ) + Case ( site = 2 ; Time ( 9 ; 0 ; 0 ) ; 0 ) ;
+    // Count ( Sheet::sheet_lastupdate ) ; Max ( Sheet::sheet_lastupdate ) ;
+    //  modified )
     public DateTime DetecteLastUpdated (NovelsDataSet dataset) {
         if (!string.IsNullOrEmpty (DirectContent)) {
             return Modified;
@@ -563,92 +548,90 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <param name="monadic">単独記号以降を削除するか</param>
     /// <param name="binary">対合記号を削除するか</param>
     /// <param name="brackets">丸括弧を削除するか</param>
-    /// <remarks>
-    /// Let ([
-    /// 	s = Position ( text ; "【" ; 1 ; 1 );
-    /// 	e = Position ( text ; "】" ; -1 ; 1 );
-    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    /// 
-    /// 	s = Position ( text ; "【" ; 1 ; 1 );
-    /// 	e = Position ( text ; "】" ; -1 ; 1 );
-    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    /// 
-    /// 	s = Position ( text ; "【" ; 1 ; 1 );
-    /// 	e = Position ( text ; "】" ; -1 ; 1 );
-    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    /// 
-    /// 	s = Position ( text ; "[" ; 1 ; 1 );
-    /// 	e = Position ( text ; "]" ; -1 ; 1 );
-    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    /// 
-    /// //	s = Position ( text ; "(" ; 1 ; 1 );
-    /// //	e = Position ( text ; ")" ; -1 ; 1 );
-    /// //	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    /// 
-    /// 	s = Position ( text ; "{" ; 1 ; 1 );
-    /// 	e = Position ( text ; "}" ; -1 ; 1 );
-    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    /// 
-    /// 	s = Position ( text ; "<" ; 1 ; 1 );
-    /// 	e = Position ( text ; ">" ; -1 ; 1 );
-    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    /// 
-    /// 	s = Position ( text ; "［" ; 1 ; 1 );
-    /// 	e = Position ( text ; "］" ; -1 ; 1 );
-    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    /// 
-    /// //	s = Position ( text ; "（" ; 1 ; 1 );
-    /// //	e = Position ( text ; "）" ; -1 ; 1 );
-    /// //	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    /// 
-    /// 	s = Position ( text ; "｛" ; 1 ; 1 );
-    /// 	e = Position ( text ; "｝" ; -1 ; 1 );
-    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    /// 
-    /// 	s = Position ( text ; "〔" ; 1 ; 1 );
-    /// 	e = Position ( text ; "〕" ; -1 ; 1 );
-    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    /// 
-    /// 	s = Position ( text ; "＜" ; 1 ; 1 );
-    /// 	e = Position ( text ; "＞" ; -1 ; 1 );
-    /// 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    /// 
-    /// 	text = Trim ( text );
-    /// 	s = Position ( text ; "@" ; 1 ; 1 );
-    /// 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
-    /// 
-    /// 	text = Trim ( text );
-    /// 	s = Position ( text ; "＠" ; 1 ; 1 );
-    /// 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
-    /// 
-    /// 	text = Trim ( text );
-    /// 	s = Position ( text ; "～" ; 1 ; 1 );
-    /// 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
-    /// 
-    /// 	text = Trim ( text );
-    /// 	s = Position ( text ; "〜" ; 1 ; 1 );
-    /// 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
-    /// 
-    /// 	text = Trim ( text );
-    /// 	s = Position ( text ; "─" ; 1 ; 1 );
-    /// 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
-    /// 
-    /// 	text = Trim ( text );
-    /// 	s = Position ( text ; "…" ; 1 ; 1 );
-    /// 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
-    /// 
-    /// 	text = Trim ( text );
-    /// 	s = Position ( text ; "、" ; 1 ; 1 );
-    /// 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
-    /// 
-    /// 	text = Trim ( text );
-    /// 	s = Position ( text ; "。" ; 1 ; 1 );
-    /// 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
-    /// 
-    /// _ = "" ] ;
-    /// 	
-    /// 	Trim ( text )
-    /// )    /// </remarks>
+    // Let ([
+    // 	s = Position ( text ; "【" ; 1 ; 1 );
+    // 	e = Position ( text ; "】" ; -1 ; 1 );
+    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    // 
+    // 	s = Position ( text ; "【" ; 1 ; 1 );
+    // 	e = Position ( text ; "】" ; -1 ; 1 );
+    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    // 
+    // 	s = Position ( text ; "【" ; 1 ; 1 );
+    // 	e = Position ( text ; "】" ; -1 ; 1 );
+    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    // 
+    // 	s = Position ( text ; "[" ; 1 ; 1 );
+    // 	e = Position ( text ; "]" ; -1 ; 1 );
+    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    // 
+    // //	s = Position ( text ; "(" ; 1 ; 1 );
+    // //	e = Position ( text ; ")" ; -1 ; 1 );
+    // //	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    // 
+    // 	s = Position ( text ; "{" ; 1 ; 1 );
+    // 	e = Position ( text ; "}" ; -1 ; 1 );
+    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    // 
+    // 	s = Position ( text ; "<" ; 1 ; 1 );
+    // 	e = Position ( text ; ">" ; -1 ; 1 );
+    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    // 
+    // 	s = Position ( text ; "［" ; 1 ; 1 );
+    // 	e = Position ( text ; "］" ; -1 ; 1 );
+    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    // 
+    // //	s = Position ( text ; "（" ; 1 ; 1 );
+    // //	e = Position ( text ; "）" ; -1 ; 1 );
+    // //	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    // 
+    // 	s = Position ( text ; "｛" ; 1 ; 1 );
+    // 	e = Position ( text ; "｝" ; -1 ; 1 );
+    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    // 
+    // 	s = Position ( text ; "〔" ; 1 ; 1 );
+    // 	e = Position ( text ; "〕" ; -1 ; 1 );
+    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    // 
+    // 	s = Position ( text ; "＜" ; 1 ; 1 );
+    // 	e = Position ( text ; "＞" ; -1 ; 1 );
+    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
+    // 
+    // 	text = Trim ( text );
+    // 	s = Position ( text ; "@" ; 1 ; 1 );
+    // 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
+    // 
+    // 	text = Trim ( text );
+    // 	s = Position ( text ; "＠" ; 1 ; 1 );
+    // 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
+    // 
+    // 	text = Trim ( text );
+    // 	s = Position ( text ; "～" ; 1 ; 1 );
+    // 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
+    // 
+    // 	text = Trim ( text );
+    // 	s = Position ( text ; "〜" ; 1 ; 1 );
+    // 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
+    // 
+    // 	text = Trim ( text );
+    // 	s = Position ( text ; "─" ; 1 ; 1 );
+    // 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
+    // 
+    // 	text = Trim ( text );
+    // 	s = Position ( text ; "…" ; 1 ; 1 );
+    // 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
+    // 
+    // 	text = Trim ( text );
+    // 	s = Position ( text ; "、" ; 1 ; 1 );
+    // 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
+    // 
+    // 	text = Trim ( text );
+    // 	s = Position ( text ; "。" ; 1 ; 1 );
+    // 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
+    // 
+    // _ = "" ] ;
+    // 	
+    // 	Trim ( text )
     public string GetNormalizedName (string name, bool monadic = true, bool binary = true, bool brackets = false) {
         if (string.IsNullOrEmpty (name)) {
             return "";
@@ -757,17 +740,15 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     }
 
     /// <summary>文字校正</summary>
-    /// <remarks>
-    /// // text を errata で corect する、errataは行毎に1件、"\n"を改行文字、char(9)をセパレータとする。セパレータがない場合は単にerrorを削除する。
-    /// If ( IsEmpty( text ) or IsEmpty( errata ) ; text ; Let ([
-    /// 	errr = Substitute( GetValue( errata ; 1 ) ; Char(9) ; ¶ ) ;
-    /// 	crct = Substitute( GetValue( errr ; 2 ) ; "\n" ; ¶ );
-    /// 	errr = Substitute( GetValue( errr ; 1 ) ; "\n" ; ¶ );
-    /// 	errata = RightValues ( errata ; ValueCount( errata ) - 1 )
-    /// ];
-    /// 	Correct( Substitute( text ; errr ; crct ) ; errata )
-    /// ))
-    /// </remarks>
+    // // text を errata で corect する、errataは行毎に1件、"\n"を改行文字、char(9)をセパレータとする。セパレータがない場合は単にerrorを削除する。
+    // If ( IsEmpty( text ) or IsEmpty( errata ) ; text ; Let ([
+    // 	errr = Substitute( GetValue( errata ; 1 ) ; Char(9) ; ¶ ) ;
+    // 	crct = Substitute( GetValue( errr ; 2 ) ; "\n" ; ¶ );
+    // 	errr = Substitute( GetValue( errr ; 1 ) ; "\n" ; ¶ );
+    // 	errata = RightValues ( errata ; ValueCount( errata ) - 1 )
+    // ];
+    // 	Correct( Substitute( text ; errr ; crct ) ; errata )
+    // ))
     public string? Correct (string? text) {
         if (string.IsNullOrEmpty (text) || string.IsNullOrEmpty (Errata)) {
             return text;
