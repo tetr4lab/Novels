@@ -36,7 +36,7 @@
                     <td>@item.Site</td>
                     @* @{ var site = item.Site; }
                     <td>@(item.DetectedSite != site ? "×" : "◯") @item.DetectedSite</td> *@
-                    <td>@item.NumberOfSheets</td>
+                    <td>@(item.NumberOfPublished ?? 0)/@item.NumberOfSheets</td>
                     @* <td>@(updates.Count != item.NumberOfSheets ? $"×{updates.Count}" : "") @(string.Join (", ", updates.ConvertAll (d => $"{d.ToShortDateString ()} {d.ToShortTimeString ()}")))</td> *@
                 </tr>
             }

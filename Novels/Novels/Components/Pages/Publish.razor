@@ -11,15 +11,26 @@
 } else if (items.Count > 0) {
     var book = DataSet.Books.Find (s => s.Id == CurrentBookId);
     <MudText>『@(book?.Title ?? "")』 @(book?.Author ?? "")</MudText>
-    @foreach (var item in items) {
-        @if (FilterFunc (item)) {
-            <div>
-                <h2>@item.NovelNumber: @item.ChapterTitle</h2>
-                <h3>@item.ChapterSubTitle</h3>
-                <p>@item.Url</p>
-            </div>
+    <MudSimpleTable>
+        <thead>
+            <tr>
+                <th>Chapter</th>
+                <th>SubTitle</th>
+                <th>DetectedSubTitle</th>
+                <th>Url</th>
+            </tr>
+        </thead>
+        @foreach (var item in items) {
+            @if (FilterFunc (item)) {
+                <tr>
+                    <td>@item.NovelNumber: @item.ChapterTitle</td>
+                    <td>@item.ChapterSubTitle</td>
+                    <td>@item.Deteiheete</td>
+                    <td>@item.Url</td>
+                </tr>
+            }
         }
-    }
+    </MudSimpleTable>
 } else {
     <MudText>No items found.</MudText>
 }

@@ -426,49 +426,51 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     // urls = Substitute ( Trim ( sExtract2List ( html ; "\"__typename\":\"Episode\"," ; "\"title\":" ) ) ; [ "\"id\":\"" ; url & "/episodes/" ] ; [ "\"," ; "" ] )
     // ] ; urls ) ;
     //  "" )
-    public List<string> DetectedSheetUrls {
+    public List<string> SheetUrls {
         get {
-            var sheetUrls = new List<string> ();
-            AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement>? tags = null;
-            if (!string.IsNullOrEmpty (html) && Document is not null) {
-                switch (DetectedSite) {
-                    case Site.Narow:
-                    case Site.Novel18:
-                        tags = Document.QuerySelectorAll ("dl.novel_sublist2 a");
-                        if (tags.Length == 0) {
-                            tags = Document.QuerySelectorAll ("div.p-eplist__sublist a");
-                        }
-                        break;
-                    case Site.KakuyomuOld:
-                        tags = Document.QuerySelectorAll ("li.widget-toc-episode a");
-                        break;
-                    case Site.Novelup:
-                        tags = Document.QuerySelectorAll ("div.episode_link a");
-                        break;
-                    case Site.Dyreitou:
-                        tags = Document.QuerySelectorAll ("div.mokuji a");
-                        break;
-                    case Site.Kakuyomu:
-                        var regex = new Regex ("(?<=\"__typename\":\"Episode\",\"id\":\")\\d+(?=\")");
-                        foreach (Match match in regex.Matches (html)) {
-                            if (match.Success) {
-                                sheetUrls.Add ($"/episodes/{match.Value}");
+            if (_sheetUrls.Count <= 0) {
+                AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement>? tags = null;
+                if (!string.IsNullOrEmpty (html) && Document is not null) {
+                    switch (DetectedSite) {
+                        case Site.Narow:
+                        case Site.Novel18:
+                            tags = Document.QuerySelectorAll ("dl.novel_sublist2 a");
+                            if (tags.Length == 0) {
+                                tags = Document.QuerySelectorAll ("div.p-eplist__sublist a");
                             }
-                        }
-                        break;
-                }
-                if (sheetUrls.Count <= 0 && tags?.Count () > 0) {
-                    foreach (var atag in tags) {
-                        var url = atag.GetAttribute ("href");
-                        if (!string.IsNullOrEmpty (url)) {
-                            sheetUrls.Add (url);
+                            break;
+                        case Site.KakuyomuOld:
+                            tags = Document.QuerySelectorAll ("li.widget-toc-episode a");
+                            break;
+                        case Site.Novelup:
+                            tags = Document.QuerySelectorAll ("div.episode_link a");
+                            break;
+                        case Site.Dyreitou:
+                            tags = Document.QuerySelectorAll ("div.mokuji a");
+                            break;
+                        case Site.Kakuyomu:
+                            var regex = new Regex ("(?<=\"__typename\":\"Episode\",\"id\":\")\\d+(?=\")");
+                            foreach (Match match in regex.Matches (html)) {
+                                if (match.Success) {
+                                    _sheetUrls.Add ($"/episodes/{match.Value}");
+                                }
+                            }
+                            break;
+                    }
+                    if (_sheetUrls.Count <= 0 && tags?.Count () > 0) {
+                        foreach (var atag in tags) {
+                            var url = atag.GetAttribute ("href");
+                            if (!string.IsNullOrEmpty (url)) {
+                                _sheetUrls.Add (url);
+                            }
                         }
                     }
                 }
             }
-            return sheetUrls;
+            return _sheetUrls;
         }
     }
+    protected List<string> _sheetUrls = new ();
 
     /// <summary>検出されたシートの更新日時</summary>
     // Case (

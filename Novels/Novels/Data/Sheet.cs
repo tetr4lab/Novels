@@ -43,6 +43,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     [Column ("url")] public string Url { get; set; } = "";
     [Column ("html")] public string? html { get; set; } = null;
     [Column ("sheet_update")] public DateTime? SheetUpdatedAt { get; set; } = null;
+    /// <summary>シートの並び順 新規では、シート生成時に1からの連番が振られる (FMでは別ルールで生成された)</remarks>
     [Column ("novel_no"), Required] public int NovelNumber { get; set; } = 0;
     [Column ("direct_content")] public string? directContent { get; set; } = null;
     [Column ("errata")] public string? Errata { get; set; } = null;
@@ -55,6 +56,62 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
 
     /// <summary>更新されている</summary>
     public bool IsDirty { get; protected set; } = false;
+
+    /// <summary>シートのタイトル</summary>
+    // NovelSubTitle = 
+    // Correct ( Substitute ( TrimLF ( TagRemove ( ReplaceRuby ( Case (
+    //   site=1 ; sExtract ( html ; "<p class=\"novel_subtitle\">" ; "</p>" ) ;
+    //   site=2 ; sExtract ( html ; "<p class=\"widget-episodeTitle js-vertical-composition-item\">" ; "</p>" ) ;
+    //   site=3 ; TrimLFx ( sExtract ( html ; "<div class=\"episode_title\">" ; "</div>" ) ) ; 
+    //   site=4 ; sExtract ( sExtract ( html ; "<article " ; "</article>" ) ; "<h1>" ; "</h1>" ) ;
+    //   direct_subtitle
+    //  ) ) ) ) ; ["　" ; " "] ; ["［" ; "〔"] ; ["］" ; "〕"] ) ; errata )
+    public string SheetTitle {
+        get {
+            if (_sheetTitle is null) {
+                if (!string.IsNullOrEmpty (html) && Document is not null) {
+                    switch (Site) {
+                        case Site.Narow:
+                        case Site.Novel18:
+                            _sheetTitle = Document.QuerySelector ("p.novel_subtitle")?.TextContent ?? "";
+                            break;
+                        case Site.KakuyomuOld:
+                            _sheetTitle = Document.QuerySelector ("p.widget-episodeTitle.js-vertical-composition-item")?.TextContent ?? "";
+                            break;
+                        case Site.Novelup:
+                            _sheetTitle = Document.QuerySelector ("div.episode_title")?.TextContent ?? "";
+                            break;
+                        case Site.Dyreitou:
+                            var tmp = Document.QuerySelector ("article");
+                            _sheetTitle = tmp?.QuerySelector ("h1")?.TextContent ?? "";
+                            break;
+                        default:
+                            _sheetTitle = "";
+                            break;
+                    }
+                } else {
+                    _sheetTitle = DirectSubTitle;
+                }
+            }
+            return _sheetTitle;
+        }
+    }
+    protected string? _sheetTitle = null;
+
+    // Correct ( TrimLFx ( ReplaceRepeater ( TagRemove ( ReplaceRuby ( Case (
+    // site=1 ; Let ( [ 
+    //   tmp = sExtract ( html ; "<div id=\"novel_honbun\" class=\"novel_view\">" ; "</div>" ) ;
+    //   tmp = If ( tmp <> "" ; tmp ; fExtract ( sExtract ( html ; "<div class=\"js-novel-text p-novel__text\"" ; "</div>" ) ; ">" ; "" ) )
+    // ];
+    //   tmp
+    // ) ;
+    // site=2 ; "<" & sExtract ( html ; "<div class=\"widget-episodeBody js-episode-body\"" ; "</div>" ) ;
+    // site=3 ; Substitute ( sExtract ( html ; "<div class=\"content\">" ; "</div>" ) ; [Char(13) & Char(10) ; ¶] );
+    // site=4 ; Substitute ( sExtract2List ( sExtract ( "<" & sExtract ( html ; "<article " ; "</article>" ) ; "<!-- a -->" ; "<!-- ｓ -->" ) ; "<p>" ; "</p>" ) ; ["<br />" ; ¶] ) ;
+    // direct_honbun ) ) ) ; "-" ; 10 ; "‒" ) ) ; errata )
+    //public string NovelHonbun {
+    //}
+    protected string? _novelHonbun = null;
 
     /// <summary>直書き本文</summary>
     // directContentの2行目以降を取得
@@ -212,7 +269,13 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         set {
             if (value != html) {
                 html = value;
-                _htmlDocument = null; // パース結果をクリア
+                // パース結果をクリア
+                _htmlDocument = null;
+                _directNumber = -1;
+                _directSubTitle = null;
+                _directContent = null;
+                _sheetTitle = null;
+                _novelHonbun = null;
             }
         }
     }
