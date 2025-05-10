@@ -32,8 +32,17 @@ public sealed class NovelsDataSet : BasicDataSet {
     /// <summary>ロード済みのモデルインスタンス</summary>
     public List<Book> Books => GetList<Book> ();
 
+    /// <summary>着目中の書籍</summary>
+    public Book CurrentBook => Id2Book.TryGetValue (CurrentBookId, out var book) ? book : new ();
+
+    /// <summary>IdからBookを得る</summary>
+    private Dictionary<long, Book> Id2Book = new ();
+
     /// <summary>ロード済みのモデルインスタンス</summary>
     public List<Sheet> Sheets => GetList<Sheet> ();
+
+    /// <summary>IdからSheetを得る</summary>
+    private Dictionary<long, Sheet> Id2Sheet = new ();
 
     /// <summary>ロード済みのモデルインスタンス</summary>
     public List<Setting> Settings => GetList<Setting> ();
@@ -56,6 +65,12 @@ public sealed class NovelsDataSet : BasicDataSet {
                 ListSet [typeof (Book)] = books;
                 ListSet [typeof (Sheet)] = sheets;
                 ListSet [typeof (Setting)] = settings;
+                Id2Book = books.ToDictionary (book => book.Id, book => book);
+                if (sheets.Count > 0) {
+                    sheets.ForEach (sheet => sheet.Book = Id2Book [sheet.BookId]);
+                    Id2Sheet = sheets.ToDictionary (sheet => sheet.Id, sheet => sheet);
+                    CurrentBook.Sheets = sheets;
+                }
                 return true;
             }
             ListSet.Remove (typeof (Book));

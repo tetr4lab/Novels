@@ -9,6 +9,7 @@ using System.Data;
 using Tetr4lab;
 using AngleSharp.Html.Parser;
 using AngleSharp.Html.Dom;
+using System.Text.RegularExpressions;
 
 namespace Novels.Data;
 
@@ -25,7 +26,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         { nameof (Modified), "更新日時" },
         { nameof (Url), "URL" },
         { nameof (Html), "原稿" },
-        { nameof (DirectContent), "本文" },
+        { nameof (directContent), "本文" },
         { nameof (NovelNumber), "シート数" },
         { nameof (SheetUpdatedAt), "発行日時" },
         { nameof (Errata), "正誤" },
@@ -43,11 +44,167 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     [Column ("html")] public string? html { get; set; } = null;
     [Column ("sheet_update")] public DateTime? SheetUpdatedAt { get; set; } = null;
     [Column ("novel_no"), Required] public int NovelNumber { get; set; } = 0;
-    [Column ("direct_content")] public string? DirectContent { get; set; } = null;
+    [Column ("direct_content")] public string? directContent { get; set; } = null;
     [Column ("errata")] public string? Errata { get; set; } = null;
 
     /// <summary>シートが所属する書籍</summary>
-    public Book Book (NovelsDataSet dataset) => dataset.Books.FirstOrDefault (x => x.Id == BookId) ?? new Book ();
+    public Book Book { get; set; } = null!;
+
+    /// <summary>サイト</summary>
+    public Site Site => Book.Site;
+
+    /// <summary>更新されている</summary>
+    public bool IsDirty { get; protected set; } = false;
+
+    /// <summary>直書き本文</summary>
+    // directContentの2行目以降を取得
+    public string? DirectContent {
+        get {
+            if (string.IsNullOrEmpty (directContent)) { return null; }
+            if (_directContent is null) {
+                DirectContentParse ();
+            }
+            return _directContent;
+        }
+        set {
+            if (value != _directContent) {
+                _directContent = value;
+                DirectContentConstruct ();
+            }
+        }
+    }
+
+    /// <summary>直書きの番号</summary>
+    // directContentの1行目で行頭の数値を取得
+    public int DirectNumber {
+        get {
+            if (_directNumber < 0) {
+                DirectContentParse ();
+            }
+            return _directNumber;
+        }
+        set {
+            if (value != _directNumber) {
+                _directNumber = value;
+                DirectContentConstruct ();
+            }
+        }
+    }
+
+    /// <summary>直書きの章題</summary>
+    // directContentの1行目で行頭の数値より後を取得
+    public string DirectSubTitle {
+        get {
+            if (_directSubTitle is null) {
+                DirectContentParse ();
+            }
+            return _directSubTitle ?? "";
+        }
+        set {
+            if (value != _directSubTitle) {
+                _directSubTitle = value;
+                DirectContentConstruct ();
+            }
+        }
+    }
+
+    /// <summary>直書きの構成</summary>
+    protected void DirectContentConstruct () {
+        if (_directNumber >= 0 && _directSubTitle is not null && _directContent is not null) {
+            var content = $"{_directNumber} {_directSubTitle}\n{_directContent}";
+            if (content != directContent) {
+                directContent = content;
+                IsDirty = true;
+            }
+        }
+    }
+
+    /// <summary>直書きの解析</summary>
+    protected void DirectContentParse () {
+        if (string.IsNullOrEmpty (directContent)) { return; }
+        var match = new Regex (@"^(\d+)? ?(.*)\n?").Match (directContent);
+        if (match.Success) {
+            var number = match.Groups [1].Value;
+            _directNumber = int.TryParse (number, out var result) ? result : 0;
+            _directSubTitle = match.Groups [2].Value.Trim ();
+            _directContent = directContent.Substring (match.Length).Trim ();
+        } else {
+            _directNumber = 0;
+            _directSubTitle = "";
+            _directContent = directContent;
+        }
+    }
+    protected int _directNumber = -1;
+    protected string? _directSubTitle = null;
+    protected string? _directContent = null;
+
+    /// <summary>シートのタイトル元</summary>
+    // Correct ( Substitute ( TrimLF ( TagRemove ( ReplaceRuby ( Case (
+    // site=1 ; Let ( [
+    //   tmp = sExtract ( html ; "<p class=\"chapter_title\">" ; "</p>" ) ;
+    //   tmp = If ( tmp <> "" ; tmp ; sExtract ( html ; "<h1 class=\"p-novel__title p-novel__title--rensai\">" ; "</h1>" ) )
+    // ] ;
+    //   tmp
+    // ) ;
+    // site=2 ; sExtract ( html ; "<p class=\"chapterTitle level1 js-vertical-composition-item\">" ; "</p>" ) ;
+    // site=3 ; TrimLFx ( sExtract ( html ; "<div class=\"episode_chapter\">" ; "</div>" ) ) ;
+    // site=4 ; "" ;
+    // direct_number > 0 ; direct_number
+    //  ) ) ) ) ; "　" ; " " ) ; errata )
+    protected string _chapterTitle {
+        get {
+            var title = "";
+            if (!string.IsNullOrEmpty (html) && Document is not null) {
+                switch (Site) {
+                    case Site.Narow:
+                    case Site.Novel18:
+                        title = Document.QuerySelector ("p.chapter_title")?.TextContent
+                            ?? Document.QuerySelector ("h1.p-novel__title.p-novel__title--rensai")?.TextContent ?? "";
+                        break;
+                    case Site.KakuyomuOld:
+                        title = Document.QuerySelector ("p.chapterTitle.level1.js-vertical-composition-item")?.TextContent ?? "";
+                        break;
+                    case Site.Novelup:
+                        title = Document.QuerySelector ("div.episode_chapter")?.TextContent ?? "";
+                        break;
+                }
+                if (string.IsNullOrEmpty (title) && DirectNumber > 1) {
+                    title = $"{DirectNumber}";
+                }
+            }
+            return title;
+        }
+    }
+
+    /// <summary>シートのタイトル</summary>
+    // 自身がBook::Sheetsの最初のシートなら_chapterTitleをを返す。最初でなければ、_chapterTitleが一つ前のシートと異なる場合にそれを返す。同じなら""を返す。
+    public string ChapterTitle {
+        get {
+            var index = Book.Sheets.FindIndex (s => s.Id == Id);
+            return (index <= 0 || Book.Sheets [index - 1]._chapterTitle != _chapterTitle) ? _chapterTitle : "";
+        }
+    }
+
+    /// <summary>シートのサブタイトル</summary>
+    // Correct ( Substitute ( TrimLF ( TagRemove ( ReplaceRuby ( Case (
+    // site=1 ; "" ;
+    // site=2 ; sExtract ( html ; "<p class=\"chapterTitle level2 js-vertical-composition-item\">" ; "</p>" ) ;
+    // site=3 ; "" ; 
+    // site=4 ; "" ; 
+    //  ) ) ) ) ; ["　" ; " "] ; ["［" ; "〔"] ; ["］" ; "〕"] ) ; errata )
+    public string ChapterSubTitle {
+        get {
+            var title = "";
+            if (!string.IsNullOrEmpty (html) && Document is not null) {
+                switch (Site) {
+                    case Site.KakuyomuOld:
+                        title = Document.QuerySelector ("p.chapterTitle.level2.js-vertical-composition-item")?.TextContent ?? "";
+                        break;
+                }
+            }
+            return title;
+        }
+    }
 
     /// <summary>外向けのHTML</summary>
     public string? Html {
@@ -76,7 +233,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     public override string? [] SearchTargets => [
         $"#{BookId}.",
         $"@{NovelNumber}.",
-        html, DirectContent,
+        html, directContent,
     ];
 
     /// <summary>ノーマルコンストラクタ</summary>
@@ -88,7 +245,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         item.BookId = BookId;
         item.Url = Url;
         item.Html = html;
-        item.DirectContent = DirectContent;
+        item.directContent = directContent;
         item.NovelNumber = NovelNumber;
         item.SheetUpdatedAt = SheetUpdatedAt;
         item.Errata = Errata;
@@ -100,7 +257,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         destination.BookId = BookId;
         destination.Url = Url;
         destination.Html = html;
-        destination.DirectContent = DirectContent;
+        destination.directContent = directContent;
         destination.NovelNumber = NovelNumber;
         destination.SheetUpdatedAt = SheetUpdatedAt;
         destination.Errata = Errata;
@@ -114,7 +271,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         && BookId == other.BookId
         && Url == other.Url
         && html == other.html
-        && DirectContent == other.DirectContent
+        && directContent == other.directContent
         && NovelNumber == other.NovelNumber
         && SheetUpdatedAt == other.SheetUpdatedAt
         && Errata == other.Errata
@@ -123,7 +280,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
 
     /// <inheritdoc/>
     public override int GetHashCode () => HashCode.Combine (
-        HashCode.Combine (Url, html, DirectContent, NovelNumber, SheetUpdatedAt, Errata, BookId, Remarks),
+        HashCode.Combine (Url, html, directContent, NovelNumber, SheetUpdatedAt, Errata, BookId, Remarks),
         base.GetHashCode ());
 
     /// <inheritdoc/>

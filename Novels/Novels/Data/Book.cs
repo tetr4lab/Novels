@@ -88,7 +88,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     [Column ("bookmark")] public long? Bookmark { get; set; } = null;
 
     /// <summary>書籍に所属するシート</summary>
-    public List<Sheet> Sheets (NovelsDataSet dataset) => dataset.Sheets.Where (x => x.BookId == Id).ToList ();
+    public List<Sheet> Sheets { get; set; } = null!;
 
     /// <summary>更新されている</summary>
     public bool IsDirty { get; protected set; } = false;
@@ -559,9 +559,8 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         if (sheetDates.Count > 0) {
             return sheetDates.Max ();
         }
-        var sheets = Sheets (dataset);
-        if (sheets.Count > 0) {
-            return sheets.Max (s => s.SheetUpdatedAt ?? DateTime.MinValue);
+        if (Sheets.Count > 0) {
+            return Sheets.Max (s => s.SheetUpdatedAt ?? DateTime.MinValue);
         }
         return Modified;
     }

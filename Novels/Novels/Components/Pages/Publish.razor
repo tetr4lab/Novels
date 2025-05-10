@@ -14,7 +14,8 @@
     @foreach (var item in items) {
         @if (FilterFunc (item)) {
             <div>
-                <h2>@item.NovelNumber</h2>
+                <h2>@item.NovelNumber: @item.ChapterTitle</h2>
+                <h3>@item.ChapterSubTitle</h3>
                 <p>@item.Url</p>
             </div>
         }
