@@ -1,6 +1,6 @@
 ﻿@inherits ItemListBase<Sheet>
 
-@page "/book"
+@page "/book/{BookId:long?}"
 
 <PageTitle>Book</PageTitle>
 
@@ -14,18 +14,20 @@
     <MudSimpleTable>
         <thead>
             <tr>
-                <th>Chapter</th>
-                <th>SubTitle</th>
-                <th>DetectedSubTitle</th>
+                <th>#</th>
+                <th>ChapterTitle</th>
+                <th>ChapterSubTitle</th>
+                <th>SheetTitle</th>
                 <th>Url</th>
             </tr>
         </thead>
         @foreach (var item in items) {
             @if (FilterFunc (item)) {
                 <tr>
-                    <td>@item.NovelNumber: @item.ChapterTitle</td>
+                    <td>@(items.IndexOf (item) + 1)</td>
+                    <td>@item.ChapterTitle</td>
                     <td>@item.ChapterSubTitle</td>
-                    <td>@item.Deteiheete</td>
+                    <td>@item.SheetTitle</td>
                     <td>@item.Url</td>
                 </tr>
             }
@@ -37,12 +39,16 @@
 selected: @CurrentBookId
 
 @code {
-    /// <summary>着目中の書籍</summary>
-    [CascadingParameter (Name = "CurrentBookId")] protected long CurrentBookId { get; set; } = 0;
+    /// <summary>指定された書籍</summary>
+    [Parameter] public long? BookId { get; set; } = null;
 
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
     protected override async Task OnInitializedAsync() {
-        DataSet.CurrentBookId = CurrentBookId;
+        DataSet.CurrentBookId = BookId ?? CurrentBookId;
+        if (BookId is not null && BookId != CurrentBookId) {
+            await SetCurrentBookId.InvokeAsync (BookId.Value);
+        }
         await base.OnInitializedAsync ();
+        await SetSectionTitle.InvokeAsync ($"BookId: {CurrentBookId}");
     }
 }

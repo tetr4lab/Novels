@@ -15,7 +15,9 @@
                     <MudDrawer Class="fixed" @bind-Open="@_drawerOpen" Anchor="Anchor.Top" Elevation="1" Variant="@DrawerVariant.Temporary">
                         <MudNavMenu Dense Color="Color.Dark" Class="px-4 my-2">
                             <CascadingValue Value="@_filterText" Name="Filter">
-                                <NavBar OnClickSearchButton="SetFilterText" IsDarkMode="_isDarkMode" OnClickChangeModeButton="ChangeModeAsync" />
+                                <CascadingValue Value="@_currentBookId" Name="CurrentBookId">
+                                    <NavBar OnClickSearchButton="SetFilterText" IsDarkMode="_isDarkMode" OnClickChangeModeButton="ChangeModeAsync" />
+                                </CascadingValue>
                             </CascadingValue>
                         </MudNavMenu>
                     </MudDrawer>
@@ -24,7 +26,9 @@
                     <MudAppBar Color="Color.Transparent" Dense Fixed="true">
                         <MudGrid Class="align-center flex-nowrap" Spacing="0">
                             <CascadingValue Value="@_filterText" Name="Filter">
-                                <NavBar OnClickSearchButton="SetFilterText" IsDarkMode="_isDarkMode" OnClickChangeModeButton="ChangeModeAsync" />
+                                <CascadingValue Value="@_currentBookId" Name="CurrentBookId">
+                                    <NavBar OnClickSearchButton="SetFilterText" IsDarkMode="_isDarkMode" OnClickChangeModeButton="ChangeModeAsync" />
+                                </CascadingValue>
                             </CascadingValue>
                         </MudGrid>
                     </MudAppBar>
@@ -37,7 +41,7 @@
                     </MudAppBar>
                 </MudHidden>
                 <MudStack Row Class="px-4" Justify="Justify.SpaceBetween">
-                    <MudText Typo="Typo.h5">@_sectionTitle</MudText>
+                    <MudText Typo="Typo.h5">@((MarkupString) _sectionTitle)</MudText>
                     <MudText Typo="Typo.h5"><SessionCounter /></MudText>
                 </MudStack>
                 <article class="content px-4">
@@ -127,7 +131,7 @@
 
     /// <summary>セクションタイトルが変更された</summary>
     protected void SetSectionTitle (string title) {
-        _sectionTitle = title;
+        _sectionTitle = string.Join ("<br />", title.Split ('\n'));
     }
 
     /// <summary>検索ボタンが押された</summary>

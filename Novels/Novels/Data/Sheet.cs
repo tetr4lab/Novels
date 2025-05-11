@@ -77,6 +77,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
                             _sheetTitle = Document.QuerySelector ("p.novel_subtitle")?.TextContent ?? "";
                             break;
                         case Site.KakuyomuOld:
+                        case Site.Kakuyomu:
                             _sheetTitle = Document.QuerySelector ("p.widget-episodeTitle.js-vertical-composition-item")?.TextContent ?? "";
                             break;
                         case Site.Novelup:
@@ -94,7 +95,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
                     _sheetTitle = DirectSubTitle;
                 }
             }
-            return _sheetTitle;
+            return Correct (_sheetTitle);
         }
     }
     protected string? _sheetTitle = null;
@@ -112,8 +113,38 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     // site=3 ; Substitute ( sExtract ( html ; "<div class=\"content\">" ; "</div>" ) ; [Char(13) & Char(10) ; ¶] );
     // site=4 ; Substitute ( sExtract2List ( sExtract ( "<" & sExtract ( html ; "<article " ; "</article>" ) ; "<!-- a -->" ; "<!-- ｓ -->" ) ; "<p>" ; "</p>" ) ; ["<br />" ; ¶] ) ;
     // direct_honbun ) ) ) ; "-" ; 10 ; "‒" ) ) ; errata )
-    //public string SheetHonbun {
-    //}
+    public string SheetHonbun {
+        get {
+            if (_sheetHonbun is null) {
+                if (!string.IsNullOrEmpty (html) && Document is not null) {
+                    switch (Site) {
+                        case Site.Narow:
+                        case Site.Novel18:
+                            _sheetHonbun = Document.QuerySelector ("div#novel_honbun.novel_view")?.InnerHtml
+                                ?? Document.QuerySelector ("div.js-novel-text.p-novel__text")?.InnerHtml ?? "";
+                            break;
+                        case Site.KakuyomuOld:
+                        case Site.Kakuyomu:
+                            _sheetHonbun = Document.QuerySelector ("div.widget-episodeBody.js-episode-body")?.InnerHtml ?? "";
+                            break;
+                        case Site.Novelup:
+                            _sheetHonbun = Document.QuerySelector ("div.content")?.InnerHtml ?? "";
+                            break;
+                        case Site.Dyreitou:
+                            var tmp = Document.QuerySelector ("article")?.QuerySelectorAll ("p");
+                            _sheetHonbun = tmp is null ? "" : string.Join ("\n", Array.ConvertAll (tmp.ToArray (), x => x.InnerHtml));
+                            break;
+                        default:
+                            _sheetHonbun = "";
+                            break;
+                    }
+                } else {
+                    _sheetHonbun = DirectContent;
+                }
+            }
+            return Correct (_sheetHonbun);
+        }
+    }
     protected string? _sheetHonbun = null;
 
     /// <summary>直書き本文</summary>
@@ -211,7 +242,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     // site=4 ; "" ;
     // direct_number > 0 ; direct_number
     //  ) ) ) ) ; "　" ; " " ) ; errata )
-    protected string _chapterTitle {
+    public string OriginalChapterTitle {
         get {
             var title = "";
             if (!string.IsNullOrEmpty (html) && Document is not null) {
@@ -222,6 +253,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
                             ?? Document.QuerySelector ("h1.p-novel__title.p-novel__title--rensai")?.TextContent ?? "";
                         break;
                     case Site.KakuyomuOld:
+                    case Site.Kakuyomu:
                         title = Document.QuerySelector ("p.chapterTitle.level1.js-vertical-composition-item")?.TextContent ?? "";
                         break;
                     case Site.Novelup:
@@ -241,7 +273,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     public string ChapterTitle {
         get {
             var index = Book.Sheets.FindIndex (s => s.Id == Id);
-            return (index <= 0 || Book.Sheets [index - 1]._chapterTitle != _chapterTitle) ? _chapterTitle : "";
+            return (index <= 0 || Book.Sheets [index - 1].OriginalChapterTitle != OriginalChapterTitle) ? OriginalChapterTitle : "";
         }
     }
 
@@ -258,12 +290,37 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
             if (!string.IsNullOrEmpty (html) && Document is not null) {
                 switch (Site) {
                     case Site.KakuyomuOld:
+                    case Site.Kakuyomu:
                         title = Document.QuerySelector ("p.chapterTitle.level2.js-vertical-composition-item")?.TextContent ?? "";
                         break;
                 }
             }
             return title;
         }
+    }
+
+    /// <summary>文字校正</summary>
+    // // text を errata で corect する、errataは行毎に1件、"\n"を改行文字、char(9)をセパレータとする。セパレータがない場合は単にerrorを削除する。
+    // If ( IsEmpty( text ) or IsEmpty( errata ) ; text ; Let ([
+    // 	errr = Substitute( GetValue( errata ; 1 ) ; Char(9) ; ¶ ) ;
+    // 	crct = Substitute( GetValue( errr ; 2 ) ; "\n" ; ¶ );
+    // 	errr = Substitute( GetValue( errr ; 1 ) ; "\n" ; ¶ );
+    // 	errata = RightValues ( errata ; ValueCount( errata ) - 1 )
+    // ];
+    // 	Correct( Substitute( text ; errr ; crct ) ; errata )
+    // ))
+    public string Correct (string? text) {
+        if (string.IsNullOrEmpty (text) || string.IsNullOrEmpty (Errata)) {
+            return text ?? "";
+        }
+        (string errr, string crct) [] errata = Array.ConvertAll (Errata.Split ('\n', StringSplitOptions.RemoveEmptyEntries), s => {
+            var v = s.Split ('\t');
+            return (v.Length > 0 ? v [0] : "", v.Length > 1 ? v [1] : "");
+        });
+        foreach (var e in errata) {
+            text = text.Replace (e.errr, e.crct);
+        }
+        return text;
     }
 
     /// <summary>外向けのHTML</summary>

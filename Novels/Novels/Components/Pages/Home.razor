@@ -47,11 +47,6 @@
 }
 
 @code {
-    /// <summary>着目中の書籍</summary>
-    [CascadingParameter (Name = "CurrentBookId")] protected long CurrentBookId { get; set; } = 0;
-    /// <summary>着目中の書籍設定</summary>
-    [CascadingParameter (Name = "SetCurrentBookId")] protected EventCallback<long> SetCurrentBookId { get; set; }
-
     /// <summary>遅延初期化</summary>
     protected override async Task OnAfterRenderAsync (bool firstRender) {
         await base.OnAfterRenderAsync (firstRender);

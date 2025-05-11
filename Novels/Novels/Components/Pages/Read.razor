@@ -1,6 +1,6 @@
 ﻿@inherits ItemListBase<Sheet>
 
-@page "/sheet/{SheetId:long?}"
+@page "/sheet/{BookId:long?}/{SheetIndex:int?}"
 
 <PageTitle>Sheet</PageTitle>
 
@@ -9,16 +9,11 @@
 } else if (!DataSet.IsReady || items is null) {
     <MudProgressCircular Indeterminate="true" />
 } else if (items.Count > 0) {
-    var book = DataSet.Books.Find (s => s.Id == CurrentBookId);
-    if (book is not null) {
-        SheetId ??= items [0].Id; // Default to the first page if not specified
-        var item = items.Find (i => i.Id == SheetId.Value);
-        if (item is not null) {
-            var page = items.IndexOf (item) + 1;
-            <MudText>『@(book.Title)』 @(book.Author) #@(item.NovelNumber) @(page)/@(book.NumberOfSheets)</MudText>
-            <MudText>『@(book.DetectedTitle)』</MudText>
-            <MudPaper>
-                @(item.Document?.Body?.InnerHtml ?? "")
+    if (Book is not null) {
+        if (Sheet is not null) {
+            <MudPaper Elevation="0">
+                <MudText Class="mt-2 mb-4"><h2>@(Sheet?.SheetTitle)</h2></MudText>
+                @((MarkupString) Sheet.SheetHonbun)
             </MudPaper>
         } else {
             <MudText>No page found.</MudText>
@@ -32,15 +27,34 @@
 selected: @CurrentBookId
 
 @code {
+    /// <summary>指定された書籍</summary>
+    [Parameter] public long? BookId { get; set; } = null;
     /// <summary>ページ</summary>
-    [Parameter] public long? SheetId { get; set; } = null;
+    [Parameter] public int? SheetIndex { get; set; } = null;
 
     /// <summary>着目中の書籍</summary>
-    [CascadingParameter (Name = "CurrentBookId")] protected long CurrentBookId { get; set; } = 0;
+    protected Book? Book { get; set; } = null;
+
+    /// <summary>着目中のシート</summary>
+    protected Sheet? Sheet { get; set; } = null;
 
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
     protected override async Task OnInitializedAsync() {
-        DataSet.CurrentBookId = CurrentBookId;
+        DataSet.CurrentBookId = BookId ?? CurrentBookId;
+        if (BookId is not null && BookId != CurrentBookId) {
+            await SetCurrentBookId.InvokeAsync (BookId.Value);
+        }
         await base.OnInitializedAsync ();
+    }
+
+    /// <summary>遅延初期化で署名や章名を表示</summary>
+    protected override async Task OnAfterRenderAsync (bool firstRender) {
+        await base.OnAfterRenderAsync (firstRender);
+        if (firstRender && items?.Count > 0) {
+            Book = DataSet.Books.Find (s => s.Id == CurrentBookId);
+            SheetIndex ??= 1; // Default to the first page if not specified
+            Sheet = items [SheetIndex.Value - 1];
+            await SetSectionTitle.InvokeAsync ($"<span style=\"font-size:80%;\">『{Book.Title}』 {Book.Author} #{SheetIndex ?? 1}/{Book.NumberOfSheets}</span>\n{Sheet.OriginalChapterTitle} {Sheet.ChapterSubTitle}");
+        }
     }
 }

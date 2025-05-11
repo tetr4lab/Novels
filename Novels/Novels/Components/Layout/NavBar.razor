@@ -15,14 +15,14 @@
     </MudItem>
 }
 <MudItem>
-    <MudNavLink Href="book">
+    <MudNavLink Href="@($"book/{CurrentBookId}")">
         <MudText Class="d-flex align-center gap-1" Typo="Typo.h6">
             <MudIcon Icon="@Icons.Material.Filled.Book" />Publish
         </MudText>
     </MudNavLink>
 </MudItem>
 <MudItem>
-    <MudNavLink Href="sheet">
+    <MudNavLink Href="@($"sheet/{CurrentBookId}")">
         <MudText Class="d-flex align-center gap-1" Typo="Typo.h6">
             <MudIcon Icon="@Icons.Material.Filled.MenuBook" />Read
         </MudText>
@@ -95,6 +95,8 @@
     [Parameter] public EventCallback OnClickChangeModeButton { get; set; } = EventCallback.Empty;
     /// <summary>検索文字列</summary>
     [CascadingParameter (Name = "Filter")] protected string FilterText { get; set; } = string.Empty;
+    /// <summary>着目中の書籍</summary>
+    [CascadingParameter (Name = "CurrentBookId")] protected long CurrentBookId { get; set; } = 0;
 
     /// <summary>検索文字列</summary>
     private string _filterText = string.Empty;
