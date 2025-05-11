@@ -50,7 +50,7 @@
     /// <summary>遅延初期化</summary>
     protected override async Task OnAfterRenderAsync (bool firstRender) {
         await base.OnAfterRenderAsync (firstRender);
-        if (firstRender && items?.Count > 0) {
+        if (firstRender && items?.Count > 0 && CurrentBookId <= 0) {
             await SetCurrentBookId.InvokeAsync (items [0].Id);
         }
     }
