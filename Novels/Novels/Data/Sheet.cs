@@ -45,6 +45,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     [Column ("sheet_update")] public DateTime? SheetUpdatedAt { get; set; } = null;
     /// <summary>シートの並び順 新規では、シート生成時に1からの連番が振られる (FMでは別ルールで生成された)</remarks>
     [Column ("novel_no"), Required] public int NovelNumber { get; set; } = 0;
+    /// <summary>直書き 番号、章題、本文に分解して使われ、再構成される</summary>
     [Column ("direct_content")] public string? directContent { get; set; } = null;
     [Column ("errata")] public string? Errata { get; set; } = null;
 
@@ -98,6 +99,8 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     }
     protected string? _sheetTitle = null;
 
+    /// <summary>シートの本文</summary>
+    // NovelHonbun = 
     // Correct ( TrimLFx ( ReplaceRepeater ( TagRemove ( ReplaceRuby ( Case (
     // site=1 ; Let ( [ 
     //   tmp = sExtract ( html ; "<div id=\"novel_honbun\" class=\"novel_view\">" ; "</div>" ) ;
@@ -109,12 +112,12 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     // site=3 ; Substitute ( sExtract ( html ; "<div class=\"content\">" ; "</div>" ) ; [Char(13) & Char(10) ; ¶] );
     // site=4 ; Substitute ( sExtract2List ( sExtract ( "<" & sExtract ( html ; "<article " ; "</article>" ) ; "<!-- a -->" ; "<!-- ｓ -->" ) ; "<p>" ; "</p>" ) ; ["<br />" ; ¶] ) ;
     // direct_honbun ) ) ) ; "-" ; 10 ; "‒" ) ) ; errata )
-    //public string NovelHonbun {
+    //public string SheetHonbun {
     //}
-    protected string? _novelHonbun = null;
+    protected string? _sheetHonbun = null;
 
     /// <summary>直書き本文</summary>
-    // directContentの2行目以降を取得
+    // directContentの2行目以降
     public string? DirectContent {
         get {
             if (string.IsNullOrEmpty (directContent)) { return null; }
@@ -132,7 +135,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     }
 
     /// <summary>直書きの番号</summary>
-    // directContentの1行目で行頭の数値を取得
+    // directContentの1行目で行頭の数値
     public int DirectNumber {
         get {
             if (_directNumber < 0) {
@@ -149,7 +152,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     }
 
     /// <summary>直書きの章題</summary>
-    // directContentの1行目で行頭の数値より後を取得
+    // directContentの1行目で行頭の数値より後
     public string DirectSubTitle {
         get {
             if (_directSubTitle is null) {
@@ -275,7 +278,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
                 _directSubTitle = null;
                 _directContent = null;
                 _sheetTitle = null;
-                _novelHonbun = null;
+                _sheetHonbun = null;
             }
         }
     }
