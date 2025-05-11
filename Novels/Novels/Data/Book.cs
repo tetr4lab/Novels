@@ -49,7 +49,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (Title), "署名" },
         { nameof (Author), "著者" },
         { nameof (DirectTitleWriterName), "著作/著者" },
-        { nameof (DirectContent), "本文" },
+        { nameof (directContent), "本文" },
         { nameof (NumberOfSheets), "シート数" },
         { nameof (NumberOfPublished), "発行済みシート数" },
         { nameof (PublishedAt), "発行日時" },
@@ -75,7 +75,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     [Column ("title")] public string? Title { get; set; } = null;
     [Column ("author")] public string? Author { get; set; } = null;
     [Column ("direct_title_writername")] public string? DirectTitleWriterName { get; set; } = null;
-    [Column ("direct_content")] public string? DirectContent { get; set; } = null;
+    [Column ("direct_content")] public string? directContent { get; set; } = null;
     [Column ("number_of_sheets")] public int? NumberOfSheets { get; set; } = null;
     [Column ("number_of_published")] public int? NumberOfPublished { get; set; } = null;
     [Column ("published_at")] public DateTime? PublishedAt { get; set; } = null;
@@ -92,6 +92,53 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
 
     /// <summary>更新されている</summary>
     public bool IsDirty { get; protected set; } = false;
+
+    /// <summary>外向きのDirectContent</summary>
+    public string? DirectContent {
+        get {
+            if (_directLines is null) {
+                _directLines = directContent?.Split ('\n').ToList () ?? new ();
+                if (!string.IsNullOrEmpty (directContent) && !directContent.StartsWith ('<')) {
+                    _directLines = _directLines.ConvertAll (s => {
+                        if (s == "［＃改ページ］" || s == "［＃改丁］") {
+                            s = "<hr class=\"pagebreak\" />";
+                        } else if (s == "") {
+                            s = "　";
+                        }
+                        return $"<p>{s}</p>";
+                    });
+                }
+            }
+            return string.Join ('\n', _directLines);
+        }
+        set {
+            if (value != directContent) {
+                directContent = value;
+                _directLines = null;
+                IsDirty = true;
+            }
+        }
+    }
+    protected List<string>? _directLines = null;
+
+    /// <summary>制限された外向きのDirectContent</summary>
+    public string? GetLimitedDirectContent (int limit = 100) {
+        if (_directLines is null) {
+            _ = DirectContent;
+        }
+        var lines = _directLines;
+        if (lines is not null) {
+            if (limit > 0) {
+                if (limit > lines.Count) {
+                    limit = lines.Count;
+                }
+                lines = lines.Take (limit).ToList ();
+                lines.Add ("<p>　　⁝</p>");
+            }
+            return string.Join ('\n', lines);
+        }
+        return null;
+    }
 
     /// <summary>検出されたサイト (結果が<see cref="Site" />に反映される)</summary>
     public Site DetectedSite {
@@ -554,7 +601,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     // Count ( Sheet::sheet_lastupdate ) ; Max ( Sheet::sheet_lastupdate ) ;
     //  modified )
     public DateTime LastUpdated (NovelsDataSet dataset) {
-        if (!string.IsNullOrEmpty (DirectContent)) {
+        if (!string.IsNullOrEmpty (directContent)) {
             return Modified;
         }
         var sheetDates = DetectedSheetUpdated;
@@ -800,6 +847,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
             if (value != html) {
                 html = value;
                 _htmlDocument = null; // パース結果をクリア
+                _directLines = null;
             }
         }
     }
@@ -839,7 +887,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         item.Title = Title;
         item.Author = Author;
         item.DirectTitleWriterName = DirectTitleWriterName;
-        item.DirectContent = DirectContent;
+        item.directContent = directContent;
         item.NumberOfSheets = NumberOfSheets;
         item.NumberOfPublished = NumberOfPublished;
         item.PublishedAt = PublishedAt;
@@ -862,7 +910,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         destination.Title = Title;
         destination.Author = Author;
         destination.DirectTitleWriterName = DirectTitleWriterName;
-        destination.DirectContent = DirectContent;
+        destination.directContent = directContent;
         destination.NumberOfSheets = NumberOfSheets;
         destination.NumberOfPublished = NumberOfPublished;
         destination.PublishedAt = PublishedAt;
@@ -887,7 +935,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         && Title == other.Title
         && Author == other.Author
         && DirectTitleWriterName == other.DirectTitleWriterName
-        && DirectContent == other.DirectContent
+        && directContent == other.directContent
         && NumberOfSheets == other.NumberOfSheets
         && NumberOfPublished == other.NumberOfPublished
         && PublishedAt == other.PublishedAt
@@ -903,7 +951,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
 
     /// <inheritdoc/>
     public override int GetHashCode () => HashCode.Combine (
-        HashCode.Combine (Url1, Url2, html, DirectTitleWriterName, DirectContent, NumberOfSheets, NumberOfPublished, PublishedAt),
+        HashCode.Combine (Url1, Url2, html, DirectTitleWriterName, directContent, NumberOfSheets, NumberOfPublished, PublishedAt),
         HashCode.Combine (Readed, ReadedMemo, Status, HtmlBackup, Errata, Wish, Bookmark, Remarks),
         base.GetHashCode ());
 
