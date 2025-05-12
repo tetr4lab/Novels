@@ -36,7 +36,34 @@
                     <td>@item.Site</td>
                     @* @{ var site = item.Site; }
                     <td>@(item.DetectedSite != site ? "×" : "◯") @item.DetectedSite</td> *@
-                    <td>@(item.DirectContent is not null ? "1/1" : $"{item.NumberOfPublished ?? 0}/{item.NumberOfSheets ?? 0}")</td>
+                    <td>
+                        @if (item.directContent is not null) {
+                            <MudText Typo="Typo.inherit">1/1</MudText>
+                        } else {
+                            <MudTooltip Duration="1000" Arrow="true">
+                                <ChildContent>
+                                    <MudStack Row Spacing="0">
+                                        <MudText Typo="Typo.inherit" Color="@(
+                                            (item.NumberOfPublished ?? 0) > item.NumberOfRelatedSheets || item.NumberOfRelatedSheets > (item.NumberOfSheets ?? 0) ? Color.Error :
+                                            (item.NumberOfPublished ?? 0) < item.NumberOfRelatedSheets || item.NumberOfRelatedSheets < (item.NumberOfSheets ?? 0) ? Color.Warning : Color.Inherit
+                                        )">
+                                            @(item.NumberOfRelatedSheets)
+                                        </MudText>
+                                        <MudText Typo="Typo.inherit">
+                                            /@(item.NumberOfSheets ?? 0)
+                                        </MudText>
+                                    </MudStack>
+                                </ChildContent>
+                                <TooltipContent>
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.inherit">発行: @(item.NumberOfPublished ?? 0)</MudText>
+                                        <MudText Typo="Typo.inherit">取得: @(item.NumberOfRelatedSheets)</MudText>
+                                        <MudText Typo="Typo.inherit">書誌: @(item.NumberOfSheets ?? 0)</MudText>
+                                    </MudStack>
+                                </TooltipContent>
+                            </MudTooltip>
+                        }
+                    </td>
                     @* <td>@(updates.Count != item.NumberOfSheets ? $"×{updates.Count}" : "") @(string.Join (", ", updates.ConvertAll (d => $"{d.ToShortDateString ()} {d.ToShortTimeString ()}")))</td> *@
                 </tr>
             }

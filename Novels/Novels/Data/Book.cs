@@ -63,7 +63,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     };
 
     /// <inheritdoc/>
-    public static string BaseSelectSql => @$"select * from `books`;";
+    public static string BaseSelectSql => @$"select `books`.*, count(`sheets`.`id`) as `number_of_related_sheets` from `books` left join `sheets` on `books`.`id`=`sheets`.`book_id` group by `id`;";
 
     /// <inheritdoc/>
     public static string UniqueKeysSql => "";
@@ -86,6 +86,12 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     [Column ("errata")] public string? Errata { get; set; } = null;
     [Column ("wish"), Required] public bool Wish { get; set; } = false;
     [Column ("bookmark")] public long? Bookmark { get; set; } = null;
+
+    /// <summary>関係先シートの実数</summary>
+    [Column ("number_of_related_sheets"), VirtualColumn] public int NumberOfRelatedSheets { get; set; } = 0;
+
+    /// <summary>検出されたシート数</summary>
+    public int DetectedNumberOfSheets => SheetUrls.Count;
 
     /// <summary>書籍に所属するシート</summary>
     public List<Sheet> Sheets { get; set; } = null!;
