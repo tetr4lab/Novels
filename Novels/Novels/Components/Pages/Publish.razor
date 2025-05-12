@@ -32,6 +32,9 @@
             }
         }
     </MudSimpleTable>
+    <MudScrollToTop TopOffset="1000">
+        <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowCircleUp" />
+    </MudScrollToTop>
 } else if (Book.directContent is not null) {
     <MudText>Direct content found.</MudText>
 } else {

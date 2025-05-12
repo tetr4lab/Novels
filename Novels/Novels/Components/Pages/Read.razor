@@ -18,6 +18,9 @@
                 <MudText Class="mt-2 mb-4"><h2>@(Sheet?.SheetTitle)</h2></MudText>
                 @((MarkupString) Sheet.SheetHonbun)
             </MudPaper>
+            <MudScrollToTop TopOffset="1000">
+                <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowCircleUp" />
+            </MudScrollToTop>
         } else {
             <MudText>No page found.</MudText>
         }
