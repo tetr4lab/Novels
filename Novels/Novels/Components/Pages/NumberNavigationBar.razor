@@ -1,8 +1,25 @@
 ﻿@inject NavigationManager NavigationManager
 
-<MudStack Row Class="justify-center">
-    <MudIconButton OnClick="Prev" Disabled="@(Number <= Min)" Icon="@Icons.Material.Outlined.ArrowCircleLeft" Size="Size.Large" />
-    <MudIconButton OnClick="Next" Disabled="@(Number >= Max)" Icon="@Icons.Material.Outlined.ArrowCircleRight" Size="Size.Large" />
+<MudStack Row Class="justify-center align-center">
+    <MudTooltip Style="margin-top: -10px;" Arrow Duration="1000" Text="First">
+        <MudIconButton OnClick="@(() => ChangePage (Min))" Disabled="@(Number <= Min)" Icon="@Icons.Material.Outlined.SkipPrevious" Size="Size.Large" />
+    </MudTooltip>
+    <MudTooltip Style="margin-top: -10px;" Arrow Duration="1000" Text="-10">
+        <MudIconButton OnClick="@(() => ChangePage (Number - 10))" Disabled="@(Number <= Min + 9)" Icon="@Icons.Material.Filled.KeyboardDoubleArrowLeft" Size="Size.Large" />
+    </MudTooltip>
+    <MudTooltip Style="margin-top: -10px;" Arrow Duration="1000" Text="-1">
+        <MudIconButton OnClick="@(() => ChangePage (Number - 1))" Disabled="@(Number <= Min)" Icon="@Icons.Material.Filled.KeyboardArrowLeft" Size="Size.Large" />
+    </MudTooltip>
+    <MudText>@(Number)/@(Max)</MudText>
+    <MudTooltip Style="margin-top: -10px;" Arrow Duration="1000" Text="+1">
+        <MudIconButton OnClick="@(() => ChangePage (Number + 1))" Disabled="@(Number >= Max)" Icon="@Icons.Material.Filled.KeyboardArrowRight" Size="Size.Large" />
+    </MudTooltip>
+    <MudTooltip Style="margin-top: -10px;" Arrow Duration="1000" Text="+10">
+        <MudIconButton OnClick="@(() => ChangePage (Number + 10))" Disabled="@(Number > Max - 10)" Icon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Size="Size.Large" />
+    </MudTooltip>
+    <MudTooltip Style="margin-top: -10px;" Arrow Duration="1000" Text="Last">
+        <MudIconButton OnClick="@(() => ChangePage (Max))" Disabled="@(Number >= Max)" Icon="@Icons.Material.Outlined.SkipNext" Size="Size.Large" />
+    </MudTooltip>
 </MudStack>
 
 @code {
@@ -18,9 +35,6 @@
     /// <summary>最大</summary>
     [Parameter] public int Max { get; set; }
 
-    /// <summary>前のページ</summary>
-    protected async Task Prev () => await OnChangeNumber.InvokeAsync (Number - 1);
-
-    /// <summary>次のページ</summary>
-    protected async Task Next () => await OnChangeNumber.InvokeAsync (Number + 1);
+    /// <summary>ページ変更</summary>
+    protected async Task ChangePage (int number) => await OnChangeNumber.InvokeAsync (number);
 }

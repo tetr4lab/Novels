@@ -2,6 +2,8 @@
 
 @page "/book/{BookId:long?}"
 
+@inject NavigationManager NavigationManager
+
 <PageTitle>Book</PageTitle>
 
 @if (DataSet.IsUnavailable) {
@@ -17,17 +19,18 @@
                 <th>ChapterTitle</th>
                 <th>ChapterSubTitle</th>
                 <th>SheetTitle</th>
-                <th>Url</th>
+                <th>Read</th>
             </tr>
         </thead>
         @foreach (var item in items) {
-            @if (FilterFunc (item)) {
+            var index = items.IndexOf (item) + 1;
+            if (FilterFunc (item)) {
                 <tr>
-                    <td>@(items.IndexOf (item) + 1)</td>
+                    <td>@(index)</td>
                     <td>@item.ChapterTitle</td>
                     <td>@item.ChapterSubTitle</td>
                     <td>@item.SheetTitle</td>
-                    <td>@item.Url</td>
+                    <td><MudIconButton OnClick="@(() => ReadSheet (index))" Disabled="@(BookId != CurrentBookId)" Icon="@Icons.Material.Filled.ChromeReaderMode" Size="Size.Small" /></td>
                 </tr>
             }
         }
@@ -47,6 +50,13 @@
 
     /// <summary>着目中の書籍</summary>
     protected Book? Book { get; set; } = null;
+
+    /// <summary>シートを開く</summary>
+    protected void ReadSheet (int index) {
+        if (Book is not null) {
+            NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}sheet/{CurrentBookId}/{index}");
+        }
+    }
 
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
     protected override async Task OnInitializedAsync() {

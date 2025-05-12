@@ -74,7 +74,7 @@
         // ルート(`@page`)が一致するため、アドレスバーが書き換わり、パラメータ`SheetIndex`に`index`が代入されるが、ページの遷移は生じない
         NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}sheet/{Book!.Id}/{index}");
         Sheet = items! [index - 1];
-        await SetSectionTitle.InvokeAsync ($"<span style=\"font-size:80%;\">『{Book!.Title}』 {Book!.Author} #{index}/{Book!.NumberOfSheets}</span>\n{Sheet!.OriginalChapterTitle} {Sheet!.ChapterSubTitle}");
+        await SetSectionTitle.InvokeAsync ($"<span style=\"font-size:80%;\">『{Book!.Title}』 {Book!.Author}</span>\n{Sheet!.OriginalChapterTitle} {Sheet!.ChapterSubTitle}");
     }
 
     /// <summary>シート変更</summary>
