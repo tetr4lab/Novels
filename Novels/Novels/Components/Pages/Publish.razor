@@ -50,12 +50,16 @@
 
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
     protected override async Task OnInitializedAsync() {
+        // Uriパラメータを優先して着目書籍を特定する
         DataSet.CurrentBookId = BookId ?? CurrentBookId;
         if (BookId is not null && BookId != CurrentBookId) {
+            // パラメータによって着目書籍が変更されたら、レイアウトとナビに渡す
             await SetCurrentBookId.InvokeAsync (BookId.Value);
         }
         await base.OnInitializedAsync ();
+        // 着目書籍のIdを表示
         await SetSectionTitle.InvokeAsync ($"BookId: {CurrentBookId}");
+        // 着目書籍オブジェクトを取得
         Book = DataSet.Books.Find (s => s.Id == CurrentBookId);
     }
 }

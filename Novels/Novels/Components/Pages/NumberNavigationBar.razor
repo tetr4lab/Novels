@@ -1,0 +1,26 @@
+﻿@inject NavigationManager NavigationManager
+
+<MudStack Row Class="justify-center">
+    <MudIconButton OnClick="Prev" Disabled="@(Number <= Min)" Icon="@Icons.Material.Outlined.ArrowCircleLeft" Size="Size.Large" />
+    <MudIconButton OnClick="Next" Disabled="@(Number >= Max)" Icon="@Icons.Material.Outlined.ArrowCircleRight" Size="Size.Large" />
+</MudStack>
+
+@code {
+    /// <summary>変更イベントコールバック</summary>
+    [Parameter] public EventCallback<int> OnChangeNumber { get; set; } = EventCallback<int>.Empty;
+
+    /// <summary>現在地</summary>
+    [Parameter] public int Number { get; set; }
+
+    /// <summary>最少</summary>
+    [Parameter] public int Min { get; set; }
+
+    /// <summary>最大</summary>
+    [Parameter] public int Max { get; set; }
+
+    /// <summary>前のページ</summary>
+    protected async Task Prev () => await OnChangeNumber.InvokeAsync (Number - 1);
+
+    /// <summary>次のページ</summary>
+    protected async Task Next () => await OnChangeNumber.InvokeAsync (Number + 1);
+}

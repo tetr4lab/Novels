@@ -24,3 +24,7 @@ function getModifierKeys() {
 function openInNewTab(url) {
     window.open(url, '_blank');
 }
+
+function scrollToTop() {
+    document.documentElement.scrollTop = 0;
+}
