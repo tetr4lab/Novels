@@ -36,6 +36,9 @@
                     <td>@item.Site</td>
                     @* @{ var site = item.Site; }
                     <td>@(item.DetectedSite != site ? "×" : "◯") @item.DetectedSite</td> *@
+                    <td class="text-nowrap">
+                        <span style="@($"background:{item.StatusBgColor}")">@(item.Status)</span>
+                    </td>
                     <td>
                         @if (item.directContent is not null) {
                             <MudText Typo="Typo.inherit">1/1</MudText>

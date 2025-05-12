@@ -99,6 +99,16 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <summary>更新されている</summary>
     public bool IsDirty { get; protected set; } = false;
 
+    /// <summary>状態に応じた背景色</summary>
+    public string StatusBgColor => Readed ? Colors.Gray.Lighten2 : Status switch {
+        "完結" => Colors.Blue.Lighten5,
+        "一応完結" => Colors.Blue.Lighten5,
+        "更新途絶" => Colors.LightGreen.Lighten5,
+        "更新中" => Colors.Yellow.Lighten4,
+        "消失" => Colors.LightGreen.Lighten4,
+        _ => "inherit",
+    };
+
     /// <summary>外向きのDirectContent</summary>
     public string? DirectContent {
         get {
