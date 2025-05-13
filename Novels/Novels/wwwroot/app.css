@@ -72,6 +72,10 @@ nav .mud-appbar.mud-theme-transparent:has(.mud-nav-link) {
     text-align: start;
 }
 
+.align-middle, .mud-table-cell.align-middle, td.mud-table-cell.align-middle, td.align-middle, th.align-middle, .mud-simple-table table * tr > td.align-middle, .mud-simple-table table * tr th.align-middle {
+    text-align: center;
+}
+
 th {
     white-space: nowrap;
 }

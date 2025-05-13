@@ -9,69 +9,83 @@
 } else if (!DataSet.IsReady || items is null) {
     <MudProgressCircular Indeterminate="true" />
 } else if (items.Count > 0) {
-    <MudSimpleTable>
-        @foreach (var item in items) {
-            @if (FilterFunc (item)) {
-                @* var urls = item.DetectedSheetUrls;
-                var count = urls.Count; *@
-                @* var updates = item.DetectedSheetUpdated; *@
-                <tr>
-                    @* <td>@(item.IsReleased (DataSet) ? "✔" : "")</td> *@
-                    <td>@item.Id</td>
-                    <td>
-                        <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="async () => await SetCurrentBookId.InvokeAsync (item.Id)">
-                            @(item.Id == CurrentBookId ? ">" : "　")
-                        </MudButton>
-                    </td>
-                    @* <td>@(count != (item.NumberOfSheets ?? 0) ? $"×{count}:{item.NumberOfSheets}, {string.Join (", ", urls)}" : string.Join (", ", urls))</td> *@
-                    @* <td>@item.DetectedSeriesTitle</td> *@
-                    @* <td>@(item.Title)</td> *@
-                    @* @{ var title = item.Title; }
-                    <td>@(item.DetectedTitle != title ? "×" : "◯") @item.DetectedTitle</td> *@
-                    <td>@item.DetectedMainTitle<br />　@item.DetectedSubTitle</td>
-                    <td>@(item.Author)</td>
-                    @* @{ var author = item.Author; }
-                    <td>@(item.DetectedAuther != author ? "×" : "◯") @item.DetectedAuther</td> *@
-                    @* <td><MudText Typo="Typo.caption" Style="white-space: pre-line;">@item.DetectedExplanation</MudText></td> *@
-                    <td>@item.Site</td>
-                    @* @{ var site = item.Site; }
-                    <td>@(item.DetectedSite != site ? "×" : "◯") @item.DetectedSite</td> *@
-                    <td class="text-nowrap">
-                        <span style="@($"background:{item.StatusBgColor}")">@(item.Status)</span>
-                    </td>
-                    <td>
-                        @if (item.directContent is not null) {
-                            <MudText Typo="Typo.inherit">1/1</MudText>
-                        } else {
-                            <MudTooltip Duration="1000" Arrow="true">
-                                <ChildContent>
-                                    <MudStack Row Spacing="0">
-                                        <MudText Typo="Typo.inherit" Color="@(
-                                            (item.NumberOfPublished ?? 0) > item.NumberOfRelatedSheets || item.NumberOfRelatedSheets > (item.NumberOfSheets ?? 0) ? Color.Error :
-                                            (item.NumberOfPublished ?? 0) < item.NumberOfRelatedSheets || item.NumberOfRelatedSheets < (item.NumberOfSheets ?? 0) ? Color.Warning : Color.Inherit
+    <MudTable Items="items" Dense Breakpoint="Breakpoint.Xs" @ref="_table"
+    Filter="new Func<Book, bool> (FilterFunc)"
+    SortLabel="⇅"
+    AllowUnsorted="true"
+    @bind-SelectedItem="selectedItem"
+    @bind-CurrentPage="CurrentPage"
+    FooterClass="mud-background-gray"
+    Hover="true"
+    OnRowClick="EventCallback.Factory.Create<TableRowClickEventArgs<Book>> (this, OnRowClick)"
+    Striped="true"
+    ReadOnly="false">
+        <HeaderContent>
+            <MudTh>@(Book.Label [nameof (Book.Id)])</MudTh>
+            <MudTh>@(Book.Label [nameof (Book.Title)])</MudTh>
+            <MudTh>@(Book.Label [nameof (Book.Author)])</MudTh>
+            <MudTh>@(Book.Label [nameof (Book.Site)])</MudTh>
+            <MudTh>@(Book.Label [nameof (Book.Status)])</MudTh>
+            <MudTh>@(Book.Label [nameof (Book.NumberOfSheets)])</MudTh>
+            <MudTh>@(Book.Label [nameof (Book.Remarks)])</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="@(Book.Label[nameof(Book.Id)])" Class="align-right text-nowrap">
+                <MudStack Row Spacing="0" Class="align-center">
+                    @if (context.Id == CurrentBookId) {
+                        <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" />
+                    }
+                    <MudSpacer />
+                    @(context.Id)
+                </MudStack>
+            </MudTd>
+            <MudTd DataLabel="@(Book.Label[nameof(Book.Title)])">@(context.Title)</MudTd>
+            <MudTd DataLabel="@(Book.Label[nameof(Book.Author)])">@(context.Author)</MudTd>
+            <MudTd DataLabel="@(Book.Label[nameof(Book.Site)])" Class="align-middle text-nowrap">@(context.Site)</MudTd>
+            <MudTd DataLabel="@(Book.Label[nameof(Book.Status)])" Class="align-middle text-nowrap">
+                <MudChip T="string" Label="true" Size="Size.Small" Variant="Variant.Outlined" Style="@($"width: 6em;background:{context.StatusBgColor}")">@(context.Status)</MudChip>
+            </MudTd>
+            <MudTd DataLabel="@(Book.Label[nameof(Book.NumberOfSheets)])" Class="align-middle text-nowrap">
+                @if (context.directContent is not null) {
+                    <MudText Typo="Typo.inherit">1/1</MudText>
+                } else {
+                    <MudTooltip Duration="1000" Arrow="true">
+                        <ChildContent>
+                            <MudStack Row Spacing="0">
+                                <MudText Typo="Typo.inherit" Color="@(
+                                            (context.NumberOfPublished ?? 0) > context.NumberOfRelatedSheets || context.NumberOfRelatedSheets > (context.NumberOfSheets ?? 0) ? Color.Error :
+                                            (context.NumberOfPublished ?? 0) < context.NumberOfRelatedSheets || context.NumberOfRelatedSheets < (context.NumberOfSheets ?? 0) ? Color.Warning : Color.Inherit
                                         )">
-                                            @(item.NumberOfRelatedSheets)
-                                        </MudText>
-                                        <MudText Typo="Typo.inherit">
-                                            /@(item.NumberOfSheets ?? 0)
-                                        </MudText>
-                                    </MudStack>
-                                </ChildContent>
-                                <TooltipContent>
-                                    <MudStack Spacing="0">
-                                        <MudText Typo="Typo.inherit">発行: @(item.NumberOfPublished ?? 0)</MudText>
-                                        <MudText Typo="Typo.inherit">取得: @(item.NumberOfRelatedSheets)</MudText>
-                                        <MudText Typo="Typo.inherit">書誌: @(item.NumberOfSheets ?? 0)</MudText>
-                                    </MudStack>
-                                </TooltipContent>
-                            </MudTooltip>
-                        }
-                    </td>
-                    @* <td>@(updates.Count != item.NumberOfSheets ? $"×{updates.Count}" : "") @(string.Join (", ", updates.ConvertAll (d => $"{d.ToShortDateString ()} {d.ToShortTimeString ()}")))</td> *@
-                </tr>
+                                    @(context.NumberOfRelatedSheets)
+                                </MudText>
+                                <MudText Typo="Typo.inherit">
+                                    /@(context.NumberOfSheets ?? 0)
+                                </MudText>
+                            </MudStack>
+                        </ChildContent>
+                        <TooltipContent>
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.inherit">発行: @(context.NumberOfPublished ?? 0)</MudText>
+                                <MudText Typo="Typo.inherit">取得: @(context.NumberOfRelatedSheets)</MudText>
+                                <MudText Typo="Typo.inherit">書誌: @(context.NumberOfSheets ?? 0)</MudText>
+                            </MudStack>
+                        </TooltipContent>
+                    </MudTooltip>
+                }
+            </MudTd>
+            <MudTd DataLabel="@(Book.Label[nameof(Book.Remarks)])">@context.Remarks</MudTd>
+        </RowTemplate>
+        <PagerContent>
+            @if (AllowPaging) {
+                <MudTablePager PageSizeOptions="_pageSizeOptions" InfoFormat="{first_item}-{last_item} / {all_items}" RowsPerPageString="行/頁:" />
             }
-        }
-    </MudSimpleTable>
+        </PagerContent>
+        <EditButtonContent Context="button">
+            <MudTooltip Text="編集" Duration="1000">
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled" />
+            </MudTooltip>
+        </EditButtonContent>
+    </MudTable>
     <MudScrollToTop TopOffset="1000">
         <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowCircleUp" />
     </MudScrollToTop>
@@ -80,11 +94,43 @@
 }
 
 @code {
+    /// <inheritdoc/>
+    protected override int _initialPageSizeIndex => 1;
+
+    /// <summary>表示ページ</summary>
+    protected int CurrentPage { get; set; } = 0;
+
+    /// <summary>行がクリックされた</summary>
+    protected async Task OnRowClick (TableRowClickEventArgs<Book> context) {
+        if (context.Item is Book book) {
+            selectedItem = book;
+            if (CurrentBookId != book.Id) {
+                await SetCurrentBookId.InvokeAsync (book.Id);
+            }
+        }
+    }
+
     /// <summary>遅延初期化</summary>
     protected override async Task OnAfterRenderAsync (bool firstRender) {
         await base.OnAfterRenderAsync (firstRender);
-        if (firstRender && items?.Count > 0 && CurrentBookId <= 0) {
-            await SetCurrentBookId.InvokeAsync (items [0].Id);
+        if (firstRender && items?.Count > 0) {
+            if (CurrentBookId <= 0) {
+                // 新規セッション
+                selectedItem = items [0];
+                await SetCurrentBookId.InvokeAsync (items [0].Id);
+            } else {
+                // 別ページから遷移 (既存セッション)
+                selectedItem = items.FirstOrDefault (x => x.Id == CurrentBookId) ?? selectedItem;
+            }
+            if (_table is not null) {
+                // 選択されている書籍があるページへ
+                var currentIndex = items.IndexOf (selectedItem);
+                var currentPage = currentIndex / _table.RowsPerPage;
+                if (currentPage != CurrentPage) {
+                    CurrentPage = currentPage;
+                    StateHasChanged ();
+                }
+            }
         }
     }
 
