@@ -53,6 +53,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (NumberOfSheets), "シート数" },
         { nameof (NumberOfPublished), "発行済みシート数" },
         { nameof (PublishedAt), "発行日時" },
+        { nameof (Released), "既刊" },
         { nameof (Readed), "既読" },
         { nameof (ReadedMemo), "読後メモ" },
         { nameof (Status), "状態" },
@@ -108,6 +109,43 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         "消失" => Colors.LightGreen.Lighten4,
         _ => "inherit",
     };
+
+    /// <summary>最終更新日時</summary>
+    // Case (
+    // not IsEmpty ( direct_content ) ; modified ;
+    // not IsEmpty ( sheet_updates ) ; MaxTimestamp ( sheet_updates ) + Case ( site = 2 ; Time ( 9 ; 0 ; 0 ) ; 0 ) ;
+    // Count ( Sheet::sheet_lastupdate ) ; Max ( Sheet::sheet_lastupdate ) ;
+    //  modified )
+    public DateTime LastUpdate {
+        get {
+            if (directContent is not null) {
+                return Modified;
+            }
+            var sheetUpdates = DetectedSheetUpdated;
+            if (sheetUpdates.Count > 0) {
+                var max = sheetUpdates.Max ();
+                if (DetectedSite == Site.KakuyomuOld) {
+                    max = max.AddHours (9);
+                }
+                return max;
+            }
+            return Modified;
+        }
+    }
+
+    /// <summary>発行済み</summary>
+    // If ( not IsEmpty ( number_of_published ) and number_of_published ≥ number_of_sheets and ( IsEmpty ( published_at ) or published_at ≥ last_update ) ; 1 )
+    public bool Released {
+        get {
+            if (NumberOfSheets > 0 && NumberOfPublished >= NumberOfSheets) {
+                if (PublishedAt is not null) {
+                    return PublishedAt >= LastUpdate;
+                }
+                return true;
+            }
+            return false;
+        }
+    }
 
     /// <summary>外向きのDirectContent</summary>
     public string? DirectContent {
@@ -884,6 +922,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public override string? [] SearchTargets => [
         $"#{Id}.",
         $":{Site}.",
+        $"{(Released ? "_is_released_" : "_not_released_")}",
         $"{(Readed ? "_is_readed_" : "_not_readed_")}",
         $"_{Status}_",
         $"{(Wish ? "_is_wished_" : "_not_wished_")}",

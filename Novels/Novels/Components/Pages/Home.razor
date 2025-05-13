@@ -22,6 +22,11 @@
     ReadOnly="false">
         <HeaderContent>
             <MudTh>@(Book.Label [nameof (Book.Id)])</MudTh>
+            <MudTh>
+                @(Book.Label [nameof (Book.Released)])
+                @(Book.Label [nameof (Book.Readed)])
+                @(Book.Label [nameof (Book.Wish)])
+            </MudTh>
             <MudTh>@(Book.Label [nameof (Book.Title)])</MudTh>
             <MudTh>@(Book.Label [nameof (Book.Author)])</MudTh>
             <MudTh>@(Book.Label [nameof (Book.Site)])</MudTh>
@@ -38,6 +43,11 @@
                     <MudSpacer />
                     @(context.Id)
                 </MudStack>
+            </MudTd>
+            <MudTd DataLabel="@($"{Book.Label[nameof(Book.Released)]} {Book.Label[nameof(Book.Readed)]} {Book.Label[nameof(Book.Wish)]}")" Class="align-middle text-nowrap">
+                <MudIcon Icon="@(context.Released ? Icons.Material.Outlined.CheckBox : Icons.Material.Outlined.CheckBoxOutlineBlank)" />
+                <MudIcon Icon="@(context.Readed ? Icons.Material.Outlined.CheckBox : Icons.Material.Outlined.CheckBoxOutlineBlank)" />
+                <MudIcon Icon="@(context.Wish ? Icons.Material.Outlined.CheckBox : Icons.Material.Outlined.CheckBoxOutlineBlank)" />
             </MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.Title)])">@(context.Title)</MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.Author)])">@(context.Author)</MudTd>
