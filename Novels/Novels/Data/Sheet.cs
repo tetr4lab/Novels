@@ -42,6 +42,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     [Column ("book_id"), Required] public long BookId { get; set; } = 0;
     [Column ("url")] public string Url { get; set; } = "";
     [Column ("html")] public string? html { get; set; } = null;
+    /// <summary>公に明示された更新日時、または、シートの取り込み日時</summary>
     [Column ("sheet_update")] public DateTime? SheetUpdatedAt { get; set; } = null;
     /// <summary>シートの並び順 新規では、シート生成時に1からの連番が振られる (FMでは別ルールで生成された)</remarks>
     [Column ("novel_no"), Required] public int NovelNumber { get; set; } = 0;

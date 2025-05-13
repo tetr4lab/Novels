@@ -74,10 +74,12 @@
                             </MudStack>
                         </ChildContent>
                         <TooltipContent>
-                            <MudStack Spacing="0">
-                                <MudText Typo="Typo.inherit">発行: @(context.NumberOfPublished ?? 0)</MudText>
-                                <MudText Typo="Typo.inherit">取得: @(context.NumberOfRelatedSheets)</MudText>
-                                <MudText Typo="Typo.inherit">書誌: @(context.NumberOfSheets ?? 0)</MudText>
+                            <MudStack Spacing="0" Class="align-start">
+                                <MudText Typo="Typo.inherit">発行数量: @(context.NumberOfPublished ?? 0)</MudText>
+                                <MudText Typo="Typo.inherit">取得数量: @(context.NumberOfRelatedSheets)</MudText>
+                                <MudText Typo="Typo.inherit">書誌数量: @(context.NumberOfSheets ?? 0)</MudText>
+                                <MudText Typo="Typo.inherit">発行日時: @(context.PublishedAt)</MudText>
+                                <MudText Typo="Typo.inherit">更新日時: @(context.LastUpdate)</MudText>
                             </MudStack>
                         </TooltipContent>
                     </MudTooltip>
@@ -90,11 +92,6 @@
                 <MudTablePager PageSizeOptions="_pageSizeOptions" InfoFormat="{first_item}-{last_item} / {all_items}" RowsPerPageString="行/頁:" />
             }
         </PagerContent>
-        <EditButtonContent Context="button">
-            <MudTooltip Text="編集" Duration="1000">
-                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled" />
-            </MudTooltip>
-        </EditButtonContent>
     </MudTable>
     <MudScrollToTop TopOffset="1000">
         <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowCircleUp" />
@@ -132,8 +129,8 @@
                 // 別ページから遷移 (既存セッション)
                 selectedItem = items.FirstOrDefault (x => x.Id == CurrentBookId) ?? selectedItem;
             }
-            if (_table is not null) {
-                // 選択されている書籍があるページへ
+            if (_table is not null && string.IsNullOrEmpty (FilterText)) {
+                // 絞り込みがなければ、選択されている書籍があるページへ
                 var currentIndex = items.IndexOf (selectedItem);
                 var currentPage = currentIndex / _table.RowsPerPage;
                 if (currentPage != CurrentPage) {

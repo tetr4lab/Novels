@@ -79,6 +79,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     [Column ("direct_content")] public string? directContent { get; set; } = null;
     [Column ("number_of_sheets")] public int? NumberOfSheets { get; set; } = null;
     [Column ("number_of_published")] public int? NumberOfPublished { get; set; } = null;
+    /// <summary>Epub発行日時</summary>
     [Column ("published_at")] public DateTime? PublishedAt { get; set; } = null;
     [Column ("read"), Required] public bool Readed { get; set; } = false;
     [Column ("memorandum")] public string? ReadedMemo { get; set; } = null;
@@ -123,11 +124,10 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
             }
             var sheetUpdates = DetectedSheetUpdated;
             if (sheetUpdates.Count > 0) {
-                var max = sheetUpdates.Max ();
-                if (DetectedSite == Site.KakuyomuOld) {
-                    max = max.AddHours (9);
-                }
-                return max;
+                return sheetUpdates.Max ();
+            }
+            if (Sheets?.Count > 0) {
+                return Sheets.Max (s => s.SheetUpdatedAt ?? s.Modified);
             }
             return Modified;
         }

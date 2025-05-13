@@ -19,6 +19,7 @@
                 <th>ChapterTitle</th>
                 <th>ChapterSubTitle</th>
                 <th>SheetTitle</th>
+                <th>Updated</th>
                 <th>Read</th>
             </tr>
         </thead>
@@ -30,6 +31,7 @@
                     <td>@item.ChapterTitle</td>
                     <td>@item.ChapterSubTitle</td>
                     <td>@item.SheetTitle</td>
+                    <td>@item.SheetUpdatedAt</td>
                     <td><MudIconButton OnClick="@(() => ReadSheet (index))" Disabled="@(BookId != CurrentBookId)" Icon="@Icons.Material.Filled.ChromeReaderMode" Size="Size.Small" /></td>
                 </tr>
             }
