@@ -32,6 +32,8 @@
     }
 } else if (Book.IsDirectContent) {
     @((MarkupString) (Book.DirectContent ?? ""))
+} else if (Sheet is not null && Sheet.IsDirectContent) {
+    @((MarkupString) (Sheet.DirectContent ?? ""))
 } else {
     <MudText>No items found.</MudText>
 }
