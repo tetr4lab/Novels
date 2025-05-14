@@ -205,27 +205,31 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public Site Site {
         get {
             if (_site == Site.NotSet && !string.IsNullOrEmpty (Url1)) {
+                var site = _site;
                 if (Url1.Contains ("ncode.syosetu.com")) {
-                    _site = Site.Narow;
+                    site = Site.Narow;
                 } else if (Url1.Contains ("novel18.syosetu.com")) {
-                    _site = Site.Novel18;
+                    site = Site.Novel18;
                 } else if (Url1.Contains ("kakuyomu.jp")) {
                     if (!string.IsNullOrEmpty (_html) && Document is not null) {
                         if (Document?.QuerySelector ("h1#workTitle") is not null) {
-                            _site = Site.KakuyomuOld;
+                            site = Site.KakuyomuOld;
                         } else {
-                            _site = Site.Kakuyomu;
+                            site = Site.Kakuyomu;
                         }
                     }
                     // else は未判定のまま返す
                 } else if (Url1.Contains ("novelup.plus")) {
-                    _site = Site.Novelup;
+                    site = Site.Novelup;
                 } else if (Url1.Contains ("dyreitou.com")) {
-                    _site = Site.Dyreitou;
+                    site = Site.Dyreitou;
                 } else {
-                    _site = Site.Unknown;
+                    site = Site.Unknown;
                 }
-                IsDirty = true;
+                if (site != _site) {
+                    _site = site;
+                    IsDirty = true;
+                }
             }
             return _site;
         }
@@ -262,7 +266,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     }
     protected string? __seriesTitle = null;
 
-    /// <summary>外向けのタイトル</summary>
+    /// <summary>外向けのタイトル (検出結果が<see cref="_title" />に反映される)</summary>
     // Let ( [
     // Title = If ( IsEmpty ( html ) ; "" ; Correct ( Substitute ( TrimLF ( TagRemove ( Case (
     // site = 1; Substitute ( Let ( [
