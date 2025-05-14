@@ -73,7 +73,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
             if (__sheetTitle is null) {
                 if (!string.IsNullOrEmpty (_html) && Document is not null) {
                     switch (Site) {
-                        case Site.Narow:
+                        case Site.Narou:
                         case Site.Novel18:
                             __sheetTitle = Document.QuerySelector ("p.novel_subtitle")?.TextContent ?? "";
                             break;
@@ -120,7 +120,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
             if (__sheetHonbun is null) {
                 if (!string.IsNullOrEmpty (_html) && Document is not null) {
                     switch (Site) {
-                        case Site.Narow:
+                        case Site.Narou:
                         case Site.Novel18:
                             __sheetHonbun = Document.QuerySelector ("div#novel_honbun.novel_view")?.InnerHtml
                                 ?? Document.QuerySelector ("div.js-novel-text.p-novel__text")?.InnerHtml ?? "";
@@ -266,7 +266,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
             if (__originalChapterTitle is null && !string.IsNullOrEmpty (_html) && Document is not null) {
                 var title = (string?) null;
                 switch (Site) {
-                    case Site.Narow:
+                    case Site.Narou:
                     case Site.Novel18:
                         title = Document.QuerySelector ("p.chapter_title")?.TextContent
                             ?? Document.QuerySelector ("h1.p-novel__title.p-novel__title--rensai")?.TextContent ?? "";

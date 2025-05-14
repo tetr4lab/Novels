@@ -20,7 +20,7 @@ public enum Site {
     /// <summary>不明</summary>
     Unknown = 0,
     /// <summary>小説家になろう</summary>
-    Narow = 1,
+    Narou = 1,
     /// <summary>旧カクヨム</summary>
     KakuyomuOld = 2,
     /// <summary>ノベルアップ＋</summary>
@@ -207,7 +207,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
             if (_site == Site.NotSet && !string.IsNullOrEmpty (Url1)) {
                 var site = _site;
                 if (Url1.Contains ("ncode.syosetu.com")) {
-                    site = Site.Narow;
+                    site = Site.Narou;
                 } else if (Url1.Contains ("novel18.syosetu.com")) {
                     site = Site.Novel18;
                 } else if (Url1.Contains ("kakuyomu.jp")) {
@@ -247,7 +247,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                 var seriesTitle = "";
                 if (!string.IsNullOrEmpty (_html) && Document is not null) {
                     switch (Site) {
-                        case Site.Narow:
+                        case Site.Narou:
                         case Site.Novel18:
                             seriesTitle = Document.QuerySelector ("p.series_title")?.TextContent ?? "";
                             break;
@@ -302,7 +302,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                 var title = "";
                 if (!string.IsNullOrEmpty (_html) && Document is not null) {
                     switch (Site) {
-                        case Site.Narow:
+                        case Site.Narou:
                         case Site.Novel18:
                             title = (Document.QuerySelector ("p.novel_title")?.TextContent
                                 ?? Document.QuerySelector ("h1.p-novel__title")?.TextContent
@@ -436,7 +436,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                 var author = "";
                 if (!string.IsNullOrEmpty (_html) && Document is not null) {
                     switch (Site) {
-                        case Site.Narow:
+                        case Site.Narou:
                         case Site.Novel18:
                             author = (Document.QuerySelector ("div.novel_writername")?.TextContent
                                 ?? Document.QuerySelector ("div.p-novel__author")?.TextContent
@@ -493,7 +493,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
             if (__explanation is null && !string.IsNullOrEmpty (_html) && Document is not null) {
                 var explanation = (string?) null;
                 switch (Site) {
-                    case Site.Narow:
+                    case Site.Narou:
                     case Site.Novel18:
                         explanation = (Document.QuerySelector ("div#novel_ex")?.TextContent
                             ?? Document.QuerySelector ("div#novel_ex.p-novel__summary")?.TextContent
@@ -563,7 +563,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                 var sheetUrls = new List<string> ();
                 var tags = (AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement>?) null;
                 switch (Site) {
-                    case Site.Narow:
+                    case Site.Narou:
                     case Site.Novel18:
                         tags = Document.QuerySelectorAll ("dl.novel_sublist2 a");
                         if (tags.Length == 0) {
@@ -622,7 +622,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
             if (__sheetUpdateDates is null && !string.IsNullOrEmpty (_html) && Document is not null) {
                 var sheetDates = new List<DateTime> ();
                 switch (Site) {
-                    case Site.Narow:
+                    case Site.Narou:
                     case Site.Novel18:
                         var tags = Document.QuerySelectorAll ("dl.novel_sublist2 dt.long_update");
                         if (tags.Length == 0) {
