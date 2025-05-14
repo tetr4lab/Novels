@@ -28,8 +28,11 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
     /// <summary>着目中の書籍</summary>
     [CascadingParameter (Name = "CurrentBookId")] protected long CurrentBookId { get; set; } = 0;
 
+    /// <summary>着目中のシート</summary>
+    [CascadingParameter (Name = "CurrentSheetIndex")] protected int CurrentSheetIndex { get; set; } = 0;
+
     /// <summary>着目中の書籍設定</summary>
-    [CascadingParameter (Name = "SetCurrentBookId")] protected EventCallback<long> SetCurrentBookId { get; set; }
+    [CascadingParameter (Name = "SetCurrentBookId")] protected EventCallback<(long bookId, int sheetIndex)> SetCurrentBookId { get; set; }
 
     /// <summary>検索文字列設定</summary>
     [CascadingParameter (Name = "SetFilter")] protected EventCallback<string> SetFilterText { get; set; }

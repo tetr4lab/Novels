@@ -16,7 +16,9 @@
                         <MudNavMenu Dense Color="Color.Dark" Class="px-4 my-2">
                             <CascadingValue Value="@_filterText" Name="Filter">
                                 <CascadingValue Value="@_currentBookId" Name="CurrentBookId">
-                                    <NavBar OnClickSearchButton="SetFilterText" IsDarkMode="_isDarkMode" OnClickChangeModeButton="ChangeModeAsync" />
+                                    <CascadingValue Value="@_currentSheetIndex" Name="CurrentSheetIndex">
+                                        <NavBar OnClickSearchButton="SetFilterText" IsDarkMode="_isDarkMode" OnClickChangeModeButton="ChangeModeAsync" />
+                                    </CascadingValue>
                                 </CascadingValue>
                             </CascadingValue>
                         </MudNavMenu>
@@ -27,7 +29,9 @@
                         <MudGrid Class="align-center flex-nowrap" Spacing="0">
                             <CascadingValue Value="@_filterText" Name="Filter">
                                 <CascadingValue Value="@_currentBookId" Name="CurrentBookId">
-                                    <NavBar OnClickSearchButton="SetFilterText" IsDarkMode="_isDarkMode" OnClickChangeModeButton="ChangeModeAsync" />
+                                    <CascadingValue Value="@_currentSheetIndex" Name="CurrentSheetIndex">
+                                        <NavBar OnClickSearchButton="SetFilterText" IsDarkMode="_isDarkMode" OnClickChangeModeButton="ChangeModeAsync" />
+                                    </CascadingValue>
                                 </CascadingValue>
                             </CascadingValue>
                         </MudGrid>
@@ -47,10 +51,10 @@
                 <article class="content px-4">
                     <CascadingValue Value="@_filterText" Name="Filter">
                         <CascadingValue Value="@_currentBookId" Name="CurrentBookId">
-                            <CascadingValue Value="@(EventCallback.Factory.Create<long> (this, SetCurrentBookId))" Name="SetCurrentBookId">
-                                <CascadingValue Value="@(EventCallback.Factory.Create<string> (this, SetFilterText))" Name="SetFilter">
-                                    <CascadingValue Value="@(EventCallback.Factory.Create<string> (this, SetSectionTitle))" Name="Section">
-                                        <CascadingValue Value="@_isTaxExcluded" Name="TaxExcluded">
+                            <CascadingValue Value="@_currentSheetIndex" Name="CurrentSheetIndex">
+                                <CascadingValue Value="@(EventCallback.Factory.Create<(long, int)> (this, SetCurrentBookId))" Name="SetCurrentBookId">
+                                    <CascadingValue Value="@(EventCallback.Factory.Create<string> (this, SetFilterText))" Name="SetFilter">
+                                        <CascadingValue Value="@(EventCallback.Factory.Create<string> (this, SetSectionTitle))" Name="Section">
                                             <CascadingValue Value="@(EventCallback.Factory.Create<bool> (this, SetTaxExcludedAsync))" Name="SetTaxExcluded">
                                                 @Body
                                             </CascadingValue>
@@ -128,6 +132,8 @@
     protected string _filterText = string.Empty;
     /// <summary>着目中の書籍 (カスケーディングパラメータ)</summary>
     protected long _currentBookId = 0;
+    /// <summary>着目中のシート (カスケーディングパラメータ)</summary>
+    protected int _currentSheetIndex = 1;
 
     /// <summary>セクションタイトルが変更された</summary>
     protected void SetSectionTitle (string title) {
@@ -141,7 +147,7 @@
     }
 
     /// <summary>着目中の書籍が変更された</summary>
-    protected void SetCurrentBookId (long bookId) {
-        _currentBookId = bookId;
+    protected void SetCurrentBookId ((long bookId, int sheetIndex) bookmark) {
+        (_currentBookId, _currentSheetIndex) = bookmark;
     }
 }

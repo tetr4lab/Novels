@@ -16,18 +16,33 @@ public sealed class NovelsDataSet : BasicDataSet {
     public NovelsDataSet (Database database) : base (database) { }
 
     /// <summary>着目中の書籍</summary>
-    public long CurrentBookId {
-        get => _currentBookId;
-        set {
-            if (value != _currentBookId) {
-                _currentBookId = value;
-                if (IsInitialized) {
-                    IsInitialized = false; // 再初期化
-                }
-            }
+    public long CurrentBookId { get; private set; } = 0;
+
+    /// <summary>着目書籍の設定</summary>
+    public async Task SetCurrentBookIdAsync (long id) {
+        if (id != CurrentBookId) {
+            CurrentBookId = id;
+            await ReLoadAsync ();
         }
     }
-    public long _currentBookId = 0;
+
+    /// <summary>再読み込み</summary>
+    public async Task ReLoadAsync () {
+        if (isLoading) {
+            while (isLoading) {
+                await Task.Delay (WaitInterval);
+            }
+        }
+        isLoading = true;
+        for (var i = 0; i < MaxRetryCount; i++) {
+            if ((await GetListSetAsync ()).IsSuccess) {
+                isLoading = false;
+                return;
+            }
+            await Task.Delay (RetryInterval);
+        }
+        throw new TimeoutException ("The maximum number of retries for LoadAsync was exceeded.");
+    }
 
     /// <summary>ロード済みのモデルインスタンス</summary>
     public List<Book> Books => GetList<Book> ();

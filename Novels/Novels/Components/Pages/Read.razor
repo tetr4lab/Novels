@@ -9,6 +9,8 @@
 
 @if (DataSet.IsUnavailable) {
     <MudAlert Severity="Severity.Error" Elevation="3">Unable to connect to any of the specified database management hosts.</MudAlert>
+} else if (DataSet.IsReady && Book is null) {
+    <MudText>No book found.</MudText>
 } else if (!DataSet.IsReady || items is null || Book is null) {
     <MudProgressCircular Indeterminate="true" />
 } else if (items.Count > 0) {
@@ -52,40 +54,34 @@
 
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
     protected override async Task OnInitializedAsync() {
-        DataSet.CurrentBookId = BookId ?? CurrentBookId;
-        if (BookId is not null && BookId != CurrentBookId) {
-            await SetCurrentBookId.InvokeAsync (BookId.Value);
+        var currentBookId = BookId ?? CurrentBookId;
+        if (currentBookId != CurrentBookId || SheetIndex is not null && SheetIndex != CurrentSheetIndex) {
+            await SetCurrentBookId.InvokeAsync ((currentBookId, SheetIndex ?? CurrentSheetIndex));
         }
+        var reload = DataSet.SetCurrentBookIdAsync (currentBookId);
         await base.OnInitializedAsync ();
-    }
-
-    /// <summary>遅延初期化で署名や章名を表示</summary>
-    protected override async Task OnAfterRenderAsync (bool firstRender) {
-        await base.OnAfterRenderAsync (firstRender);
-        if (firstRender && CurrentBookId > 0) {
-            Book = DataSet.Books.Find (s => s.Id == CurrentBookId);
-            if (firstRender && items?.Count > 0 && Book is not null) {
-                await SetSheet (SheetIndex ?? 1);
-            }
-            StateHasChanged ();
-        }
+        // リロード完了待機
+        await reload;
+        Book = DataSet.Books.Find (s => s.Id == CurrentBookId);
+        await SetSheet (SheetIndex ?? 1);
     }
 
     /// <summary>シート番号に依存した設定</summary>
     protected async Task SetSheet (int index) {
-        // ルート(`@page`)が一致するため、アドレスバーが書き換わり、パラメータ`SheetIndex`に`index`が代入されるが、ページの遷移は生じない
-        NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}sheet/{Book!.Id}/{index}");
-        Sheet = items! [index - 1];
-        await SetSectionTitle.InvokeAsync ($"<span style=\"font-size:80%;\">『{Book!.Title}』 {Book!.Author}</span>\n{Sheet!.OriginalChapterTitle} {Sheet!.ChapterSubTitle}");
+        if (items is not null && index >= 1 && index <= items.Count && Book is not null) {
+            // ルート(`@page`)が一致するため、アドレスバーが書き換わり、パラメータ`SheetIndex`に`index`が代入されるが、ページの遷移は生じない
+            NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}sheet/{Book.Id}/{index}");
+            Sheet = items [index - 1];
+            await SetSectionTitle.InvokeAsync ($"<span style=\"font-size:80%;\">『{Book.Title}』 {Book.Author}</span>\n{Sheet.OriginalChapterTitle} {Sheet.ChapterSubTitle}");
+        }
     }
 
     /// <summary>シート変更</summary>
     protected async Task OnChageSheetAsync (int index) {
-        if (items?.Count > 0 && Book is not null && index > 0 && index <= items?.Count && SheetIndex != index) {
+        if (SheetIndex != index) {
             await SetSheet (index);
             // ページトップへスクロール
             await JsRuntime.InvokeVoidAsync ("scrollToTop");
-            StateHasChanged ();
         }
     }
 }

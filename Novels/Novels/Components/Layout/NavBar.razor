@@ -15,14 +15,14 @@
     </MudItem>
 }
 <MudItem>
-    <MudNavLink Href="@($"book/{CurrentBookId}")">
+    <MudNavLink Href="@($"book/{CurrentBookId}{(CurrentSheetIndex <= 1 ? "" : $"/{CurrentSheetIndex}")}")">
         <MudText Class="d-flex align-center gap-1" Typo="Typo.h6">
             <MudIcon Icon="@Icons.Material.Filled.Book" />Publish
         </MudText>
     </MudNavLink>
 </MudItem>
 <MudItem>
-    <MudNavLink Href="@($"sheet/{CurrentBookId}")">
+    <MudNavLink Href="@($"sheet/{CurrentBookId}/{CurrentSheetIndex}")">
         <MudText Class="d-flex align-center gap-1" Typo="Typo.h6">
             <MudIcon Icon="@Icons.Material.Filled.MenuBook" />Read
         </MudText>
@@ -98,6 +98,8 @@
     [CascadingParameter (Name = "Filter")] protected string FilterText { get; set; } = string.Empty;
     /// <summary>着目中の書籍</summary>
     [CascadingParameter (Name = "CurrentBookId")] protected long CurrentBookId { get; set; } = 0;
+    /// <summary>着目中のシート</summary>
+    [CascadingParameter (Name = "CurrentSheetIndex")] protected int CurrentSheetIndex { get; set; } = 0;
 
     /// <summary>検索文字列</summary>
     private string _filterText = string.Empty;

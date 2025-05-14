@@ -93,9 +93,6 @@
             }
         </PagerContent>
     </MudTable>
-    <MudScrollToTop TopOffset="1000">
-        <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowCircleUp" />
-    </MudScrollToTop>
 } else {
     <MudText>No items found.</MudText>
 }
@@ -112,7 +109,7 @@
         if (context.Item is Book book) {
             selectedItem = book;
             if (CurrentBookId != book.Id) {
-                await SetCurrentBookId.InvokeAsync (book.Id);
+                await SetCurrentBookId.InvokeAsync ((book.Id, CurrentSheetIndex));
             }
         }
     }
@@ -124,7 +121,7 @@
             if (CurrentBookId <= 0) {
                 // 新規セッション
                 selectedItem = items [0];
-                await SetCurrentBookId.InvokeAsync (items [0].Id);
+                await SetCurrentBookId.InvokeAsync ((items [0].Id, CurrentSheetIndex));
             } else {
                 // 別ページから遷移 (既存セッション)
                 selectedItem = items.FirstOrDefault (x => x.Id == CurrentBookId) ?? selectedItem;
