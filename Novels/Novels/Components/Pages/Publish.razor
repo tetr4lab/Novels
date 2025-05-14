@@ -48,7 +48,7 @@
             <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.SheetTitle)])">
                 <MudStack Row Spacing="1" Class="align-center">
                     <MudIconButton OnClick="@(() => ReadSheet (context))" Disabled="@(BookId != CurrentBookId)" Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" />
-                    @(context.SheetTitle)
+                    <MudText Typo="Typo.inherit">@(context.SheetTitle)</MudText>
                 </MudStack>
             </MudTd>
             <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.SheetUpdatedAt)])">@(context.SheetUpdatedAt)</MudTd>
