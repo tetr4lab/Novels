@@ -2,7 +2,7 @@
 
 <MudStack Row Class="justify-center align-center">
     <MudTooltip Style="margin-top: -10px;" Arrow Duration="1000" Text="First">
-        <MudIconButton OnClick="@(() => ChangePage (Min))" Disabled="@(Number <= Min)" Icon="@Icons.Material.Outlined.SkipPrevious" Size="Size.Large" />
+        <MudIconButton OnClick="@(() => ChangePage (Min))" Disabled="@(Number <= Min)" Icon="@Icons.Material.Outlined.FirstPage" Size="Size.Large" />
     </MudTooltip>
     <MudTooltip Style="margin-top: -10px;" Arrow Duration="1000" Text="-10">
         <MudIconButton OnClick="@(() => ChangePage (Number - 10))" Disabled="@(Number <= Min + 9)" Icon="@Icons.Material.Filled.KeyboardDoubleArrowLeft" Size="Size.Large" />
@@ -18,7 +18,7 @@
         <MudIconButton OnClick="@(() => ChangePage (Number + 10))" Disabled="@(Number > Max - 10)" Icon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Size="Size.Large" />
     </MudTooltip>
     <MudTooltip Style="margin-top: -10px;" Arrow Duration="1000" Text="Last">
-        <MudIconButton OnClick="@(() => ChangePage (Max))" Disabled="@(Number >= Max)" Icon="@Icons.Material.Outlined.SkipNext" Size="Size.Large" />
+        <MudIconButton OnClick="@(() => ChangePage (Max))" Disabled="@(Number >= Max)" Icon="@Icons.Material.Outlined.LastPage" Size="Size.Large" />
     </MudTooltip>
 </MudStack>
 
