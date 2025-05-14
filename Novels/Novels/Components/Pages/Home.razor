@@ -2,6 +2,8 @@
 
 @page "/"
 
+@inject NavigationManager NavigationManager
+
 <PageTitle>Novels Home</PageTitle>
 
 @if (DataSet.IsUnavailable) {
@@ -49,7 +51,12 @@
                 <MudIcon Icon="@(context.Readed ? Icons.Material.Outlined.CheckBox : Icons.Material.Outlined.CheckBoxOutlineBlank)" />
                 <MudIcon Icon="@(context.Wish ? Icons.Material.Outlined.CheckBox : Icons.Material.Outlined.CheckBoxOutlineBlank)" />
             </MudTd>
-            <MudTd DataLabel="@(Book.Label[nameof(Book.Title)])">@(context.Title)</MudTd>
+            <MudTd DataLabel="@(Book.Label[nameof(Book.Title)])">
+                <MudStack Row Spacing="1" Class="align-center">
+                    <MudIconButton OnClick="@(() => OpenBook (context.Id))" Icon="@Icons.Material.Filled.Book" Size="Size.Small" />
+                    <MudText Typo="Typo.inherit">@(context.Title)</MudText>
+                </MudStack>
+            </MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.Author)])">@(context.Author)</MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.Site)])" Class="align-middle text-nowrap">@(context.Site)</MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.Status)])" Class="align-middle text-nowrap">
@@ -112,6 +119,11 @@
                 await SetCurrentBookId.InvokeAsync ((book.Id, 1));
             }
         }
+    }
+
+    /// <summary>本を開く</summary>
+    protected void OpenBook (long bookId) {
+        NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}book/{bookId}/{(bookId != CurrentBookId ? 1 : CurrentSheetIndex)}");
     }
 
     /// <summary>遅延初期化</summary>
