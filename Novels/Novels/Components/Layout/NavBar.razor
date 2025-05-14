@@ -15,9 +15,16 @@
     </MudItem>
 }
 <MudItem>
-    <MudNavLink Href="@($"book/{CurrentBookId}/{CurrentSheetIndex}")">
+    <MudNavLink Href="@($"book/{CurrentBookId}")">
         <MudText Class="d-flex align-center gap-1" Typo="Typo.h6">
-            <MudIcon Icon="@Icons.Material.Filled.Book" />Publish
+            <MudIcon Icon="@Icons.Material.Filled.Publish" />Publish
+        </MudText>
+    </MudNavLink>
+</MudItem>
+<MudItem>
+    <MudNavLink Href="@($"sheets/{CurrentBookId}/{CurrentSheetIndex}")">
+        <MudText Class="d-flex align-center gap-1" Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Book" />Sheets
         </MudText>
     </MudNavLink>
 </MudItem>

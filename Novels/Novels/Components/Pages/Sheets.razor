@@ -1,0 +1,142 @@
+﻿@inherits ItemListBase<Sheet>
+
+@page "/sheets/{BookId:long?}/{SheetIndex:int?}"
+
+@inject NavigationManager NavigationManager
+
+<PageTitle>Sheets</PageTitle>
+
+@if (DataSet.IsUnavailable) {
+    <MudAlert Severity="Severity.Error" Elevation="3">Unable to connect to any of the specified database management hosts.</MudAlert>
+} else if (DataSet.IsReady && Book is null) {
+    <MudText>No book found.</MudText>
+} else if (!DataSet.IsReady || items is null || Book is null) {
+    <MudProgressCircular Indeterminate="true" />
+} else if (items.Count > 0) {
+    <MudText>『@(Book?.Title ?? "")』 @(Book?.Author ?? "")</MudText>
+    <MudTable Items="items" Dense Breakpoint="Breakpoint.Xs" @ref="_table"
+    Filter="new Func<Sheet, bool> (FilterFunc)"
+    SortLabel="⇅"
+    AllowUnsorted="true"
+    @bind-SelectedItem="selectedItem"
+    @bind-CurrentPage="CurrentPage"
+    FooterClass="mud-background-gray"
+    Hover="true"
+    OnRowClick="EventCallback.Factory.Create<TableRowClickEventArgs<Sheet>> (this, OnRowClick)"
+    Striped="true"
+    ReadOnly="false">
+        <HeaderContent>
+            <MudTh>@(Sheet.Label [nameof (Sheet.Id)])</MudTh>
+            <MudTh>@(Sheet.Label [nameof (Sheet.ChapterTitle)])</MudTh>
+            <MudTh>@(Sheet.Label [nameof (Sheet.ChapterSubTitle)])</MudTh>
+            <MudTh>@(Sheet.Label [nameof (Sheet.SheetTitle)])</MudTh>
+            <MudTh>@(Sheet.Label [nameof (Sheet.SheetUpdatedAt)])</MudTh>
+            <MudTh>@(Sheet.Label [nameof (Sheet.Remarks)])</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.Id)])" Class="align-right text-nowrap">
+                <MudStack Row Spacing="0" Class="align-center">
+                    @if (items is not null && items.IndexOf (context) + 1 == CurrentSheetIndex) {
+                        <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" />
+                    }
+                    <MudSpacer />
+                    @(context.Id)
+                </MudStack>
+            </MudTd>
+            <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.ChapterTitle)])">@(context.ChapterTitle)</MudTd>
+            <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.ChapterSubTitle)])">@(context.ChapterSubTitle)</MudTd>
+            <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.SheetTitle)])">
+                <MudStack Row Spacing="1" Class="align-center">
+                    <MudIconButton OnClick="@(() => ReadSheet (context))" Disabled="@(BookId != CurrentBookId)" Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" />
+                    <MudText Typo="Typo.inherit">@(context.SheetTitle)</MudText>
+                </MudStack>
+            </MudTd>
+            <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.SheetUpdatedAt)])">@(context.SheetUpdatedAt)</MudTd>
+            <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.Remarks)])">@context.Remarks</MudTd>
+        </RowTemplate>
+        <PagerContent>
+            @if (AllowPaging) {
+                <MudTablePager PageSizeOptions="_pageSizeOptions" InfoFormat="{first_item}-{last_item} / {all_items}" RowsPerPageString="行/頁:" />
+            }
+        </PagerContent>
+    </MudTable>
+} else if (Book.IsDirectContent) {
+    <MudText>Direct content found.</MudText>
+} else {
+    <MudText>No items found.</MudText>
+}
+
+@code {
+    /// <summary>指定された書籍</summary>
+    [Parameter] public long? BookId { get; set; } = null;
+    /// <summary>ページ</summary>
+    [Parameter] public int? SheetIndex { get; set; } = null;
+
+    /// <inheritdoc/>
+    protected override int _initialPageSizeIndex => 1;
+
+    /// <summary>表示ページ</summary>
+    protected int CurrentPage { get; set; } = 0;
+
+    /// <summary>着目中の書籍</summary>
+    protected Book? Book { get; set; } = null;
+
+    /// <summary>行がクリックされた</summary>
+    protected async Task OnRowClick (TableRowClickEventArgs<Sheet> context) {
+        if (context.Item is Sheet sheet && items is not null) {
+            selectedItem = sheet;
+            var index = items.IndexOf (sheet) + 1;
+            if (CurrentSheetIndex != index) {
+                await SetCurrentBookId.InvokeAsync ((CurrentBookId, index));
+                NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}book/{CurrentBookId}/{index}");
+            }
+        }
+    }
+
+    /// <summary>シートを開く</summary>
+    protected void ReadSheet (Sheet context) {
+        if (Book is not null && items is not null) {
+            var index = items.IndexOf (context) + 1;
+            NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}sheet/{CurrentBookId}/{index}");
+        }
+    }
+
+    /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
+    protected override async Task OnInitializedAsync() {
+        // Uriパラメータを優先して着目書籍を特定する
+        var currentBookId = BookId ?? CurrentBookId;
+        if (currentBookId != CurrentBookId || SheetIndex is not null && SheetIndex != CurrentSheetIndex) {
+            // パラメータによって着目書籍が変更されたら、レイアウトとナビに渡す
+            await SetCurrentBookId.InvokeAsync ((currentBookId, SheetIndex ?? CurrentSheetIndex));
+        }
+        var reload = DataSet.SetCurrentBookIdAsync (currentBookId);
+        await base.OnInitializedAsync ();
+        // 着目書籍のIdを表示
+        await SetSectionTitle.InvokeAsync ($"BookId: {currentBookId}");
+        // リロード完了待機
+        await reload;
+        // 着目書籍オブジェクトを取得
+        Book = DataSet.Books.Find (s => s.Id == currentBookId);
+    }
+
+    /// <summary>遅延初期化</summary>
+    protected override async Task OnAfterRenderAsync (bool firstRender) {
+        await base.OnAfterRenderAsync (firstRender);
+        if (_inited && !_inited2 && items?.Count > 0) {
+            _inited2 = true;
+            if (CurrentSheetIndex >= 1 && CurrentSheetIndex <= items.Count) {
+                selectedItem = items [CurrentSheetIndex - 1];
+            }
+            if (_table is not null && string.IsNullOrEmpty (FilterText)) {
+                // 絞り込みがなければ、選択されているシートがあるページへ
+                var currentIndex = items.IndexOf (selectedItem);
+                var currentPage = currentIndex / _table.RowsPerPage;
+                if (currentPage != CurrentPage) {
+                    CurrentPage = currentPage;
+                    StateHasChanged ();
+                }
+            }
+        }
+    }
+    protected bool _inited2 = false;
+}
