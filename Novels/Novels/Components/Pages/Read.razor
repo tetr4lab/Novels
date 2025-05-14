@@ -30,7 +30,7 @@
     } else {
         <MudText>No books found.</MudText>
     }
-} else if (Book?.directContent is not null) {
+} else if (Book.IsDirectContent) {
     @((MarkupString) (Book.DirectContent ?? ""))
 } else {
     <MudText>No items found.</MudText>

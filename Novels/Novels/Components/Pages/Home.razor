@@ -56,7 +56,7 @@
                 <MudChip T="string" Label="true" Size="Size.Small" Variant="Variant.Outlined" Style="@($"width: 6em;background:{context.StatusBgColor}")">@(context.Status)</MudChip>
             </MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.NumberOfSheets)])" Class="align-middle text-nowrap">
-                @if (context.directContent is not null) {
+                @if (context.IsDirectContent) {
                     <MudText Typo="Typo.inherit">1/1</MudText>
                 } else {
                     <MudTooltip Duration="1000" Arrow="true">

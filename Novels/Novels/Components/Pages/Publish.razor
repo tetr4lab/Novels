@@ -20,7 +20,6 @@
                 <th>ChapterSubTitle</th>
                 <th>SheetTitle</th>
                 <th>Updated</th>
-                <th>Read</th>
             </tr>
         </thead>
         @foreach (var item in items) {
@@ -30,9 +29,13 @@
                     <td>@(index)</td>
                     <td>@item.ChapterTitle</td>
                     <td>@item.ChapterSubTitle</td>
-                    <td>@item.SheetTitle</td>
+                    <td>
+                        <MudStack Row Spacing="1" Class="align-center">
+                            <MudIconButton OnClick="@(() => ReadSheet (index))" Disabled="@(BookId != CurrentBookId)" Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" />
+                            @item.SheetTitle
+                        </MudStack>
+                    </td>
                     <td>@item.SheetUpdatedAt</td>
-                    <td><MudIconButton OnClick="@(() => ReadSheet (index))" Disabled="@(BookId != CurrentBookId)" Icon="@Icons.Material.Filled.ChromeReaderMode" Size="Size.Small" /></td>
                 </tr>
             }
         }
@@ -40,7 +43,7 @@
     <MudScrollToTop TopOffset="1000">
         <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowCircleUp" />
     </MudScrollToTop>
-} else if (Book.directContent is not null) {
+} else if (Book.IsDirectContent) {
     <MudText>Direct content found.</MudText>
 } else {
     <MudText>No items found.</MudText>

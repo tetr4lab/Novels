@@ -15,6 +15,8 @@ namespace Novels.Data;
 
 /// <summary>サイト種別</summary>
 public enum Site {
+    /// <summary>未設定</summary>
+    NotSet = -1,
     /// <summary>不明</summary>
     Unknown = 0,
     /// <summary>小説家になろう</summary>
@@ -49,7 +51,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (Title), "署名" },
         { nameof (Author), "著者" },
         { nameof (DirectTitleWriterName), "著作/著者" },
-        { nameof (directContent), "本文" },
+        { nameof (DirectContent), "本文" },
         { nameof (NumberOfSheets), "シート数" },
         { nameof (NumberOfPublished), "発行済みシート数" },
         { nameof (PublishedAt), "発行日時" },
@@ -71,13 +73,15 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
 
     [Column ("url1")] public string Url1 { get; set; } = "";
     [Column ("url2")] public string Url2 { get; set; } = "";
-    [Column ("html")] public string? html { get; set; } = null;
-    [Column ("site"), Required] public Site Site { get; set; } = Site.Unknown;
-    [Column ("title")] public string? Title { get; set; } = null;
-    [Column ("author")] public string? Author { get; set; } = null;
+    [Column ("html")] public string? _html { get; set; } = null;
+    [Column ("site"), Required] public Site _site { get; set; } = Site.NotSet;
+    [Column ("title")] public string? _title { get; set; } = null;
+    [Column ("author")] public string? _author { get; set; } = null;
     [Column ("direct_title_writername")] public string? DirectTitleWriterName { get; set; } = null;
-    [Column ("direct_content")] public string? directContent { get; set; } = null;
+    [Column ("direct_content")] public string? _directContent { get; set; } = null;
+    /// <summary>書誌上のシート数</summary>
     [Column ("number_of_sheets")] public int? NumberOfSheets { get; set; } = null;
+    /// <summary>Epub発行シート数</summary>
     [Column ("number_of_published")] public int? NumberOfPublished { get; set; } = null;
     /// <summary>Epub発行日時</summary>
     [Column ("published_at")] public DateTime? PublishedAt { get; set; } = null;
@@ -119,10 +123,10 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     //  modified )
     public DateTime LastUpdate {
         get {
-            if (directContent is not null) {
+            if (_directContent is not null) {
                 return Modified;
             }
-            var sheetUpdates = DetectedSheetUpdated;
+            var sheetUpdates = SheetUpdateDates;
             if (sheetUpdates.Count > 0) {
                 return sheetUpdates.Max ();
             }
@@ -147,13 +151,16 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         }
     }
 
+    /// <summary>ダイレクトコンテントである</summary>
+    public bool IsDirectContent => !string.IsNullOrEmpty (_directContent);
+
     /// <summary>外向きのDirectContent</summary>
     public string? DirectContent {
         get {
-            if (_directLines is null) {
-                _directLines = directContent?.Split ('\n').ToList () ?? new ();
-                if (!string.IsNullOrEmpty (directContent) && !directContent.StartsWith ('<')) {
-                    _directLines = _directLines.ConvertAll (s => {
+            if (__directLines is null) {
+                __directLines = _directContent?.Split ('\n').ToList () ?? new ();
+                if (!string.IsNullOrEmpty (_directContent) && !_directContent.StartsWith ('<')) {
+                    __directLines = __directLines.ConvertAll (s => {
                         if (s == "［＃改ページ］" || s == "［＃改丁］") {
                             s = "<hr class=\"pagebreak\" />";
                         } else if (s == "") {
@@ -163,24 +170,24 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                     });
                 }
             }
-            return string.Join ('\n', _directLines);
+            return string.Join ('\n', __directLines);
         }
         set {
-            if (value != directContent) {
-                directContent = value;
-                _directLines = null;
+            if (value != _directContent) {
+                _directContent = value;
+                __directLines = null;
                 IsDirty = true;
             }
         }
     }
-    protected List<string>? _directLines = null;
+    protected List<string>? __directLines = null;
 
-    /// <summary>制限された外向きのDirectContent</summary>
+    /// <summary>行数が制限された外向きのDirectContent</summary>
     public string? GetLimitedDirectContent (int limit = 100) {
-        if (_directLines is null) {
+        if (__directLines is null) {
             _ = DirectContent;
         }
-        var lines = _directLines;
+        var lines = __directLines;
         if (lines is not null) {
             if (limit > 0) {
                 if (limit > lines.Count) {
@@ -194,58 +201,68 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         return null;
     }
 
-    /// <summary>検出されたサイト (結果が<see cref="Site" />に反映される)</summary>
-    public Site DetectedSite {
+    /// <summary>外向けのサイト (結果が<see cref="_site" />に反映される)</summary>
+    public Site Site {
         get {
-            var site = Site.Unknown;
-            if (Url1.Contains ("ncode.syosetu.com")) {
-                site = Site.Narow;
-            } else if (Url1.Contains ("novel18.syosetu.com")) {
-                site = Site.Novel18;
-            } else if (Url1.Contains ("kakuyomu.jp") && Document?.QuerySelector ("h1#workTitle") is not null) {
-                site = Site.KakuyomuOld;
-            } else if (Url1.Contains ("novelup.plus")) {
-                site = Site.Novelup;
-            } else if (Url1.Contains ("dyreitou.com")) {
-                site = Site.Dyreitou;
-            } else if (Url1.Contains ("kakuyomu.jp")) {
-                site = Site.Kakuyomu;
-            }
-            if (site != Site.Unknown && Site != site) {
-                Site = site;
+            if (_site == Site.NotSet && !string.IsNullOrEmpty (Url1)) {
+                if (Url1.Contains ("ncode.syosetu.com")) {
+                    _site = Site.Narow;
+                } else if (Url1.Contains ("novel18.syosetu.com")) {
+                    _site = Site.Novel18;
+                } else if (Url1.Contains ("kakuyomu.jp")) {
+                    if (!string.IsNullOrEmpty (_html) && Document is not null) {
+                        if (Document?.QuerySelector ("h1#workTitle") is not null) {
+                            _site = Site.KakuyomuOld;
+                        } else {
+                            _site = Site.Kakuyomu;
+                        }
+                    }
+                    // else は未判定のまま返す
+                } else if (Url1.Contains ("novelup.plus")) {
+                    _site = Site.Novelup;
+                } else if (Url1.Contains ("dyreitou.com")) {
+                    _site = Site.Dyreitou;
+                } else {
+                    _site = Site.Unknown;
+                }
                 IsDirty = true;
             }
-            return site;
+            return _site;
         }
     }
 
-    /// <summary>検出されたシリーズタイトル</summary>
+    /// <summary>シリーズタイトル</summary>
     // Correct ( Substitute ( TrimLF ( TagRemove ( Case (
     // site = 1; sExtract ( html ; "<p class=\"series_title\">" ; "</p>" ) ;
     // site = 4; sExtract ( novel_title ; "『" ; "』" ) ;
     // "" ) ) ) ; "　" ; " " ) ; errata )
-    public string DetectedSeriesTitle {
+    public string SeriesTitle {
         get {
-            var seriesTitle = "";
-            if (!string.IsNullOrEmpty (html) && Document is not null) {
-                switch (DetectedSite) {
-                    case Site.Narow:
-                    case Site.Novel18:
-                        seriesTitle = Document.QuerySelector ("p.series_title")?.TextContent ?? "";
-                        break;
-                    case Site.Dyreitou:
-                        seriesTitle = Document.QuerySelector ("div.cat-title")?.TextContent ?? "";
-                        var s = seriesTitle.IndexOf ('『');
-                        var e = seriesTitle.IndexOf ('』');
-                        seriesTitle = s > 0 && e > s ? seriesTitle.Substring (s + 1, e - s - 1) : Title;
-                        break;
+            // 存在しないことはよくあるので空文字を許容し、nullの場合のみ解析する
+            if (__seriesTitle is null) {
+                var seriesTitle = "";
+                if (!string.IsNullOrEmpty (_html) && Document is not null) {
+                    switch (Site) {
+                        case Site.Narow:
+                        case Site.Novel18:
+                            seriesTitle = Document.QuerySelector ("p.series_title")?.TextContent ?? "";
+                            break;
+                        case Site.Dyreitou:
+                            seriesTitle = Document.QuerySelector ("div.cat-title")?.TextContent ?? "";
+                            var s = seriesTitle.IndexOf ('『');
+                            var e = seriesTitle.IndexOf ('』');
+                            seriesTitle = s > 0 && e > s ? seriesTitle.Substring (s + 1, e - s - 1) : Title;
+                            break;
+                    }
                 }
+                __seriesTitle = (Correct (seriesTitle) ?? "").Replace ('　', ' ').Trim ();
             }
-            return (Correct (seriesTitle) ?? "").Replace ('　', ' ').Trim ();
+            return __seriesTitle;
         }
     }
+    protected string? __seriesTitle = null;
 
-    /// <summary>検出されたタイトル</summary>
+    /// <summary>外向けのタイトル</summary>
     // Let ( [
     // Title = If ( IsEmpty ( html ) ; "" ; Correct ( Substitute ( TrimLF ( TagRemove ( Case (
     // site = 1; Substitute ( Let ( [
@@ -275,102 +292,109 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     //         Title 
     //     )
     //  )
-    public string DetectedTitle {
+    public string Title {
         get {
-            var title = "";
-            if (!string.IsNullOrEmpty (html) && Document is not null) {
-                switch (DetectedSite) {
-                    case Site.Narow:
-                    case Site.Novel18:
-                        title = (Document.QuerySelector ("p.novel_title")?.TextContent
-                            ?? Document.QuerySelector ("h1.p-novel__title")?.TextContent
-                            ?? "").Replace ("&quot;", "\"");
-                        break;
-                    case Site.KakuyomuOld:
-                        title = Document.QuerySelector ("h1#workTitle")?.TextContent ?? "";
-                        break;
-                    case Site.Novelup:
-                        title = (Document.QuerySelector ("div.novel_title")?.TextContent ?? "");
-                        break;
-                    case Site.Dyreitou:
-                        title = Document.QuerySelector ("div.cat-title")?.TextContent ?? "";
-                        break;
-                    case Site.Kakuyomu:
-                        title = Document.QuerySelector ("h1[class^='Heading_heading'] a")?.GetAttribute ("title") ?? "";
-                        break;
+            if (string.IsNullOrEmpty (_title)) {
+                var title = "";
+                if (!string.IsNullOrEmpty (_html) && Document is not null) {
+                    switch (Site) {
+                        case Site.Narow:
+                        case Site.Novel18:
+                            title = (Document.QuerySelector ("p.novel_title")?.TextContent
+                                ?? Document.QuerySelector ("h1.p-novel__title")?.TextContent
+                                ?? "").Replace ("&quot;", "\"");
+                            break;
+                        case Site.KakuyomuOld:
+                            title = Document.QuerySelector ("h1#workTitle")?.TextContent ?? "";
+                            break;
+                        case Site.Novelup:
+                            title = (Document.QuerySelector ("div.novel_title")?.TextContent ?? "");
+                            break;
+                        case Site.Dyreitou:
+                            title = Document.QuerySelector ("div.cat-title")?.TextContent ?? "";
+                            break;
+                        case Site.Kakuyomu:
+                            title = Document.QuerySelector ("h1[class^='Heading_heading'] a")?.GetAttribute ("title") ?? "";
+                            break;
+                    }
+                }
+                if (string.IsNullOrEmpty (title)) {
+                    var s = (DirectTitleWriterName ?? Remarks)?.Split ('\n');
+                    if (s is not null && s.Length > 0) {
+                        title = s [0];
+                    }
+                }
+                if (string.IsNullOrEmpty (title)) {
+                    title = Url1;
+                }
+                title = (Correct (title) ?? "").Replace ('　', ' ').Trim ();
+                if (string.IsNullOrEmpty (title) && title != _title) {
+                    _title = title;
+                    IsDirty = true;
                 }
             }
-            if (string.IsNullOrEmpty (title)) {
-                var s = (DirectTitleWriterName ?? Remarks)?.Split ('\n');
-                if (s is not null && s.Length > 0) {
-                    title = s [0];
-                }
-            }
-            if (string.IsNullOrEmpty (title)) {
-                title = Url1;
-            }
-            title = (Correct (title) ?? "").Replace ('　', ' ').Trim ();
-            if (string.IsNullOrEmpty (title) && title != Title) {
-                Title = title;
-                IsDirty = true;
-            }
-            return title;
+            return _title ?? "";
         }
     }
 
-    /// <summary>メインタイトルとサブタイトル分ける文字</summary>
-    protected char [] TitleSeparator = { '～', '〜', '－', };
+    /// <summary>メインタイトルとサブタイトルを分ける文字</summary>
+    protected char [] TitleSeparator = { '～', '〜', '－', '（' };
 
-    /// <summary>検出されたメインタイトル (<see cref="DetectedTitle"/>が先行することが前提)</summary>
+    /// <summary>メインタイトル</summary>
     // Correct ( Case ( 
     // PatternCount ( novel_title ; "～" ) = 2 ; Trim ( Left ( novel_title ; Position ( novel_title ; "～" ; 1 ; 1 ) - 1 ) );
     // PatternCount ( novel_title ; "〜" ) = 2 ; Trim ( Left ( novel_title ; Position ( novel_title ; "〜" ; 1 ; 1 ) - 1 ) );
     // PatternCount ( novel_title ; "－" ) = 2 ; Trim ( Left ( novel_title ; Position ( novel_title ; "－" ; 1 ; 1 ) - 1 ) );
     //  novel_title ) ; errata )
-    public string DetectedMainTitle {
+    public string MainTitle {
         get {
-            var title = Correct (Title ?? DetectedTitle);
-            if (string.IsNullOrEmpty (title)) {
-                return "";
-            }
-            foreach (var separatior in TitleSeparator) {
-                var s = title.IndexOf (separatior);
-                var e = title.LastIndexOf (separatior);
-                if (s > 0 && e > s) {
-                    title = title.Substring (0, s);
-                    break;
+            if (string.IsNullOrEmpty (__mainTitle)) {
+                var title = Correct (Title);
+                if (!string.IsNullOrEmpty (title)) {
+                    foreach (var separatior in TitleSeparator) {
+                        var s = title.IndexOf (separatior);
+                        var e = title.LastIndexOf (separatior);
+                        if (s > 0 && e > s) {
+                            title = title.Substring (0, s);
+                            break;
+                        }
+                    }
+                    __mainTitle = GetNormalizedName (title, monadic: false, brackets: true);
                 }
             }
-            return GetNormalizedName (title, monadic: false, brackets: true);
+            return __mainTitle ?? "";
         }
     }
+    protected string? __mainTitle = null;
 
-    /// <summary>検出されたサブタイトル (<see cref="DetectedTitle"/>が先行することが前提)</summary>
+    /// <summary>サブタイトル</summary>
     // Correct ( Case ( 
     // PatternCount ( novel_title ; "～" ) = 2 ; Trim ( Right ( novel_title ; Length ( novel_title ) + 1 - Position ( novel_title ; "～" ; 1 ; 1 ) ) );
     // PatternCount ( novel_title ; "－" ) = 2 ; Trim ( Right ( novel_title ; Length ( novel_title ) + 1 - Position ( novel_title ; "－" ; 1 ; 1 ) ) );
     //  "" ) ; errata )
-    public string DetectedSubTitle {
+    public string SubTitle {
         get {
-            var title = Correct (Title ?? DetectedTitle);
-            var subTitle = "";
-            if (string.IsNullOrEmpty (title)) {
-                return "";
-            }
-            foreach (var separatior in TitleSeparator) {
-                var s = title.IndexOf (separatior);
-                var e = title.LastIndexOf (separatior);
-                if (s > 0 && e > s) {
-                    subTitle = title.Substring (s);
-                    break;
+            if (string.IsNullOrEmpty (__subTitle)) {
+                var title = Correct (Title);
+                if (!string.IsNullOrEmpty (title)) {
+                    var subTitle = "";
+                    foreach (var separatior in TitleSeparator) {
+                        var s = title.IndexOf (separatior);
+                        var e = title.LastIndexOf (separatior);
+                        if (s > 0 && e > s) {
+                            subTitle = title.Substring (s);
+                            break;
+                        }
+                    }
+                    __subTitle = GetNormalizedName (subTitle, monadic: false, brackets: true);
                 }
             }
-            return GetNormalizedName (subTitle, monadic: false, brackets: true);
+            return __subTitle ?? "";
         }
     }
+    protected string? __subTitle = null;
 
-
-    /// <summary>検出された著者 (結果が<see cref="Author" />に反映される)</summary>
+    /// <summary>外向けの著者 (検出結果が<see cref="_author" />に反映される)</summary>
     // Let ( [
     // Author = If ( IsEmpty ( html ) ; "" ; Correct ( Substitute ( TrimLF ( TagRemove ( Case (
     // site = 1 ; Substitute ( Let ( [
@@ -402,50 +426,52 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     //     )
     //  )
     //  )
-    public string DetectedAuther {
+    public string Author {
         get {
-            var author = "";
-            if (!string.IsNullOrEmpty (html) && Document is not null) {
-                switch (DetectedSite) {
-                    case Site.Narow:
-                    case Site.Novel18:
-                        author = (Document.QuerySelector ("div.novel_writername")?.TextContent
-                            ?? Document.QuerySelector ("div.p-novel__author")?.TextContent
-                            ?? "").Replace ("作者：", "");
-                        break;
-                    case Site.KakuyomuOld:
-                        author = Document.QuerySelector ("span#workAuthor-activityName")?.TextContent ?? "";
-                        break;
-                    case Site.Novelup:
-                        author = (Document.QuerySelector ("div.novel_author")?.TextContent ?? "");
-                        break;
-                    case Site.Dyreitou:
-                        author = "dy冷凍";
-                        break;
-                    case Site.Kakuyomu:
-                        author = Document.QuerySelector ("a[href^='/users']")?.TextContent ?? "";
-                        break;
+            if (string.IsNullOrEmpty (_author)) {
+                var author = "";
+                if (!string.IsNullOrEmpty (_html) && Document is not null) {
+                    switch (Site) {
+                        case Site.Narow:
+                        case Site.Novel18:
+                            author = (Document.QuerySelector ("div.novel_writername")?.TextContent
+                                ?? Document.QuerySelector ("div.p-novel__author")?.TextContent
+                                ?? "").Replace ("作者：", "");
+                            break;
+                        case Site.KakuyomuOld:
+                            author = Document.QuerySelector ("span#workAuthor-activityName")?.TextContent ?? "";
+                            break;
+                        case Site.Novelup:
+                            author = (Document.QuerySelector ("div.novel_author")?.TextContent ?? "");
+                            break;
+                        case Site.Dyreitou:
+                            author = "dy冷凍";
+                            break;
+                        case Site.Kakuyomu:
+                            author = Document.QuerySelector ("a[href^='/users']")?.TextContent ?? "";
+                            break;
+                    }
+                }
+                if (string.IsNullOrEmpty (author)) {
+                    var s = (DirectTitleWriterName ?? Remarks)?.Split ('\n');
+                    if (s is not null && s.Length > 1) {
+                        author = s [1];
+                    }
+                }
+                if (string.IsNullOrEmpty (author)) {
+                    author = Url1;
+                }
+                author = GetNormalizedName (Correct (author) ?? "");
+                if (string.IsNullOrEmpty (author) && author != _author) {
+                    _author = author;
+                    IsDirty = true;
                 }
             }
-            if (string.IsNullOrEmpty (author)) {
-                var s = (DirectTitleWriterName ?? Remarks)?.Split ('\n');
-                if (s is not null && s.Length > 1) {
-                    author = s [1];
-                }
-            }
-            if (string.IsNullOrEmpty (author)) {
-                author = Url1;
-            }
-            author = GetNormalizedName (Correct (author) ?? "");
-            if (string.IsNullOrEmpty (author) && author != Author) {
-                Author = author;
-                IsDirty = true;
-            }
-            return author;
+            return _author ?? "";
         }
     }
 
-    /// <summary>検出された説明</summary>
+    /// <summary>説明</summary>
     // Correct ( Case ( 
     // site = 1 ; TrimLFx ( TagRemove ( Let ( [
     //   tmp = sExtract ( html ; "<div id=\"novel_ex\">" ; "</div>" ) ;
@@ -457,11 +483,12 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     // site = 3 ; Substitute ( TrimLFx ( TagRemove ( sExtract ( html ; "<div class=\"novel_synopsis\">" ; "</div>" ) ) ) ; [Char(13) & Char(10) ; ¶] ) ;
     // site = 5 ; TrimLFx ( TagRemove ( sExtractEnclosed ( html ; "<div class=\"CollapseTextWithKakuyomuLinks" ; "</div>" ) ) ) ;
     // ) ; errata )
-    public string DetectedExplanation {
+    public string Explanation {
         get {
-            var explanation = "";
-            if (!string.IsNullOrEmpty (html) && Document is not null) {
-                switch (DetectedSite) {
+            // 存在しないことはよくあるので空文字を許容し、nullの場合のみ解析する
+            if (__explanation is null && !string.IsNullOrEmpty (_html) && Document is not null) {
+                var explanation = (string?) null;
+                switch (Site) {
                     case Site.Narow:
                     case Site.Novel18:
                         explanation = (Document.QuerySelector ("div#novel_ex")?.TextContent
@@ -481,15 +508,14 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                         explanation = Document.QuerySelector ("p#introduction")?.TextContent ?? "";
                         break;
                 }
+                __explanation = Correct (explanation);
             }
-            return Correct (explanation) ?? "";
+            return __explanation ?? "";
         }
     }
+    protected string? __explanation = null;
 
-    /// <summary>
-    /// 検出されたシートURL
-    /// サイト別に異なる場所に格納された従属ページのUrlを収集し、リストにして返す
-    /// </summary>
+    /// <summary>書誌に記された各シートのURL</summary>
     // Case (
     // site = 1 ; Let ( [
     //   urls = Substitute ( ¶ & sExtract2List ( Let ( [
@@ -529,51 +555,53 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     //  "" )
     public List<string> SheetUrls {
         get {
-            if (_sheetUrls.Count <= 0) {
-                AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement>? tags = null;
-                if (!string.IsNullOrEmpty (html) && Document is not null) {
-                    switch (DetectedSite) {
-                        case Site.Narow:
-                        case Site.Novel18:
-                            tags = Document.QuerySelectorAll ("dl.novel_sublist2 a");
-                            if (tags.Length == 0) {
-                                tags = Document.QuerySelectorAll ("div.p-eplist__sublist a");
+            if (__sheetUrls is null && !string.IsNullOrEmpty (_html) && Document is not null) {
+                var sheetUrls = new List<string> ();
+                var tags = (AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement>?) null;
+                switch (Site) {
+                    case Site.Narow:
+                    case Site.Novel18:
+                        tags = Document.QuerySelectorAll ("dl.novel_sublist2 a");
+                        if (tags.Length == 0) {
+                            tags = Document.QuerySelectorAll ("div.p-eplist__sublist a");
+                        }
+                        break;
+                    case Site.KakuyomuOld:
+                        tags = Document.QuerySelectorAll ("li.widget-toc-episode a");
+                        break;
+                    case Site.Novelup:
+                        tags = Document.QuerySelectorAll ("div.episode_link a");
+                        break;
+                    case Site.Dyreitou:
+                        tags = Document.QuerySelectorAll ("div.mokuji a");
+                        break;
+                    case Site.Kakuyomu:
+                        var regex = new Regex ("(?<=\"__typename\":\"Episode\",\"id\":\")\\d+(?=\")");
+                        foreach (Match match in regex.Matches (_html)) {
+                            if (match.Success) {
+                                sheetUrls.Add ($"/episodes/{match.Value}");
                             }
-                            break;
-                        case Site.KakuyomuOld:
-                            tags = Document.QuerySelectorAll ("li.widget-toc-episode a");
-                            break;
-                        case Site.Novelup:
-                            tags = Document.QuerySelectorAll ("div.episode_link a");
-                            break;
-                        case Site.Dyreitou:
-                            tags = Document.QuerySelectorAll ("div.mokuji a");
-                            break;
-                        case Site.Kakuyomu:
-                            var regex = new Regex ("(?<=\"__typename\":\"Episode\",\"id\":\")\\d+(?=\")");
-                            foreach (Match match in regex.Matches (html)) {
-                                if (match.Success) {
-                                    _sheetUrls.Add ($"/episodes/{match.Value}");
-                                }
-                            }
-                            break;
-                    }
-                    if (_sheetUrls.Count <= 0 && tags?.Count () > 0) {
-                        foreach (var atag in tags) {
-                            var url = atag.GetAttribute ("href");
-                            if (!string.IsNullOrEmpty (url)) {
-                                _sheetUrls.Add (url);
-                            }
+                        }
+                        break;
+                }
+                if (sheetUrls.Count <= 0 && tags?.Count () > 0) {
+                    foreach (var atag in tags) {
+                        var url = atag.GetAttribute ("href");
+                        if (!string.IsNullOrEmpty (url)) {
+                            sheetUrls.Add (url);
                         }
                     }
                 }
+                if (sheetUrls.Count > 0) {
+                    __sheetUrls = sheetUrls;
+                }
             }
-            return _sheetUrls;
+            return __sheetUrls ?? new ();
         }
     }
-    protected List<string> _sheetUrls = new ();
+    protected List<string>? __sheetUrls = null;
 
-    /// <summary>検出されたシートの更新日時</summary>
+    /// <summary>書誌に記された各シートの更新日時</summary>
     // Case (
     // site = 1 ; sExtracts2List ( Let ( [
     //   tmp = sExtract2List ( html ; "<dl class=\"novel_sublist2\">" ; "</dl>" ) ;
@@ -585,11 +613,11 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     // site = 3 ; sExtract2List ( sExtract2List ( html ; "<div class=\"update_date\">" ; "</div>" ) ; "<span>投稿日<span>" ; "</span>" ) ;
     // site = 5 ; repeat ( Substitute ( sExtract2List ( html ; "\"editedAt\":\"" ; "\"," ) ; ["T" ; " "] ; ["Z" ; ¶] ; ["-" ; "/"] ) ; number_of_sheets ) ;
     //  "" )
-    public List<DateTime> DetectedSheetUpdated {
+    public List<DateTime> SheetUpdateDates {
         get {
-            var sheetDates = new List<DateTime> ();
-            if (!string.IsNullOrEmpty (html) && Document is not null) {
-                switch (DetectedSite) {
+            if (__sheetUpdateDates is null && !string.IsNullOrEmpty (_html) && Document is not null) {
+                var sheetDates = new List<DateTime> ();
+                switch (Site) {
                     case Site.Narow:
                     case Site.Novel18:
                         var tags = Document.QuerySelectorAll ("dl.novel_sublist2 dt.long_update");
@@ -633,7 +661,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                         break;
                     case Site.Kakuyomu:
                         var regex = new Regex ("(?<=\"editedAt\":\")[^\"]+(?=\")");
-                        var match = regex.Match (html);
+                        var match = regex.Match (_html);
                         if (match.Success) {
                             if (DateTime.TryParse (match.Value, out var dt)) {
                                 for (var i = 0; i < NumberOfSheets; i++) {
@@ -643,22 +671,26 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                         }
                         break;
                 }
+                if (sheetDates.Count > 0) {
+                    __sheetUpdateDates = sheetDates;
+                }
             }
-            return sheetDates;
+            return __sheetUpdateDates ?? new ();
         }
     }
+    protected List<DateTime>? __sheetUpdateDates = null;
 
-    /// <summary>検出された最終更新日時</summary>
+    /// <summary>書誌、または、シートから得られる最終更新日時</summary>
     // Case (
     // not IsEmpty ( direct_content ) ; modified ;
     // not IsEmpty ( sheet_updates ) ; MaxTimestamp ( sheet_updates ) + Case ( site = 2 ; Time ( 9 ; 0 ; 0 ) ; 0 ) ;
     // Count ( Sheet::sheet_lastupdate ) ; Max ( Sheet::sheet_lastupdate ) ;
     //  modified )
     public DateTime LastUpdated (NovelsDataSet dataset) {
-        if (!string.IsNullOrEmpty (directContent)) {
+        if (!string.IsNullOrEmpty (_directContent)) {
             return Modified;
         }
-        var sheetDates = DetectedSheetUpdated;
+        var sheetDates = SheetUpdateDates;
         if (sheetDates.Count > 0) {
             return sheetDates.Max ();
         }
@@ -896,12 +928,19 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
 
     /// <summary>外向けのHTML</summary>
     public string? Html {
-        get => html;
+        get => _html;
         set {
-            if (value != html) {
-                html = value;
-                _htmlDocument = null; // パース結果をクリア
-                _directLines = null;
+            if (value != _html) {
+                _html = value;
+                // パース結果のキャッシュをクリア
+                __htmlDocument = null;
+                __directLines = null;
+                __sheetUrls = null;
+                __sheetUpdateDates = null;
+                __seriesTitle = null;
+                __mainTitle = null;
+                __subTitle = null;
+                __explanation = null;
             }
         }
     }
@@ -909,14 +948,14 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <summary>パース結果</summary>
     public IHtmlDocument? Document {
         get {
-            if (_htmlDocument is null && html is not null) {
+            if (__htmlDocument is null && _html is not null) {
                 var parser = new HtmlParser ();
-                _htmlDocument = parser.ParseDocument (html);
+                __htmlDocument = parser.ParseDocument (_html);
             }
-            return _htmlDocument;
+            return __htmlDocument;
         }
     }
-    protected IHtmlDocument? _htmlDocument = null;
+    protected IHtmlDocument? __htmlDocument = null;
 
     /// <inheritdoc/>
     public override string? [] SearchTargets => [
@@ -937,12 +976,12 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         var item = base.Clone ();
         item.Url1 = Url1;
         item.Url2 = Url2;
-        item.Html = html;
-        item.Site = Site;
-        item.Title = Title;
-        item.Author = Author;
+        item.Html = Html;
+        item._site = Site;
+        item._title = Title;
+        item._author = Author;
         item.DirectTitleWriterName = DirectTitleWriterName;
-        item.directContent = directContent;
+        item.DirectContent = DirectContent;
         item.NumberOfSheets = NumberOfSheets;
         item.NumberOfPublished = NumberOfPublished;
         item.PublishedAt = PublishedAt;
@@ -960,12 +999,12 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public override Book CopyTo (Book destination) {
         destination.Url1 = Url1;
         destination.Url2 = Url2;
-        destination.Html = html;
-        destination.Site = Site;
-        destination.Title = Title;
-        destination.Author = Author;
+        destination.Html = Html;
+        destination._site = Site;
+        destination._title = Title;
+        destination._author = Author;
         destination.DirectTitleWriterName = DirectTitleWriterName;
-        destination.directContent = directContent;
+        destination.DirectContent = DirectContent;
         destination.NumberOfSheets = NumberOfSheets;
         destination.NumberOfPublished = NumberOfPublished;
         destination.PublishedAt = PublishedAt;
@@ -985,12 +1024,12 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         && Id == other.Id
         && Url1 == other.Url1
         && Url2 == other.Url2
-        && html == other.html
+        && Html == other.Html
         && Site == other.Site
         && Title == other.Title
         && Author == other.Author
         && DirectTitleWriterName == other.DirectTitleWriterName
-        && directContent == other.directContent
+        && DirectContent == other.DirectContent
         && NumberOfSheets == other.NumberOfSheets
         && NumberOfPublished == other.NumberOfPublished
         && PublishedAt == other.PublishedAt
@@ -1006,10 +1045,10 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
 
     /// <inheritdoc/>
     public override int GetHashCode () => HashCode.Combine (
-        HashCode.Combine (Url1, Url2, html, DirectTitleWriterName, directContent, NumberOfSheets, NumberOfPublished, PublishedAt),
+        HashCode.Combine (Url1, Url2, _html, DirectTitleWriterName, _directContent, NumberOfSheets, NumberOfPublished, PublishedAt),
         HashCode.Combine (Readed, ReadedMemo, Status, HtmlBackup, Errata, Wish, Bookmark, Remarks),
         base.GetHashCode ());
 
     /// <inheritdoc/>
-    public override string ToString () => $"{TableLabel} {Id}: {Url1} {Site} {Title} {Author} {NumberOfPublished}/{NumberOfSheets} {PublishedAt} \"{Remarks}\"";
+    public override string ToString () => $"{TableLabel} {Id}: {Url1} {_site} {Title} {Author} {NumberOfPublished}/{NumberOfSheets} {PublishedAt} \"{Remarks}\"";
 }
