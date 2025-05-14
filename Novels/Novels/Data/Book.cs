@@ -47,8 +47,8 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (Url1), "URL" },
         { nameof (Url2), "URL2" },
         { nameof (Html), "原稿" },
-        { nameof (Site), "サイト" },
-        { nameof (Title), "署名" },
+        { nameof (Site), "掲載" },
+        { nameof (Title), "書名" },
         { nameof (Author), "著者" },
         { nameof (DirectTitleWriterName), "著作/著者" },
         { nameof (DirectContent), "本文" },
@@ -353,7 +353,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public string MainTitle {
         get {
             if (string.IsNullOrEmpty (__mainTitle)) {
-                var title = Correct (Title);
+                var title = Title;
                 if (!string.IsNullOrEmpty (title)) {
                     foreach (var separatior in TitleSeparator) {
                         var s = title.IndexOf (separatior);
@@ -379,7 +379,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public string SubTitle {
         get {
             if (string.IsNullOrEmpty (__subTitle)) {
-                var title = Correct (Title);
+                var title = Title;
                 if (!string.IsNullOrEmpty (title)) {
                     var subTitle = "";
                     foreach (var separatior in TitleSeparator) {
