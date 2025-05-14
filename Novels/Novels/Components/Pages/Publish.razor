@@ -13,7 +13,6 @@
 } else if (!DataSet.IsReady || items is null || Book is null) {
     <MudProgressCircular Indeterminate="true" />
 } else if (items.Count > 0) {
-    <MudText>『@(Book?.Title ?? "")』 @(Book?.Author ?? "")</MudText>
 
 } else if (Book.IsDirectContent) {
     <MudText>Direct content found.</MudText>
@@ -41,11 +40,10 @@
         }
         var reload = DataSet.SetCurrentBookIdAsync (currentBookId);
         await base.OnInitializedAsync ();
-        // 着目書籍のIdを表示
-        await SetSectionTitle.InvokeAsync ($"BookId: {currentBookId}");
         // リロード完了待機
         await reload;
         // 着目書籍オブジェクトを取得
         Book = DataSet.Books.Find (s => s.Id == currentBookId);
+        await SetSectionTitle.InvokeAsync ($"<span style=\"font-size:80%;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</span>");
     }
 }
