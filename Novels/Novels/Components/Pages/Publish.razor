@@ -47,10 +47,7 @@
             <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.ChapterSubTitle)])">@(context.ChapterSubTitle)</MudTd>
             <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.SheetTitle)])">
                 <MudStack Row Spacing="1" Class="align-center">
-                    @{
-                        var index = items.IndexOf (context) + 1;
-                    }
-                    <MudIconButton OnClick="@(() => ReadSheet (index))" Disabled="@(BookId != CurrentBookId)" Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" />
+                    <MudIconButton OnClick="@(() => ReadSheet (context))" Disabled="@(BookId != CurrentBookId)" Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" />
                     @(context.SheetTitle)
                 </MudStack>
             </MudTd>
@@ -97,8 +94,9 @@
     }
 
     /// <summary>シートを開く</summary>
-    protected void ReadSheet (int index) {
-        if (Book is not null) {
+    protected void ReadSheet (Sheet context) {
+        if (Book is not null && items is not null) {
+            var index = items.IndexOf (context) + 1;
             NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}sheet/{CurrentBookId}/{index}");
         }
     }
