@@ -109,7 +109,7 @@
         if (context.Item is Book book) {
             selectedItem = book;
             if (CurrentBookId != book.Id) {
-                await SetCurrentBookId.InvokeAsync ((book.Id, CurrentSheetIndex));
+                await SetCurrentBookId.InvokeAsync ((book.Id, 1));
             }
         }
     }
@@ -117,14 +117,21 @@
     /// <summary>遅延初期化</summary>
     protected override async Task OnAfterRenderAsync (bool firstRender) {
         await base.OnAfterRenderAsync (firstRender);
-        if (firstRender && items?.Count > 0) {
-            if (CurrentBookId <= 0) {
-                // 新規セッション
-                selectedItem = items [0];
-                await SetCurrentBookId.InvokeAsync ((items [0].Id, CurrentSheetIndex));
-            } else {
+        if (_inited && !_inited2 && items?.Count > 0) {
+            _inited2 = true;
+            if (CurrentBookId > 0) {
                 // 別ページから遷移 (既存セッション)
-                selectedItem = items.FirstOrDefault (x => x.Id == CurrentBookId) ?? selectedItem;
+                var item = items.FirstOrDefault (x => x.Id == CurrentBookId);
+                if (item is not null) {
+                    selectedItem = item;
+                } else {
+                    CurrentBookId = 0;
+                }
+            }
+            if (CurrentBookId <= 0) {
+                // 新規セッション または書籍が見つからない場合
+                selectedItem = items [0];
+                await SetCurrentBookId.InvokeAsync ((selectedItem.Id, CurrentSheetIndex));
             }
             if (_table is not null && string.IsNullOrEmpty (FilterText)) {
                 // 絞り込みがなければ、選択されている書籍があるページへ
@@ -137,5 +144,5 @@
             }
         }
     }
-
+    protected bool _inited2 = false;
 }

@@ -124,7 +124,8 @@
     /// <summary>遅延初期化</summary>
     protected override async Task OnAfterRenderAsync (bool firstRender) {
         await base.OnAfterRenderAsync (firstRender);
-        if (firstRender && items?.Count > 0) {
+        if (_inited && !_inited2 && items?.Count > 0) {
+            _inited2 = true;
             if (CurrentSheetIndex >= 1 && CurrentSheetIndex <= items.Count) {
                 selectedItem = items [CurrentSheetIndex - 1];
             }
@@ -139,4 +140,5 @@
             }
         }
     }
+    protected bool _inited2 = false;
 }
