@@ -14,6 +14,14 @@
 } else if (!DataSet.IsReady || items is null || Book is null) {
     <MudProgressCircular Indeterminate="true" />
 } else if (items.Count > 0) {
+    <MudPaper Class="ma-4 pa-2" Elevation="2">
+        <MudText Typo="Typo.caption">@(Book.Explanation)</MudText>
+    </MudPaper>
+    <style>
+        th.mud-table-cell, td.mud-table-cell {
+            padding-inline: 0.1em !important;
+        }
+    </style>
     <MudTable Items="items" Dense Breakpoint="Breakpoint.Xs" @ref="_table"
     Filter="new Func<Sheet, bool> (FilterFunc)"
     SortLabel="⇅"
@@ -29,7 +37,12 @@
             <MudTh>@(Sheet.Label [nameof (Sheet.Id)])</MudTh>
             <MudTh>@(Sheet.Label [nameof (Sheet.ChapterTitle)])</MudTh>
             <MudTh>@(Sheet.Label [nameof (Sheet.ChapterSubTitle)])</MudTh>
-            <MudTh>@(Sheet.Label [nameof (Sheet.SheetTitle)])</MudTh>
+            <MudTh>
+                <MudStack Row Spacing="0" Class="align-center">
+                    <MudIcon Icon="" />
+                    <MudText Typo="Typo.inherit">@(Sheet.Label [nameof (Sheet.SheetTitle)])</MudText>
+                </MudStack>
+            </MudTh>
             <MudTh>@(Sheet.Label [nameof (Sheet.SheetUpdatedAt)])</MudTh>
             <MudTh>@(Sheet.Label [nameof (Sheet.Remarks)])</MudTh>
         </HeaderContent>
@@ -46,12 +59,12 @@
             <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.ChapterTitle)])">@(context.ChapterTitle)</MudTd>
             <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.ChapterSubTitle)])">@(context.ChapterSubTitle)</MudTd>
             <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.SheetTitle)])">
-                <MudStack Row Spacing="1" Class="align-center">
+                <MudStack Row Spacing="0" Class="align-center">
                     <MudIconButton OnClick="@(() => ReadSheet (context))" Disabled="@(BookId != CurrentBookId)" Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" />
                     <MudText Typo="Typo.inherit">@(context.SheetTitle)</MudText>
                 </MudStack>
             </MudTd>
-            <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.SheetUpdatedAt)])">@(context.SheetUpdatedAt)</MudTd>
+            <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.SheetUpdatedAt)])">@(context.SheetUpdatedAt?.ToString ("yyyy/MM/dd HH:mm"))</MudTd>
             <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.Remarks)])">@context.Remarks</MudTd>
         </RowTemplate>
         <PagerContent>

@@ -11,6 +11,11 @@
 } else if (!DataSet.IsReady || items is null) {
     <MudProgressCircular Indeterminate="true" />
 } else if (items.Count > 0) {
+    <style>
+        th.mud-table-cell, td.mud-table-cell {
+            padding-inline: 0.1em !important;
+        }
+    </style>
     <MudTable Items="items" Dense Breakpoint="Breakpoint.Xs" @ref="_table"
     Filter="new Func<Book, bool> (FilterFunc)"
     SortLabel="⇅"
@@ -24,16 +29,22 @@
     ReadOnly="false">
         <HeaderContent>
             <MudTh>@(Book.Label [nameof (Book.Id)])</MudTh>
-            <MudTh>
+            <MudTh Class="align-middle text-nowrap">
                 @(Book.Label [nameof (Book.Released)])
                 @(Book.Label [nameof (Book.Readed)])
                 @(Book.Label [nameof (Book.Wish)])
             </MudTh>
-            <MudTh>@(Book.Label [nameof (Book.Title)])</MudTh>
+            <MudTh>
+                <MudStack Row Spacing="0" Class="align-center">
+                    <MudIcon Icon="" />
+                    <MudIcon Icon="" />
+                    <MudText Typo="Typo.inherit">@(Book.Label [nameof (Book.Title)])</MudText>
+                </MudStack>
+            </MudTh>
             <MudTh>@(Book.Label [nameof (Book.Author)])</MudTh>
-            <MudTh>@(Book.Label [nameof (Book.Site)])</MudTh>
-            <MudTh>@(Book.Label [nameof (Book.Status)])</MudTh>
-            <MudTh>@(Book.Label [nameof (Book.NumberOfSheets)])</MudTh>
+            <MudTh Class="align-middle text-nowrap">@(Book.Label [nameof (Book.Site)])</MudTh>
+            <MudTh Class="align-middle text-nowrap">@(Book.Label [nameof (Book.Status)])</MudTh>
+            <MudTh Class="align-middle text-nowrap">@(Book.Label [nameof (Book.NumberOfSheets)])</MudTh>
             <MudTh>@(Book.Label [nameof (Book.Remarks)])</MudTh>
         </HeaderContent>
         <RowTemplate>
@@ -52,7 +63,8 @@
                 <MudIcon Icon="@(context.Wish ? Icons.Material.Outlined.CheckBox : Icons.Material.Outlined.CheckBoxOutlineBlank)" />
             </MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.Title)])">
-                <MudStack Row Spacing="1" Class="align-center">
+                <MudStack Row Spacing="0" Class="align-center">
+                    <MudIconButton OnClick="@(() => PublishBook (context.Id))" Icon="@Icons.Material.Filled.Publish" Size="Size.Small" />
                     <MudIconButton OnClick="@(() => OpenBook (context.Id))" Icon="@Icons.Material.Filled.Book" Size="Size.Small" />
                     <MudText Typo="Typo.inherit">@(context.Title)</MudText>
                 </MudStack>
@@ -121,9 +133,14 @@
         }
     }
 
+    /// <summary>本を発行</summary>
+    protected void PublishBook (long bookId) {
+        NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}book/{bookId}");
+    }
+
     /// <summary>本を開く</summary>
     protected void OpenBook (long bookId) {
-        NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}book/{bookId}/{(bookId != CurrentBookId ? 1 : CurrentSheetIndex)}");
+        NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}sheets/{bookId}/{(bookId != CurrentBookId ? 1 : CurrentSheetIndex)}");
     }
 
     /// <summary>遅延初期化</summary>
