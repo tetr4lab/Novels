@@ -62,6 +62,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (HtmlBackup), "原稿待避" },
         { nameof (Errata), "正誤" },
         { nameof (Wish), "希望" },
+        { nameof (SeriesTitle), "シリーズ" },
         { nameof (Remarks), "備考" },
     };
 
