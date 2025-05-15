@@ -15,7 +15,7 @@
 } else if (!DataSet.IsReady || items is null || Book is null) {
     <MudProgressCircular Indeterminate="true" />
 } else if (items.Count > 0) {
-    <MudSimpleTable Elevation="0" Dense Striped>
+    <MudSimpleTable Elevation="0" Dense Striped Bordered>
         <thead>
             <tr>
                 <th style="width: 10em;"></th>
@@ -58,6 +58,10 @@
                     </MudStack>
                 </td>
                 <td><MudTextField T="string" @bind-Value="Book.Url2" /></td>
+            </tr>
+            <tr>
+                <td>@(Book.Label [nameof (Book.Remarks)])</td>
+                <td><MudTextField Class="horizontal-scroll" T="string" @bind-Value="Book.Remarks" Lines="10" /></td>
             </tr>
             <tr>
                 <td colspan="2">
@@ -104,9 +108,9 @@
     
     /// <summary>編集開始</summary>
     protected void StartEdit () {
-        if (editingItem is null) {
+        if (editingItem is null && Book is not null) {
             editingItem = Book;
-            backupedItem = Book?.Clone () ?? new ();
+            backupedItem = Book.Clone ();
         }
     }
 
