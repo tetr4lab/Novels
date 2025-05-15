@@ -34,7 +34,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         { nameof (DirectNumber), "番号" },
         { nameof (DirectContent), "本文" },
         { nameof (NovelNumber), "シート数" },
-        { nameof (SheetUpdatedAt), "発行日時" },
+        { nameof (SheetUpdatedAt), "更新日時" },
         { nameof (Errata), "正誤" },
         { nameof (Remarks), "備考" },
     };
