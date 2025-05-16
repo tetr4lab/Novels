@@ -102,8 +102,12 @@
                 </td>
             </tr>
             <tr>
+                <td>@(Book.Label [nameof (Book.Errata)])</td>
+                <td><MudTextField T="string" Placeholder="@($"error1{Book.Separator}correct1{Book.Terminator}error2{Book.Separator}correct2{Book.Terminator}  :")" @bind-Value="Book.Errata" Lines="10" /></td>
+            </tr>
+            <tr>
                 <td>@(Book.Label [nameof (Book.Remarks)])</td>
-                <td><MudTextField Class="horizontal-scroll" T="string" @bind-Value="Book.Remarks" Lines="10" /></td>
+                <td><MudTextField T="string" @bind-Value="Book.Remarks" Lines="10" /></td>
             </tr>
             <tr>
                 @* 下部ツールバー *@

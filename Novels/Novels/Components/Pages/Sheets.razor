@@ -34,7 +34,7 @@
     Striped="true"
     ReadOnly="false">
         <HeaderContent>
-            <MudTh>@(Sheet.Label [nameof (Sheet.Id)])</MudTh>
+            <MudTh>@(Sheet.Label [nameof (Sheet.NovelNumber)])</MudTh>
             <MudTh>@(Sheet.Label [nameof (Sheet.ChapterTitle)])</MudTh>
             <MudTh>@(Sheet.Label [nameof (Sheet.ChapterSubTitle)])</MudTh>
             <MudTh>
@@ -47,13 +47,13 @@
             <MudTh>@(Sheet.Label [nameof (Sheet.Remarks)])</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.Id)])" Class="align-right text-nowrap" Style="padding-inline-end: 0.8em !important;">
+            <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.NovelNumber)])" Class="align-right text-nowrap" Style="padding-inline-end: 0.8em !important;">
                 <MudStack Row Spacing="0" Class="align-center">
                     @if (items is not null && items.IndexOf (context) + 1 == CurrentSheetIndex) {
                         <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" />
                     }
                     <MudSpacer />
-                    @(context.Id)
+                    @(context.NovelNumber)
                 </MudStack>
             </MudTd>
             <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.ChapterTitle)])">@(context.ChapterTitle)</MudTd>
