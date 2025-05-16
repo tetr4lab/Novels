@@ -326,13 +326,13 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                 if (string.IsNullOrEmpty (title)) {
                     title = Url1;
                 }
-                title = (Correct (title) ?? "").Replace ('　', ' ').Trim ();
+                title = (title ?? "").Replace ('　', ' ').Trim ();
                 if (string.IsNullOrEmpty (title) && title != _title) {
                     _title = title;
                     IsDirty = true;
                 }
             }
-            return _title ?? "";
+            return Correct (_title) ?? "";
         }
     }
 
@@ -460,13 +460,13 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                 if (string.IsNullOrEmpty (author)) {
                     author = Url1;
                 }
-                author = GetNormalizedName (Correct (author) ?? "");
+                author = GetNormalizedName (author ?? "");
                 if (string.IsNullOrEmpty (author) && author != _author) {
                     _author = author;
                     IsDirty = true;
                 }
             }
-            return _author ?? "";
+            return Correct (_author) ?? "";
         }
     }
 
