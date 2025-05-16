@@ -11,4 +11,9 @@ public interface INovelsBaseModel : IBaseModel { }
 
 /// <summary>基底モデル</summary>
 [PrimaryKey ("Id", AutoIncrement = true), ExplicitColumns]
-public abstract class NovelsBaseModel<T> : BaseModel<T>, IEquatable<T> where T : NovelsBaseModel<T>, new() { }
+public abstract class NovelsBaseModel<T> : BaseModel<T>, IEquatable<T> where T : NovelsBaseModel<T>, new() {
+    //public static readonly char Separator = '\t';
+    //public static readonly char Terminator = '\n';
+    public static readonly string Separator = "||";
+    public static readonly string Terminator = "\n";
+}
