@@ -57,7 +57,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (PublishedAt), "発行日時" },
         { nameof (Released), "既刊" },
         { nameof (Readed), "既読" },
-        { nameof (ReadedMemo), "読後メモ" },
+        { nameof (ReadedMemo), "栞メモ" },
         { nameof (Status), "状態" },
         { nameof (HtmlBackup), "原稿待避" },
         { nameof (Errata), "正誤" },
