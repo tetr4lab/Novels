@@ -23,6 +23,37 @@
                 <MudText Class="mt-2 mb-4"><h2>@(Sheet?.SheetTitle)</h2></MudText>
                 @((MarkupString) Sheet.SheetHonbun)
             </MudPaper>
+            <MudSimpleTable Elevation="0" Dense Striped Bordered>
+                <thead>
+                    <tr>
+                        <th style="width: 10em;"></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>@(Sheet.Label [nameof (Sheet.Errata)])</td>
+                        <td><MudTextField T="string" Placeholder="@($"error1{Sheet.Separator}correct1{Sheet.Terminator}error2{Sheet.Separator}correct2{Sheet.Terminator}  :")" @bind-Value="Sheet.Errata" Lines="10" /></td>
+                    </tr>
+                    <tr>
+                        <td>@(Sheet.Label [nameof (Sheet.Remarks)])</td>
+                        <td><MudTextField T="string" @bind-Value="Sheet.Remarks" Lines="10" /></td>
+                    </tr>
+                    <tr>
+                        @* 下部ツールバー *@
+                        <td colspan="2">
+                            <MudStack Row Class="justify-center">
+                                <MudTooltip Arrow="true" Text="復旧">
+                                    <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="() => { if (editingItem is not null) { Cancel (editingItem); StartEdit (); } }" />
+                                </MudTooltip>
+                                <MudTooltip Arrow="true" Text="保存">
+                                    <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="() => { if (editingItem is not null) { Commit (editingItem); StartEdit (); } }" />
+                                </MudTooltip>
+                            </MudStack>
+                        </td>
+                    </tr>
+                </tbody>
+            </MudSimpleTable>
             <NumberNavigationBar Number="@(SheetIndex.Value)" Min="1" Max="@(items.Count)" OnChangeNumber="OnChageSheetAsync" />
             <MudScrollToTop TopOffset="1000">
                 <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowCircleUp" />
@@ -53,6 +84,17 @@
     /// <summary>着目中のシート</summary>
     protected Sheet? Sheet { get; set; } = null;
 
+    /// <summary>編集されていない</summary>
+    protected bool IsNotDirty => editingItem is null || backupedItem is null || editingItem.Equals (backupedItem);
+    
+    /// <summary>編集開始</summary>
+    protected void StartEdit () {
+        if (editingItem is null && Sheet is not null) {
+            editingItem = Sheet;
+            backupedItem = Sheet.Clone ();
+        }
+    }
+
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
     protected override async Task OnInitializedAsync() {
         var currentBookId = BookId ?? CurrentBookId;
@@ -68,6 +110,9 @@
     protected async Task SetSheet (int index) {
         if (Book is not null && index >= 1 && index <= Book.Sheets.Count) {
             await SetCurrentBookId.InvokeAsync ((Book.Id, index));
+            if (editingItem is not null) {
+                Cancel (editingItem);
+            }
             Sheet = Book.Sheets [index - 1];
             await SetSectionTitle.InvokeAsync ($"<span style=\"font-size:80%;\">『{Book.Title}』 {Book.Author}</span>\n{Sheet.OriginalChapterTitle} {Sheet.ChapterSubTitle}");
             if (BookId != Book.Id || SheetIndex != index) {
@@ -75,6 +120,7 @@
                 // パラメータに相違があればページの遷移は生じない (全て同一だと再初期化が生じる)
                 NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}sheet/{Book.Id}/{index}");
             }
+            StartEdit ();
         } else {
             await SetSectionTitle.InvokeAsync ("Read");
         }
