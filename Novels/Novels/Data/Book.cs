@@ -64,6 +64,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (Wish), "希望" },
         { nameof (SeriesTitle), "シリーズ" },
         { nameof (Remarks), "備考" },
+        { nameof (LastUpdate), "最終更新日時" },
     };
 
     /// <inheritdoc/>
@@ -116,7 +117,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         _ => "inherit",
     };
 
-    /// <summary>最終更新日時</summary>
+    /// <summary>書誌、または、シートから得られる最終更新日時</summary>
     // Case (
     // not IsEmpty ( direct_content ) ; modified ;
     // not IsEmpty ( sheet_updates ) ; MaxTimestamp ( sheet_updates ) + Case ( site = 2 ; Time ( 9 ; 0 ; 0 ) ; 0 ) ;
@@ -124,33 +125,25 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     //  modified )
     public DateTime LastUpdate {
         get {
-            if (_directContent is not null) {
+            if (!string.IsNullOrEmpty (_directContent)) {
                 return Modified;
             }
-            var sheetUpdates = SheetUpdateDates;
-            if (sheetUpdates.Count > 0) {
-                return sheetUpdates.Max ();
+            var sheetDates = SheetUpdateDates;
+            if (sheetDates.Count > 0) {
+                return sheetDates.Max ();
             }
-            if (Sheets?.Count > 0) {
+            if (Sheets.Count > 0) {
                 return Sheets.Max (s => s.SheetUpdatedAt ?? s.Modified);
             }
             return Modified;
         }
     }
 
-    /// <summary>発行済み</summary>
+    /// <summary>発行済みである</summary>
     // If ( not IsEmpty ( number_of_published ) and number_of_published ≥ number_of_sheets and ( IsEmpty ( published_at ) or published_at ≥ last_update ) ; 1 )
-    public bool Released {
-        get {
-            if (NumberOfSheets > 0 && NumberOfPublished >= NumberOfSheets) {
-                if (PublishedAt is not null) {
-                    return PublishedAt >= LastUpdate;
-                }
-                return true;
-            }
-            return false;
-        }
-    }
+    public bool Released =>
+        NumberOfPublished is not null && NumberOfPublished >= NumberOfSheets
+        && (PublishedAt is null || PublishedAt >= LastUpdate);
 
     /// <summary>ダイレクトコンテントである</summary>
     public bool IsDirectContent => !string.IsNullOrEmpty (_directContent);
@@ -684,32 +677,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         }
     }
     protected List<DateTime>? __sheetUpdateDates = null;
-
-    /// <summary>書誌、または、シートから得られる最終更新日時</summary>
-    // Case (
-    // not IsEmpty ( direct_content ) ; modified ;
-    // not IsEmpty ( sheet_updates ) ; MaxTimestamp ( sheet_updates ) + Case ( site = 2 ; Time ( 9 ; 0 ; 0 ) ; 0 ) ;
-    // Count ( Sheet::sheet_lastupdate ) ; Max ( Sheet::sheet_lastupdate ) ;
-    //  modified )
-    public DateTime LastUpdated (NovelsDataSet dataset) {
-        if (!string.IsNullOrEmpty (_directContent)) {
-            return Modified;
-        }
-        var sheetDates = SheetUpdateDates;
-        if (sheetDates.Count > 0) {
-            return sheetDates.Max ();
-        }
-        if (Sheets.Count > 0) {
-            return Sheets.Max (s => s.SheetUpdatedAt ?? DateTime.MinValue);
-        }
-        return Modified;
-    }
-
-    /// <summary>リリース済みである</summary>
-    // If ( not IsEmpty ( number_of_published ) and number_of_published ≥ number_of_sheets and ( IsEmpty ( published_at ) or published_at ≥ last_update ) ; 1 )
-    public bool IsReleased (NovelsDataSet dataSet) =>
-        NumberOfPublished is not null && NumberOfPublished >= NumberOfSheets
-        && (PublishedAt is null || PublishedAt >= LastUpdated (dataSet));
 
     /// <summary>名前の標準化</summary>
     /// <param name="name">名前</param>
