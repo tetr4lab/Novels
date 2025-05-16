@@ -44,7 +44,7 @@
                         <td colspan="2">
                             <MudStack Row Class="justify-center">
                                 <MudTooltip Arrow="true" Text="復旧">
-                                    <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="() => { if (editingItem is not null) { Cancel (editingItem); StartEdit (); } }" />
+                                    <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="async () => { if (await ConfirmCancelEdit ()) StartEdit (); }" />
                                 </MudTooltip>
                                 <MudTooltip Arrow="true" Text="保存">
                                     <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="() => { if (editingItem is not null) { Commit (editingItem); StartEdit (); } }" />
@@ -86,7 +86,22 @@
 
     /// <summary>編集されていない</summary>
     protected bool IsNotDirty => editingItem is null || backupedItem is null || editingItem.Equals (backupedItem);
-    
+
+    /// <summary>編集された項目名の列挙</summary>
+    protected string EditedColumns {
+        get {
+            if (editingItem is null) { return "";}
+            var columnNames = new List<string> ();
+            if (editingItem.Errata != backupedItem.Errata) {
+                columnNames.Add (Sheet.Label [nameof (Sheet.Errata)]);
+            }
+            if (editingItem.Remarks != backupedItem.Remarks) {
+                columnNames.Add (Sheet.Label [nameof (Sheet.Remarks)]);
+            }
+            return string.Join (", ", columnNames);
+        }
+    }
+
     /// <summary>編集開始</summary>
     protected void StartEdit () {
         if (editingItem is null && Sheet is not null) {
@@ -126,9 +141,24 @@
         }
     }
 
+    /// <summary>編集内容破棄の確認</summary>
+    protected async Task<bool> ConfirmCancelEdit () {
+        if (editingItem is not null && !IsNotDirty) {
+            var dialogResult = await DialogService.Confirmation ([$"以下の編集内容が破棄されます。", EditedColumns,], title: "編集破棄", position: DialogPosition.BottomCenter, acceptionLabel: "破棄", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
+            if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
+                Cancel (editingItem);
+                Snackbar.Add ("編集内容を削除しました。", Severity.Normal);
+            } else {
+                // キャンセルされた場合は、シートの変更を行わない
+                return false;
+            }
+        }
+        return true;
+    }
+
     /// <summary>シート変更</summary>
     protected async Task OnChageSheetAsync (int index) {
-        if (SheetIndex != index) {
+        if (SheetIndex != index && await ConfirmCancelEdit ()) {
             await SetSheet (index);
             // ページトップへスクロール
             await JsRuntime.InvokeVoidAsync ("scrollToTop");

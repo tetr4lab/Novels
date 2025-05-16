@@ -85,7 +85,7 @@
                 <td colspan="2">
                     <MudStack Row Class="justify-center">
                         <MudTooltip Arrow="true" Text="復旧">
-                            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="() => { if (editingItem is not null) { Cancel (editingItem); StartEdit (); } }" />
+                            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="async () => { if (await ConfirmCancelEdit ()) StartEdit (); }" />
                         </MudTooltip>
                         <MudTooltip Arrow="true" Text="保存">
                             <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="() => { if (editingItem is not null) { Commit (editingItem); StartEdit (); } }" />
@@ -128,6 +128,20 @@
             editingItem = selectedItem;
             backupedItem = selectedItem.Clone ();
         }
+    }
+
+    /// <summary>編集内容破棄の確認</summary>
+    protected async Task<bool> ConfirmCancelEdit () {
+        if (editingItem is not null && !IsNotDirty) {
+            var dialogResult = await DialogService.Confirmation ([$"編集内容が破棄されます。",], title: "編集破棄", position: DialogPosition.BottomCenter, acceptionLabel: "破棄", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
+            if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
+                Cancel (editingItem);
+                Snackbar.Add ("編集内容を削除しました。", Severity.Normal);
+            } else {
+                return false;
+            }
+        }
+        return true;
     }
 
     /// <summary>遅延初期化</summary>
