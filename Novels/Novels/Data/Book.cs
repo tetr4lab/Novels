@@ -54,6 +54,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (DirectContent), "本文" },
         { nameof (NumberOfSheets), "シート数" },
         { nameof (NumberOfPublished), "発行済みシート数" },
+        { nameof (NumberOfRelatedSheets), "取得済みシート数" },
         { nameof (PublishedAt), "発行日時" },
         { nameof (Released), "既刊" },
         { nameof (Readed), "既読" },
@@ -64,7 +65,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (Wish), "希望" },
         { nameof (SeriesTitle), "シリーズ" },
         { nameof (Remarks), "備考" },
-        { nameof (LastUpdate), "最終更新日時" },
+        { nameof (LastUpdate), "最終更新" },
     };
 
     /// <inheritdoc/>
@@ -132,7 +133,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
             if (sheetDates.Count > 0) {
                 return sheetDates.Max ();
             }
-            if (Sheets.Count > 0) {
+            if (Sheets?.Count > 0) {
                 return Sheets.Max (s => s.SheetUpdatedAt ?? s.Modified);
             }
             return Modified;

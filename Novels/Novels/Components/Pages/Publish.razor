@@ -29,7 +29,24 @@
                     <MudStack Row Spacing="1" Class="align-center">
                         <MudText Typo="Typo.inherit">@Book.Id</MudText>
                         <MudSpacer />
-                        <MudChip T="string" Variant="Variant.Outlined" Icon="@(Book.Released ? Icons.Material.Outlined.CheckBox : Icons.Material.Outlined.CheckBoxOutlineBlank)">既刊</MudChip>
+                        @if (Book.PublishedAt is not null) {
+                            <MudChip T="string" Variant="Variant.Outlined">@(Book.Label [nameof (Book.PublishedAt)]): @(Book.PublishedAt.Value.ToString ("yyyy/MM/dd HH:mm"))</MudChip>
+                        }
+                        <MudChip T="string" Variant="Variant.Outlined">@(Book.Label [nameof (Book.LastUpdate)]): @(Book.LastUpdate.ToString ("yyyy/MM/dd HH:mm"))</MudChip>
+                        <MudSpacer />
+                        <MudText>
+                            @if (Book.Released) {
+                                <MudTooltip Duration="1000" Text="@(Book.Label [nameof (Book.NumberOfPublished)])">
+                                    <MudText Color="@(Book.NumberOfPublished < Book.NumberOfRelatedSheets && Book.NumberOfPublished < Book.NumberOfSheets ? Color.Warning : Color.Inherit)">@(Book.NumberOfPublished)</MudText>
+                                </MudTooltip>
+                                <span> / </span>
+                            }
+                            <MudTooltip Duration="1000" Text="@(Book.Label [nameof (Book.NumberOfRelatedSheets)])">
+                                <MudText Color="@(Book.NumberOfRelatedSheets < Book.NumberOfSheets ? Color.Warning : Color.Inherit)">@(Book.NumberOfRelatedSheets)</MudText>
+                            </MudTooltip>
+                            <span> / </span>
+                            <MudTooltip Duration="1000" Text="@(Book.Label [nameof (Book.NumberOfSheets)])">@(Book.NumberOfSheets)</MudTooltip>
+                        </MudText>
                     </MudStack>
                 </td>
             </tr>
@@ -64,6 +81,10 @@
                     </MudStack>
                 </td>
                 <td><MudTextField T="string" @bind-Value="Book.Url2" /></td>
+            </tr>
+            <tr>
+                <td>@(Book.Label [nameof (Book.LastUpdate)])</td>
+                <td>@(Book.LastUpdate.ToString ("yyyy/MM/dd HH:mm"))</td>
             </tr>
             <tr>
                 <td>@(Book.Label [nameof (Book.Readed)])</td>
