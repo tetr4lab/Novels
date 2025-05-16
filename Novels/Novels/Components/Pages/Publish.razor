@@ -25,7 +25,13 @@
         <tbody>
             <tr>
                 <td>@(Book.Label[nameof(Book.Id)])</td>
-                <td>@Book.Id</td>
+                <td>
+                    <MudStack Row Spacing="1" Class="align-center">
+                        <MudText Typo="Typo.inherit">@Book.Id</MudText>
+                        <MudSpacer />
+                        <MudChip T="string" Variant="Variant.Outlined" Icon="@(Book.Released ? Icons.Material.Outlined.CheckBox : Icons.Material.Outlined.CheckBoxOutlineBlank)">既刊</MudChip>
+                    </MudStack>
+                </td>
             </tr>
             <tr>
                 <td>@(Book.Label [nameof (Book.SeriesTitle)])</td>
@@ -60,10 +66,26 @@
                 <td><MudTextField T="string" @bind-Value="Book.Url2" /></td>
             </tr>
             <tr>
+                <td>@(Book.Label [nameof (Book.Readed)])</td>
+                <td>
+                    <MudStack Row Spacing="1" Class="align-center">
+                        <MudCheckBox @bind-Value="Book.Readed" />
+                        <MudTextField Placeholder="@(Book.Label [nameof (Book.ReadedMemo)])" T="string" @bind-Value="Book.ReadedMemo" />
+                    </MudStack>
+                </td>
+            </tr>
+            <tr>
+                <td>@(Book.Label [nameof (Book.Wish)])</td>
+                <td>
+                    <MudCheckBox @bind-Value="Book.Wish"></MudCheckBox>
+                </td>
+            </tr>
+            <tr>
                 <td>@(Book.Label [nameof (Book.Remarks)])</td>
                 <td><MudTextField Class="horizontal-scroll" T="string" @bind-Value="Book.Remarks" Lines="10" /></td>
             </tr>
             <tr>
+                @* 下部ツールバー *@
                 <td colspan="2">
                     <MudStack Row Class="justify-center">
                         <MudTooltip Arrow="true" Text="復旧">
