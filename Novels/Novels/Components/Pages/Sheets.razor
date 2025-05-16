@@ -47,7 +47,7 @@
             <MudTh>@(Sheet.Label [nameof (Sheet.Remarks)])</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.Id)])" Class="align-right text-nowrap">
+            <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.Id)])" Class="align-right text-nowrap" Style="padding-inline-end: 0.8em !important;">
                 <MudStack Row Spacing="0" Class="align-center">
                     @if (items is not null && items.IndexOf (context) + 1 == CurrentSheetIndex) {
                         <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" />
