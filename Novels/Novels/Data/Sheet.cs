@@ -405,7 +405,11 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     public override string? [] SearchTargets => [
         $"#{BookId}.",
         $"@{NovelNumber}.",
-        _html, _directContent,
+        ChapterTitle,
+        ChapterSubTitle,
+        SheetTitle,
+        SheetHonbun,
+        Remarks,
     ];
 
     /// <summary>ノーマルコンストラクタ</summary>

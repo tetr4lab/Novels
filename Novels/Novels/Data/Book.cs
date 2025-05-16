@@ -938,7 +938,10 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         $"{(Readed ? "_is_readed_" : "_not_readed_")}",
         $"_{Status}_",
         $"{(Wish ? "_is_wished_" : "_not_wished_")}",
-        Title, Author, Remarks,
+        SeriesTitle,
+        Title,
+        Author,
+        Remarks,
     ];
 
     /// <summary>ノーマルコンストラクタ</summary>
