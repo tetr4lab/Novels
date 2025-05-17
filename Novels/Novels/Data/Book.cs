@@ -66,6 +66,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (SeriesTitle), "シリーズ" },
         { nameof (Remarks), "備考" },
         { nameof (LastUpdate), "最終更新" },
+        { nameof (Bookmark), "栞" },
     };
 
     /// <inheritdoc/>
