@@ -78,7 +78,7 @@
             </MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.Site)])" Class="align-middle text-nowrap">@(context.Site)</MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.Status)])" Class="align-middle text-nowrap">
-                <MudChip T="string" Label="true" Size="Size.Small" Variant="Variant.Outlined" Style="@($"width: 6em;background:{context.StatusBgColor}")">@(context.Status)</MudChip>
+                <MudChip T="string" Label="true" Size="Size.Small" Variant="Variant.Outlined" Color="@(context.StatusBgColor)" Style="width: 6em">@(context.Status)</MudChip>
             </MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.NumberOfSheets)])" Class="align-middle text-nowrap">
                 @if (context.IsDirectContent) {

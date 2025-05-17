@@ -111,13 +111,13 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public bool IsDirty { get; protected set; } = false;
 
     /// <summary>状態に応じた背景色</summary>
-    public string StatusBgColor => Readed ? Colors.Gray.Lighten2 : Status switch {
-        "完結" => Colors.Blue.Lighten5,
-        "一応完結" => Colors.Blue.Lighten5,
-        "更新途絶" => Colors.LightGreen.Lighten5,
-        "更新中" => Colors.Yellow.Lighten4,
-        "消失" => Colors.LightGreen.Lighten4,
-        _ => "inherit",
+    public Color StatusBgColor => Readed ? Color.Dark : Status switch {
+        "完結" => Color.Success,
+        "一応完結" => Color.Tertiary,
+        "更新途絶" => Color.Info,
+        "更新中" => Color.Warning,
+        "消失" => Color.Surface,
+        _ => Color.Error,
     };
 
     /// <summary>書誌、または、シートから得られる最終更新日時</summary>
