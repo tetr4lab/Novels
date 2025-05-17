@@ -6,6 +6,7 @@
 @inject IJSRuntime JsRuntime
 
 <PageTitle>Sheet</PageTitle>
+<NavigationLock OnBeforeInternalNavigation="OnLocationChangingAsync" />
 
 @if (DataSet.IsUnavailable) {
     <MudAlert Severity="Severity.Error" Elevation="3">Unable to connect to any of the specified database management hosts.</MudAlert>
@@ -154,6 +155,13 @@
             }
         }
         return true;
+    }
+
+    /// <summary>ページ遷移時の処理</summary>
+    protected async Task OnLocationChangingAsync (LocationChangingContext context) {
+        if (context.IsNavigationIntercepted && !await ConfirmCancelEdit ()) {
+            context.PreventNavigation ();
+        }
     }
 
     /// <summary>シート変更</summary>
