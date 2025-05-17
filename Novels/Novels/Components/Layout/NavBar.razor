@@ -53,7 +53,7 @@
     }
     <MudItem>
         <MudStack Row Class="align-center">
-            <MudTooltip Duration="1000">
+            <MudTooltip Arrow Duration="1000">
                 <ChildContent>
                     <MudTextField @bind-Value="_filterText" @ref="searchField"
                     OnKeyUp="OnKeyUp"
@@ -71,24 +71,27 @@
                         <p>'!'が先行する部分は一致すると適合しません。</p>
                         <p>'^'が先行する部分は含まれると適合しません。</p>
                         <p>'|'で区切られた部分はいずれか一つで適合します。</p>
-                        <p>'#~.'書籍番号</p>
-                        <p>':~.'サイト</p>
-                        <p>'_is_released_'/'_not_released_'既刊</p>
-                        <p>'_is_readed_'/'_not_readed_'既読</p>
-                        <p>'_is_wished_'/'_not_wished_'希望</p>
-                        <p>'_<i>status</i>_'状態</p>
+                        <p>'#~.'@(Book.TableLabel)@(Book.Label [nameof (Book.Id)])</p>
+                        <p>':~.'@(Book.Label [nameof (Book.Site)])</p>
+                        <p>'_is_released_'/'_not_released_'@(Book.Label [nameof (Book.Released)])</p>
+                        <p>'_is_readed_'/'_not_readed_'@(Book.Label [nameof (Book.Readed)])</p>
+                        <p>'_is_wished_'/'_not_wished_'@(Book.Label [nameof (Book.Wish)])</p>
+                        <p>'_is_direct_'/'_not_direct_'@(Book.Label [nameof (Book.IsDirectContent)])</p>
+                        <p>'_<i>status</i>_'@(Book.Label [nameof (Book.Status)])</p>
                     </MudText>
                 </TooltipContent>
             </MudTooltip>
-            <MudTooltip Text="古い情報を除外" Duration="1000">
+            <MudTooltip Text="未着手" Arrow Duration="1000">
                 <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.FiberNew" OnClick="@(() => {
-                    var newText = $"=_not_old_";
+                    var newText = $"=_not_readed_ =%0. =_not_direct_";
                     _filterText = _filterText == newText ? "" : newText;
                     OnClick ();
                 })" />
             </MudTooltip>
             @if (!OnClickChangeModeButton.Equals (EventCallback.Empty)) {
-                <MudIconButton Size="Size.Small" Icon="@(IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" OnClick="(async () => await OnClickChangeModeButton.InvokeAsync ())" />
+                <MudTooltip Text="テーマ" Arrow Duration="1000">
+                    <MudIconButton Size="Size.Small" Icon="@(IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" OnClick="(async () => await OnClickChangeModeButton.InvokeAsync ())" />
+                </MudTooltip>
             }
         </MudStack>
     </MudItem>

@@ -51,7 +51,7 @@
             <MudTd DataLabel="@(Book.Label[nameof(Book.Id)])" Class="align-right text-nowrap">
                 <MudStack Row Spacing="0" Class="align-center">
                     @if (context.Id == CurrentBookId) {
-                        <MudTooltip Text="@($"着目中の{Book.TableLabel}")" Duration="1000">
+                        <MudTooltip Text="@($"着目中の{Book.TableLabel}")" Arrow Duration="1000">
                             <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" />
                         </MudTooltip>
                     }
@@ -71,7 +71,11 @@
                     <MudText Typo="Typo.inherit">@(context.Title)</MudText>
                 </MudStack>
             </MudTd>
-            <MudTd DataLabel="@(Book.Label[nameof(Book.Author)])">@(context.Author)</MudTd>
+            <MudTd DataLabel="@(Book.Label[nameof(Book.Author)])">
+                <MudTooltip Text="@($"「{context.Author}」で絞り込み")" Arrow Duration="1000">
+                    <MudLink OnClick="@(() => SetFilterText.InvokeAsync (context.Author.Replace (' ', '\u2423')))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Author)</MudLink>
+                </MudTooltip>
+            </MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.Site)])" Class="align-middle text-nowrap">@(context.Site)</MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.Status)])" Class="align-middle text-nowrap">
                 <MudChip T="string" Label="true" Size="Size.Small" Variant="Variant.Outlined" Style="@($"width: 6em;background:{context.StatusBgColor}")">@(context.Status)</MudChip>
@@ -80,7 +84,7 @@
                 @if (context.IsDirectContent) {
                     <MudText Typo="Typo.inherit">1/1</MudText>
                 } else {
-                    <MudTooltip Duration="1000" Arrow="true">
+                    <MudTooltip Arrow Duration="1000">
                         <ChildContent>
                             <MudStack Row Spacing="0">
                                 <MudText Typo="Typo.inherit" Color="@(

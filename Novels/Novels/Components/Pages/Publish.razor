@@ -37,16 +37,16 @@
                         <MudSpacer />
                         <MudText>
                             @if (Book.Released) {
-                                <MudTooltip Duration="1000" Text="@(Book.Label [nameof (Book.NumberOfPublished)])">
+                                <MudTooltip Arrow Duration="1000" Text="@(Book.Label [nameof (Book.NumberOfPublished)])">
                                     <MudText Color="@(Book.NumberOfPublished < Book.NumberOfRelatedSheets && Book.NumberOfPublished < Book.NumberOfSheets ? Color.Warning : Color.Inherit)">@(Book.NumberOfPublished)</MudText>
                                 </MudTooltip>
                                 <span> / </span>
                             }
-                            <MudTooltip Duration="1000" Text="@(Book.Label [nameof (Book.NumberOfRelatedSheets)])">
+                            <MudTooltip Arrow Duration="1000" Text="@(Book.Label [nameof (Book.NumberOfRelatedSheets)])">
                                 <MudText Color="@(Book.NumberOfRelatedSheets < Book.NumberOfSheets ? Color.Warning : Color.Inherit)">@(Book.NumberOfRelatedSheets)</MudText>
                             </MudTooltip>
                             <span> / </span>
-                            <MudTooltip Duration="1000" Text="@(Book.Label [nameof (Book.NumberOfSheets)])">@(Book.NumberOfSheets)</MudTooltip>
+                            <MudTooltip Arrow Duration="1000" Text="@(Book.Label [nameof (Book.NumberOfSheets)])">@(Book.NumberOfSheets)</MudTooltip>
                         </MudText>
                     </MudStack>
                 </td>

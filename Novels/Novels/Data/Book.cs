@@ -67,6 +67,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (Remarks), "備考" },
         { nameof (LastUpdate), "最終更新" },
         { nameof (Bookmark), "栞" },
+        { nameof (IsDirectContent), "直書き" },
     };
 
     /// <inheritdoc/>
@@ -935,10 +936,12 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public override string? [] SearchTargets => [
         $"#{Id}.",
         $":{Site}.",
-        $"{(Released ? "_is_released_" : "_not_released_")}",
-        $"{(Readed ? "_is_readed_" : "_not_readed_")}",
+        Released ? "_is_released_" : "_not_released_",
+        Readed ? "_is_readed_" : "_not_readed_",
         $"_{Status}_",
-        $"{(Wish ? "_is_wished_" : "_not_wished_")}",
+        Wish ? "_is_wished_" : "_not_wished_",
+        $"%{NumberOfRelatedSheets}.",
+        IsDirectContent ? "_is_direct_" : "_not_direct_",
         SeriesTitle,
         Title,
         Author,
