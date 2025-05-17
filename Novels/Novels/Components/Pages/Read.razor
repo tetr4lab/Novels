@@ -40,21 +40,16 @@
                         <td>@(Sheet.Label [nameof (Sheet.Remarks)])</td>
                         <td><MudTextField T="string" @bind-Value="Sheet.Remarks" Lines="10" /></td>
                     </tr>
-                    <tr>
-                        @* 下部ツールバー *@
-                        <td colspan="2">
-                            <MudStack Row Class="justify-center">
-                                <MudTooltip Arrow="true" Text="復旧">
-                                    <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="async () => { if (await ConfirmCancelEdit ()) StartEdit (); }" />
-                                </MudTooltip>
-                                <MudTooltip Arrow="true" Text="保存">
-                                    <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="() => { if (editingItem is not null) { Commit (editingItem); StartEdit (); } }" />
-                                </MudTooltip>
-                            </MudStack>
-                        </td>
-                    </tr>
                 </tbody>
             </MudSimpleTable>
+            <MudStack Row Class="mt-5 justify-center">
+                <MudTooltip Arrow="true" Text="復旧">
+                    <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="async () => { if (await ConfirmCancelEdit ()) StartEdit (); }" />
+                </MudTooltip>
+                <MudTooltip Arrow="true" Text="保存">
+                    <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="() => { if (editingItem is not null) { Commit (editingItem); StartEdit (); } }" />
+                </MudTooltip>
+            </MudStack>
             <NumberNavigationBar Number="@(SheetIndex.Value)" Min="1" Max="@(items.Count)" OnChangeNumber="OnChageSheetAsync" />
             <MudScrollToTop TopOffset="1000">
                 <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowCircleUp" />
