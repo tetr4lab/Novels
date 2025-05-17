@@ -34,6 +34,11 @@
     Striped="true"
     ReadOnly="false">
         <HeaderContent>
+            <MudTh Class="align-middle">
+                <MudTooltip Text="@($"{Book.Label [nameof (Data.Book.Bookmark)]}へ着目")" Duration="1000">
+                    <MudIconButton OnClick="ChangeMarkedPage" Icon="@Icons.Material.Filled.BookmarkAdded" Size="Size.Small" />
+                </MudTooltip>
+            </MudTh>
             <MudTh>@(Sheet.Label [nameof (Sheet.NovelNumber)])</MudTh>
             <MudTh>@(Sheet.Label [nameof (Sheet.ChapterTitle)])</MudTh>
             <MudTh>@(Sheet.Label [nameof (Sheet.ChapterSubTitle)])</MudTh>
@@ -47,10 +52,18 @@
             <MudTh>@(Sheet.Label [nameof (Sheet.Remarks)])</MudTh>
         </HeaderContent>
         <RowTemplate>
+            <MudTd DataLabel="@(Book.Label[nameof(Data.Book.Bookmark)])" Class="align-middle">
+                @{
+                    var marked = Book.Bookmark == context.Id;
+                }
+                <MudIconButton OnClick="@(async () => await ChangeBookmark (context.Id))" Icon="@(marked ? Icons.Material.Filled.Bookmark : Icons.Material.Filled.BookmarkBorder)" Size="Size.Small" />
+            </MudTd>
             <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.NovelNumber)])" Class="align-right text-nowrap" Style="padding-inline-end: 0.8em !important;">
                 <MudStack Row Spacing="0" Class="align-center">
                     @if (items is not null && items.IndexOf (context) + 1 == CurrentSheetIndex) {
-                        <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" />
+                        <MudTooltip Text="@($"着目中の{Sheet.TableLabel}")" Duration="1000">
+                            <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" />
+                        </MudTooltip>
                     }
                     <MudSpacer />
                     @(context.NovelNumber)
@@ -97,12 +110,19 @@
 
     /// <summary>行がクリックされた</summary>
     protected async Task OnRowClick (TableRowClickEventArgs<Sheet> context) {
-        if (context.Item is Sheet sheet && items is not null) {
+        if (context.Item is Sheet sheet) {
+            await ChangeCurrentSheet (sheet);
+        }
+    }
+
+    /// <summary>着目シートの変更</summary>
+    protected async Task ChangeCurrentSheet (Sheet sheet) {
+        if (items is not null) {
             selectedItem = sheet;
             var index = items.IndexOf (sheet) + 1;
             if (CurrentSheetIndex != index) {
                 await SetCurrentBookId.InvokeAsync ((CurrentBookId, index));
-                NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}book/{CurrentBookId}/{index}");
+                NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}sheets/{CurrentBookId}/{index}");
             }
         }
     }
@@ -112,6 +132,39 @@
         if (Book is not null && items is not null) {
             var index = items.IndexOf (context) + 1;
             NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}sheet/{CurrentBookId}/{index}");
+        }
+    }
+
+    /// <summary>栞の切り替え</summary>
+    /// <remarks>ItemListBase&lt;Sheet&gt;下でBookを操作する</remarks>
+    protected async Task ChangeBookmark (long id) {
+        if (Book is not null) {
+            var delete = Book.Bookmark == id;
+            var operation = delete ? "削除" : "変更";
+            Book.Bookmark = delete ? null : id;
+            Book.Modifier = UserIdentifier;
+            var result = await DataSet.UpdateAsync (Book);
+            if (result.IsSuccess) {
+                Snackbar.Add ($"栞を{operation}しました。", Severity.Normal);
+            } else {
+                Snackbar.Add ($"栞を{operation}できませんでした。", Severity.Error);
+            }
+        }
+    }
+
+    /// <summary>栞のページへ</summary>
+    protected async Task ChangeMarkedPage () {
+        if (_table is not null && items is not null && Book?.Bookmark is not null && string.IsNullOrEmpty (FilterText)) {
+            var markedItem = items.Find (s => s.Id == Book.Bookmark);
+            if (markedItem is not null) {
+                var markedIndex = items.IndexOf (markedItem);
+                var currentPage = markedIndex / _table.RowsPerPage;
+                if (currentPage != CurrentPage) {
+                    CurrentPage = currentPage;
+                    StateHasChanged ();
+                }
+                await ChangeCurrentSheet (markedItem);
+            }
         }
     }
 
