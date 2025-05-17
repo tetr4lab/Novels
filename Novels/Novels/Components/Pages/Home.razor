@@ -51,7 +51,9 @@
             <MudTd DataLabel="@(Book.Label[nameof(Book.Id)])" Class="align-right text-nowrap">
                 <MudStack Row Spacing="0" Class="align-center">
                     @if (context.Id == CurrentBookId) {
-                        <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" />
+                        <MudTooltip Text="@($"着目中の{Book.TableLabel}")" Duration="1000">
+                            <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" />
+                        </MudTooltip>
                     }
                     <MudSpacer />
                     @(context.Id)
