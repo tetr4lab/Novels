@@ -31,7 +31,7 @@
         <HeaderContent>
             <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.Id)">@(Book.Label [nameof (Book.Id)])</MudTableSortLabel></MudTh>
             <MudTh Class="align-middle text-nowrap">
-                <MudTooltip Text="絞り込み" Duration="1000">
+                <MudTooltip Text="クリックで絞り込み" Duration="1000">
                     <MudLink OnClick="@(async () => await SetFilterText.InvokeAsync (FilterText == "_is_released_" ? "_not_released_" : FilterText == "_not_released_" ? "" : "_is_released_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Released)])</MudLink>
                     <MudLink OnClick="@(async () => await SetFilterText.InvokeAsync (FilterText == "_is_readed_" ? "_not_readed_" : FilterText == "_not_readed_" ? "" : "_is_readed_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Readed)])</MudLink>
                     <MudLink OnClick="@(async () => await SetFilterText.InvokeAsync (FilterText == "_is_wished_" ? "_not_wished_" : FilterText == "_not_wished_" ? "" : "_is_wished_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Wish)])</MudLink>
