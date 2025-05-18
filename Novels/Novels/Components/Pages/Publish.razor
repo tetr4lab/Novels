@@ -68,7 +68,7 @@
                     <MudStack Row Spacing="1" Class="align-center">
                         @(Book.Label [nameof (Book.Url1)])
                         <MudSpacer />
-                        <MudIconButton Disabled="@(IsInvalidUri (Book.Url1))" OnClick="@(async () => await OpenUrl (Book.Url1))" Icon="@Icons.Material.Filled.Link" />
+                        <MudIconButton Disabled="@(IsInvalidUri (Book.Url1))" OnClick="@(async () => await JSRuntime.OpenUrl (Book.Url1))" Icon="@Icons.Material.Filled.Link" />
                     </MudStack>
                 </td>
                 <td><MudTextField T="string" @bind-Value="Book.Url1" /></td>
@@ -78,7 +78,7 @@
                     <MudStack Row Spacing="1" Class="align-center">
                         @(Book.Label [nameof (Book.Url2)])
                         <MudSpacer />
-                        <MudIconButton Disabled="@(IsInvalidUri (Book.Url2))" OnClick="@(async () => await OpenUrl (Book.Url2))" Icon="@Icons.Material.Filled.Link" />
+                        <MudIconButton Disabled="@(IsInvalidUri (Book.Url2))" OnClick="@(async () => await JSRuntime.OpenUrl (Book.Url2))" Icon="@Icons.Material.Filled.Link" />
                     </MudStack>
                 </td>
                 <td><MudTextField T="string" @bind-Value="Book.Url2" /></td>
@@ -114,7 +114,7 @@
     </MudSimpleTable>
     <MudStack Row Class="mt-5 justify-center">
         <MudTooltip Arrow="true" Text="復旧">
-            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="async () => { if (await ConfirmCancelEdit ()) StartEdit (); }" />
+            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="async () => { if (await ConfirmCancelEditAsync ()) StartEdit (); }" />
         </MudTooltip>
         <MudTooltip Arrow="true" Text="保存">
             <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="() => { if (editingItem is not null) { Commit (editingItem); StartEdit (); } }" />
@@ -139,13 +139,6 @@
     /// <summary>無効なURI</summary>
     protected bool IsInvalidUri (string? url) => !Uri.IsWellFormedUriString (url, UriKind.Absolute);
 
-    /// <summary>URLを新しいタブで開く</summary>
-    protected async Task OpenUrl (string? url) {
-        if (!string.IsNullOrEmpty (url)) {
-            await JSRuntime.InvokeAsync<object> ("openInNewTab", url);
-        }
-    }
-
     /// <summary>編集されていない</summary>
     protected bool IsNotDirty => editingItem is null || backupedItem is null || editingItem.Equals (backupedItem);
 
@@ -158,7 +151,7 @@
     }
 
     /// <summary>編集内容破棄の確認</summary>
-    protected async Task<bool> ConfirmCancelEdit () {
+    protected async Task<bool> ConfirmCancelEditAsync () {
         if (editingItem is not null && !IsNotDirty) {
             var dialogResult = await DialogService.Confirmation ([$"編集内容が破棄されます。",], title: "編集破棄", position: DialogPosition.BottomCenter, acceptionLabel: "破棄", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
@@ -173,7 +166,7 @@
 
     /// <summary>ページ遷移時の処理</summary>
     protected async Task OnLocationChangingAsync (LocationChangingContext context) {
-        if (context.IsNavigationIntercepted && !await ConfirmCancelEdit ()) {
+        if (context.IsNavigationIntercepted && !await ConfirmCancelEditAsync ()) {
             context.PreventNavigation ();
         }
     }

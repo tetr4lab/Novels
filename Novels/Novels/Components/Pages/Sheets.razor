@@ -30,13 +30,13 @@
     @bind-CurrentPage="CurrentPage"
     FooterClass="mud-background-gray"
     Hover="true"
-    OnRowClick="EventCallback.Factory.Create<TableRowClickEventArgs<Sheet>> (this, OnRowClick)"
+    OnRowClick="EventCallback.Factory.Create<TableRowClickEventArgs<Sheet>> (this, OnRowClickAsync)"
     Striped="true"
     ReadOnly="false">
         <HeaderContent>
             <MudTh Class="align-middle">
                 <MudTooltip Text="@($"{Book.Label [nameof (Data.Book.Bookmark)]}へ着目")" Arrow Duration="1000">
-                    <MudIconButton OnClick="ChangeMarkedPage" Icon="@Icons.Material.Filled.BookmarkAdded" Size="Size.Small" />
+                    <MudIconButton OnClick="ChangeMarkedPageAsync" Icon="@Icons.Material.Filled.BookmarkAdded" Size="Size.Small" />
                 </MudTooltip>
             </MudTh>
             <MudTh>@(Sheet.Label [nameof (Sheet.NovelNumber)])</MudTh>
@@ -56,7 +56,7 @@
                 @{
                     var marked = Book.Bookmark == context.Id;
                 }
-                <MudIconButton OnClick="@(async () => await ChangeBookmark (context.Id))" Icon="@(marked ? Icons.Material.Filled.Bookmark : Icons.Material.Filled.BookmarkBorder)" Size="Size.Small" />
+                <MudIconButton OnClick="@(async () => await ChangeBookmarkAsync (context.Id))" Icon="@(marked ? Icons.Material.Filled.Bookmark : Icons.Material.Filled.BookmarkBorder)" Size="Size.Small" />
             </MudTd>
             <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.NovelNumber)])" Class="align-right text-nowrap" Style="padding-inline-end: 0.8em !important;">
                 <MudStack Row Spacing="0" Class="align-center">
@@ -109,14 +109,14 @@
     protected Book? Book { get; set; } = null;
 
     /// <summary>行がクリックされた</summary>
-    protected async Task OnRowClick (TableRowClickEventArgs<Sheet> context) {
+    protected async Task OnRowClickAsync (TableRowClickEventArgs<Sheet> context) {
         if (context.Item is Sheet sheet) {
-            await ChangeCurrentSheet (sheet);
+            await ChangeCurrentSheetAsync (sheet);
         }
     }
 
     /// <summary>着目シートの変更</summary>
-    protected async Task ChangeCurrentSheet (Sheet sheet) {
+    protected async Task ChangeCurrentSheetAsync (Sheet sheet) {
         if (items is not null) {
             selectedItem = sheet;
             var index = items.IndexOf (sheet) + 1;
@@ -137,7 +137,7 @@
 
     /// <summary>栞の切り替え</summary>
     /// <remarks>ItemListBase&lt;Sheet&gt;下でBookを操作する</remarks>
-    protected async Task ChangeBookmark (long id) {
+    protected async Task ChangeBookmarkAsync (long id) {
         if (Book is not null) {
             var delete = Book.Bookmark == id;
             var operation = delete ? "削除" : "変更";
@@ -153,7 +153,7 @@
     }
 
     /// <summary>栞のページへ</summary>
-    protected async Task ChangeMarkedPage () {
+    protected async Task ChangeMarkedPageAsync () {
         if (_table is not null && items is not null && Book?.Bookmark is not null && string.IsNullOrEmpty (FilterText)) {
             var markedItem = items.Find (s => s.Id == Book.Bookmark);
             if (markedItem is not null) {
@@ -163,7 +163,7 @@
                     CurrentPage = currentPage;
                     StateHasChanged ();
                 }
-                await ChangeCurrentSheet (markedItem);
+                await ChangeCurrentSheetAsync (markedItem);
             }
         }
     }

@@ -3,6 +3,7 @@
 @page "/"
 
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Novels Home</PageTitle>
 
@@ -73,10 +74,14 @@
             </MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.Author)])">
                 <MudTooltip Text="@($"「{context.Author}」で絞り込み")" Arrow Duration="1000">
-                    <MudLink OnClick="@(() => SetFilterText.InvokeAsync (context.Author.Replace (' ', '\u2423')))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Author)</MudLink>
+                    <MudLink OnClick="@(async () => { await SetFilterText.InvokeAsync (context.Author.Replace (' ', '\u2423')); await ChangeCurrentBookAsync (context); })" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Author)</MudLink>
                 </MudTooltip>
             </MudTd>
-            <MudTd DataLabel="@(Book.Label[nameof(Book.Site)])" Class="align-middle text-nowrap">@(context.Site)</MudTd>
+            <MudTd DataLabel="@(Book.Label[nameof(Book.Site)])" Class="align-middle text-nowrap">
+                <MudTooltip Text="@($"{Book.Label[nameof(Book.Url)]}を開く")" Arrow Duration="1000">
+                    <MudLink OnClick="@(async () => { await JSRuntime.OpenUrl (context.Url); await ChangeCurrentBookAsync (context); })" Target="_blank" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Site)</MudLink>
+                </MudTooltip>
+            </MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.Status)])" Class="align-middle text-nowrap">
                 <MudChip T="string" Label="true" Size="Size.Small" Variant="Variant.Outlined" Color="@(context.StatusBgColor)" Style="width: 6em">@(context.Status)</MudChip>
             </MudTd>
@@ -132,10 +137,15 @@
     /// <summary>行がクリックされた</summary>
     protected async Task OnRowClick (TableRowClickEventArgs<Book> context) {
         if (context.Item is Book book) {
-            selectedItem = book;
-            if (CurrentBookId != book.Id) {
-                await SetCurrentBookId.InvokeAsync ((book.Id, 1));
-            }
+            await ChangeCurrentBookAsync (book);
+        }
+    }
+
+    //// <summary>着目書籍の変更</summary>
+    protected async Task ChangeCurrentBookAsync (Book book) {
+        selectedItem = book;
+        if (CurrentBookId != book.Id) {
+            await SetCurrentBookId.InvokeAsync ((book.Id, 1));
         }
     }
 

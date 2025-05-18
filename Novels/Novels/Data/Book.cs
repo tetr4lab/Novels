@@ -44,7 +44,8 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (Id), "ID" },
         { nameof (Created), "生成日時" },
         { nameof (Modified), "更新日時" },
-        { nameof (Url1), "URL" },
+        { nameof (Url), "URL" },
+        { nameof (Url1), "URL1" },
         { nameof (Url2), "URL2" },
         { nameof (Html), "原稿" },
         { nameof (Site), "掲載" },
@@ -100,6 +101,9 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
 
     /// <summary>関係先シートの実数</summary>
     [Column ("number_of_related_sheets"), VirtualColumn] public int NumberOfRelatedSheets { get; set; } = 0;
+
+    /// <summary>Urlの代表</summary>
+    public string Url => Url1 ?? Url2 ?? "";
 
     /// <summary>検出されたシート数</summary>
     public int DetectedNumberOfSheets => SheetUrls.Count;
@@ -201,13 +205,13 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <summary>外向けのサイト (結果が<see cref="_site" />に反映される)</summary>
     public Site Site {
         get {
-            if (_site == Site.NotSet && !string.IsNullOrEmpty (Url1)) {
+            if (_site == Site.NotSet && !string.IsNullOrEmpty (Url)) {
                 var site = _site;
-                if (Url1.Contains ("ncode.syosetu.com")) {
+                if (Url.Contains ("ncode.syosetu.com")) {
                     site = Site.Narou;
-                } else if (Url1.Contains ("novel18.syosetu.com")) {
+                } else if (Url.Contains ("novel18.syosetu.com")) {
                     site = Site.Novel18;
-                } else if (Url1.Contains ("kakuyomu.jp")) {
+                } else if (Url.Contains ("kakuyomu.jp")) {
                     if (!string.IsNullOrEmpty (_html) && Document is not null) {
                         if (Document?.QuerySelector ("h1#workTitle") is not null) {
                             site = Site.KakuyomuOld;
@@ -216,9 +220,9 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                         }
                     }
                     // else は未判定のまま返す
-                } else if (Url1.Contains ("novelup.plus")) {
+                } else if (Url.Contains ("novelup.plus")) {
                     site = Site.Novelup;
-                } else if (Url1.Contains ("dyreitou.com")) {
+                } else if (Url.Contains ("dyreitou.com")) {
                     site = Site.Dyreitou;
                 } else {
                     site = Site.Unknown;
@@ -326,7 +330,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                     }
                 }
                 if (string.IsNullOrEmpty (title)) {
-                    title = Url1;
+                    title = Url;
                 }
                 title = (title ?? "").Replace ('　', ' ').Trim ();
                 if (string.IsNullOrEmpty (title) && title != _title) {
@@ -460,7 +464,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                     }
                 }
                 if (string.IsNullOrEmpty (author)) {
-                    author = Url1;
+                    author = Url;
                 }
                 author = GetNormalizedName (author ?? "");
                 if (string.IsNullOrEmpty (author) && author != _author) {

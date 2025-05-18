@@ -86,7 +86,7 @@
     </MudSimpleTable>
     <MudStack Row Class="mt-5 justify-center">
         <MudTooltip Arrow="true" Text="復旧">
-            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="async () => { if (await ConfirmCancelEdit ()) StartEdit (); }" />
+            <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="async () => { if (await ConfirmCancelEditAsync ()) StartEdit (); }" />
         </MudTooltip>
         <MudTooltip Arrow="true" Text="保存">
             <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="() => { if (editingItem is not null) { Commit (editingItem); StartEdit (); } }" />
@@ -128,7 +128,7 @@
     }
 
     /// <summary>編集内容破棄の確認</summary>
-    protected async Task<bool> ConfirmCancelEdit () {
+    protected async Task<bool> ConfirmCancelEditAsync () {
         if (editingItem is not null && !IsNotDirty) {
             var dialogResult = await DialogService.Confirmation ([$"編集内容が破棄されます。",], title: "編集破棄", position: DialogPosition.BottomCenter, acceptionLabel: "破棄", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
@@ -143,7 +143,7 @@
 
     /// <summary>ページ遷移時の処理</summary>
     protected async Task OnLocationChangingAsync (LocationChangingContext context) {
-        if (context.IsNavigationIntercepted && !await ConfirmCancelEdit ()) {
+        if (context.IsNavigationIntercepted && !await ConfirmCancelEditAsync ()) {
             context.PreventNavigation ();
         }
     }
