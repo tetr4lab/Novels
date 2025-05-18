@@ -73,8 +73,21 @@
                 </MudStack>
             </MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.Author)])">
-                <MudTooltip Text="@($"「{context.Author}」で絞り込み")" Arrow Duration="1000">
-                    <MudLink OnClick="@(async () => { await SetFilterText.InvokeAsync (context.Author.Replace (' ', '\u2423')); await ChangeCurrentBookAsync (context); })" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Author)</MudLink>
+                @{ var author = context.Author.Replace (' ', '\u2423'); }
+                <MudTooltip Arrow Duration="1000">
+                    <ChildContent>
+                        <MudLink OnClick="@(async () => { await SetFilterText.InvokeAsync (author); await ChangeCurrentBookAsync (context); })" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Author)</MudLink>
+                    </ChildContent>
+                    <TooltipContent>
+                        <MudStack Spacing="0" Class="align-start">
+                            <MudText Typo="Typo.inherit">「@(author)」で絞り込み</MudText>
+                            @foreach (var book in items) {
+                                if (book.Author == context.Author) {
+                                    <MudText Typo="Typo.inherit">『@(book.Title)』</MudText>
+                                }
+                            }
+                        </MudStack>
+                    </TooltipContent>
                 </MudTooltip>
             </MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.Site)])" Class="align-middle text-nowrap">
