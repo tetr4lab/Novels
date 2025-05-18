@@ -116,11 +116,11 @@
         </tbody>
     </MudSimpleTable>
     <MudStack Row Class="mt-5 justify-center">
-        <MudTooltip Arrow="true" Text="@(Book.IsEmpty ? "取得" : "更新")">
+        <MudTooltip Arrow="true" Text="@($"{(Book.IsEmpty ? "取得" : "更新")} (+ctrlで書誌のみ)")">
             <MudIconButton Disabled="!IsNotDirty" OnClick="async () => await ConfirmUpdateBookAsync ()" Color="Color.Primary" Icon="@Icons.Material.Filled.Download" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
         <MudTooltip Arrow="true" Text="発行">
-            <MudIconButton Disabled="Book.IsEmpty || Book.Released || !IsNotDirty" OnClick="async () => await ConfirmPublishBookAsync ()" Color="Color.Tertiary" Icon="@Icons.Material.Filled.Publish" Variant="Variant.Outlined" Size="Size.Large" />
+            <MudIconButton Disabled="Book.IsEmpty || Book.Released || !IsNotDirty" OnClick="ConfirmPublishBookAsync" Color="Color.Tertiary" Icon="@Icons.Material.Filled.Publish" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
         <MudSpacer />
         <MudTooltip Arrow="true" Text="復旧">
@@ -179,15 +179,23 @@
     protected async Task<bool> ConfirmUpdateBookAsync () {
         if (Book is not null && IsNotDirty) {
             var operation = Book.IsEmpty ? "取得" : "更新";
-            var dialogResult = await DialogService.Confirmation ([$"{Book.TableLabel}『{Book.Title}』を{Book.Site}から{operation}します。",], title: $"{Book.TableLabel}{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: Color.Success, acceptionIcon: Icons.Material.Filled.Download);
+            var withSheets = !(await JSRuntime.InvokeAsync<ModifierKeys> ("getModifierKeys")).Ctrl;
+            var dialogResult = await DialogService.Confirmation ([$"{Book.TableLabel}『{Book.Title}』を{Book.Site}から{operation}します。", withSheets ? "書誌とページの全てを更新します。" : "書誌のみを更新し、ページは更新しません。"], title: $"{Book.TableLabel}{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: Color.Success, acceptionIcon: Icons.Material.Filled.Download);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 Snackbar.Add ($"{Book.TableLabel}の{operation}を開始します。", Severity.Normal);
-                await UpdateBookAsync (Book, operation);
+                await UpdateBookAsync (Book, operation, withSheets);
             } else {
                 return false;
             }
         }
         return true;
+    }
+
+        /// <summary>モディファイアキー</summary>
+    public class ModifierKeys {
+        public bool Ctrl { get; set; }
+        public bool Alt { get; set; }
+        public bool Shift { get; set; }
     }
 
     /// <summary>発行の確認</summary>
@@ -220,7 +228,7 @@
     }
 
     /// <summary>取得・更新</summary>
-    protected async Task UpdateBookAsync (Book book, string operation) {
+    protected async Task UpdateBookAsync (Book book, string operation, bool withSheets) {
         if (book is not null) {
             var result = new Result<int> { Status = Status.Success, };
             if (result.IsSuccess) {
