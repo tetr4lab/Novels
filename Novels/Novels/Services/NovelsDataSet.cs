@@ -62,6 +62,9 @@ public sealed class NovelsDataSet : BasicDataSet {
     /// <summary>ロード済みのモデルインスタンス</summary>
     public List<Setting> Settings => GetList<Setting> ();
 
+    /// <summary>ロード済みの設定</summary>
+    public Setting Setting => Settings.Count > 0 ? Settings [0] : new ();
+
     /// <summary>有効性の検証</summary>
     public bool Valid
         => IsReady
