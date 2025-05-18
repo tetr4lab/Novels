@@ -111,6 +111,9 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <summary>書籍に所属するシート</summary>
     public List<Sheet> Sheets { get; set; } = null!;
 
+    /// <summary>内容が空である</summary>
+    public bool IsEmpty => NumberOfRelatedSheets <= 0 && string.IsNullOrEmpty (DirectContent);
+
     /// <summary>更新されている</summary>
     public bool IsDirty { get; protected set; } = false;
 
