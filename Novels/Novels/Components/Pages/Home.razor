@@ -29,23 +29,27 @@
     Striped="true"
     ReadOnly="false">
         <HeaderContent>
-            <MudTh>@(Book.Label [nameof (Book.Id)])</MudTh>
+            <MudTh><MudTableSortLabel InitialDirection="SortDirection.Descending" SortBy="new Func<Book, object>(x=>x.Id)">@(Book.Label [nameof (Book.Id)])</MudTableSortLabel></MudTh>
             <MudTh Class="align-middle text-nowrap">
-                @(Book.Label [nameof (Book.Released)])
-                @(Book.Label [nameof (Book.Readed)])
-                @(Book.Label [nameof (Book.Wish)])
+                <MudTooltip Text="絞り込み" Duration="1000">
+                    <MudLink OnClick="@(async () => await SetFilterText.InvokeAsync (FilterText == "_is_released_" ? "_not_released_" : FilterText == "_not_released_" ? "" : "_is_released_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Released)])</MudLink>
+                    <MudLink OnClick="@(async () => await SetFilterText.InvokeAsync (FilterText == "_is_readed_" ? "_not_readed_" : FilterText == "_not_readed_" ? "" : "_is_readed_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Readed)])</MudLink>
+                    <MudLink OnClick="@(async () => await SetFilterText.InvokeAsync (FilterText == "_is_wished_" ? "_not_wished_" : FilterText == "_not_wished_" ? "" : "_is_wished_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Wish)])</MudLink>
+                </MudTooltip>
             </MudTh>
             <MudTh>
-                <MudStack Row Spacing="0" Class="align-center">
-                    <MudIcon Icon="" />
-                    <MudIcon Icon="" />
-                    <MudText Typo="Typo.inherit">@(Book.Label [nameof (Book.Title)])</MudText>
-                </MudStack>
+                <MudTableSortLabel SortBy="new Func<Book, string?>(x=>x.Title)">
+                    <MudStack Row Spacing="0" Class="align-center">
+                        <MudIcon Icon="" />
+                        <MudIcon Icon="" />
+                        <MudText Typo="Typo.inherit">@(Book.Label [nameof (Book.Title)])</MudText>
+                    </MudStack>
+                </MudTableSortLabel>
             </MudTh>
-            <MudTh>@(Book.Label [nameof (Book.Author)])</MudTh>
-            <MudTh Class="align-middle text-nowrap">@(Book.Label [nameof (Book.Site)])</MudTh>
-            <MudTh Class="align-middle text-nowrap">@(Book.Label [nameof (Book.Status)])</MudTh>
-            <MudTh Class="align-middle text-nowrap">@(Book.Label [nameof (Book.NumberOfSheets)])</MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Book, string?>(x=>x.Author)">@(Book.Label [nameof (Book.Author)])</MudTableSortLabel></MudTh>
+            <MudTh Class="align-middle text-nowrap"><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.Site)">@(Book.Label [nameof (Book.Site)])</MudTableSortLabel></MudTh>
+            <MudTh Class="align-middle text-nowrap"><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.StatusPriority)">@(Book.Label [nameof (Book.Status)])</MudTableSortLabel></MudTh>
+            <MudTh Class="align-middle text-nowrap"><MudTableSortLabel SortBy="new Func<Book, object?>(x=>x.NumberOfSheets)">@(Book.Label [nameof (Book.NumberOfSheets)])</MudTableSortLabel></MudTh>
             <MudTh>@(Book.Label [nameof (Book.Remarks)])</MudTh>
         </HeaderContent>
         <RowTemplate>

@@ -118,14 +118,23 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public bool IsDirty { get; protected set; } = false;
 
     /// <summary>状態に応じた背景色</summary>
-    public Color StatusBgColor => Readed ? Color.Dark : Status switch {
-        "完結" => Color.Success,
-        "一応完結" => Color.Tertiary,
-        "更新途絶" => Color.Info,
-        "更新中" => Color.Warning,
-        "消失" => Color.Surface,
-        _ => Color.Error,
-    };
+    public Color StatusBgColor {
+        get {
+            var priority = StatusPriority;
+            return ((Color [])[Color.Success, Color.Tertiary, Color.Info, Color.Warning, Color.Surface, Color.Dark, Color.Error])
+                [priority >= 100 ? 6 : priority >= 10 ? 5 : priority];
+        }
+    }
+
+    /// <summary>状態に応じた順位</summary>
+    public int StatusPriority => Status switch {
+        "完結" => 0,
+        "一応完結" => 1,
+        "更新途絶" => 2,
+        "更新中" => 3,
+        "消失" => 4,
+        _ => 100,
+    } + (Readed ? 10 : 0);
 
     /// <summary>書誌、または、シートから得られる最終更新日時</summary>
     // Case (
