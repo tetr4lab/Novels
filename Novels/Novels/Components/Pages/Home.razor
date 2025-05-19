@@ -222,7 +222,7 @@
                 StateHasChanged ();
                 // 入力されたurlからあたらしいBookに情報を取得する
                 newItem.Url1 = newUrl;
-                await UpdateBookAsync (newItem);
+                await HttpClient.UpdateBookAsync (newItem);
                 if (!string.IsNullOrEmpty (newItem.Html)) {
                     // BookをDBへ追加・選択する
                     await AddItem ();
@@ -244,33 +244,6 @@
         }
         finally {
             IsOverlayed = false;
-        }
-    }
-
-    /// <summary>書籍の更新</summary>
-    /// ToDo: Publish.razorから使用可能にする
-    protected async Task UpdateBookAsync (Book book) {
-        if (book is not null) {
-            book.Html = null;
-            var cookies = new List<KeyValuePair<string, string>> { new ("over18", "yes"), };
-            using (var message = await HttpClient.GetWithCookiesAsync (book.Url, cookies)) {
-                if (message.IsSuccessStatusCode && message.StatusCode == System.Net.HttpStatusCode.OK) {
-                    var html = new List<string> { (book.Html = await message.Content.ReadAsStringAsync ()), };
-                    for (var i = 2; i <= book.LastPage; i++) {
-                        var url = $"{book.Url}{(book.Url.EndsWith ('/') ? "" : "/")}?p={i}";
-                        using (var message2 = await HttpClient.GetWithCookiesAsync (url, cookies)) {
-                            if (message2.IsSuccessStatusCode && message2.StatusCode == System.Net.HttpStatusCode.OK) {
-                                html.Add (await message2.Content.ReadAsStringAsync ());
-                            } else {
-                                Snackbar.Add ($"取得に失敗: {url} {message.StatusCode} {message.ReasonPhrase}", Severity.Error);
-                            }
-                        }
-                    }
-                    book.Html = string.Join ('\n', html);
-                } else {
-                    Snackbar.Add ($"取得に失敗: {book.Url} {message.StatusCode} {message.ReasonPhrase}", Severity.Error);
-                }
-            }
         }
     }
 
