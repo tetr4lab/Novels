@@ -77,7 +77,16 @@
                     <MudText Typo="Typo.inherit">@(context.SheetTitle)</MudText>
                 </MudStack>
             </MudTd>
-            <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.SheetUpdatedAt)])">@(context.SheetUpdatedAt?.ToString ("yyyy/MM/dd HH:mm"))</MudTd>
+            <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.SheetUpdatedAt)])">
+                @{
+                    var dateTime = SheetIndex > 0 ? Book.SheetUpdateDates [SheetIndex.Value] : DateTime.MinValue;
+                }
+                <MudText Typo="Typo.inherit" Color="@(dateTime > context.SheetUpdatedAt ? Color.Warning : Color.Inherit)">
+                    <MudTooltip Text="@(dateTime == DateTime.MinValue ? "" : $"最終更新: {dateTime.ToString ("yyyy/MM/dd HH:mm")}")" Duration="1000">
+                        @(context.SheetUpdatedAt?.ToString ("yyyy/MM/dd HH:mm"))
+                    </MudTooltip>
+                </MudText>
+            </MudTd>
             <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.Remarks)])">@context.Remarks</MudTd>
         </RowTemplate>
         <PagerContent>
