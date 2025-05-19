@@ -80,23 +80,23 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     [Column ("url1")] public string Url1 { get; set; } = "";
     [Column ("url2")] public string Url2 { get; set; } = "";
     [Column ("html")] public string? _html { get; set; } = null;
-    [Column ("site"), Required] public Site _site { get; set; } = Site.NotSet;
+    [Column ("site")] public Site _site { get; set; } = Site.NotSet;
     [Column ("title")] public string? _title { get; set; } = null;
     [Column ("author")] public string? _author { get; set; } = null;
     [Column ("direct_title_writername")] public string? DirectTitleWriterName { get; set; } = null;
     [Column ("direct_content")] public string? _directContent { get; set; } = null;
     /// <summary>書誌上のシート数</summary>
-    [Column ("number_of_sheets")] public int? NumberOfSheets { get; set; } = null;
+    [Column ("number_of_sheets")] public int? _numberOfSheets { get; set; } = null;
     /// <summary>Epub発行シート数</summary>
     [Column ("number_of_published")] public int? NumberOfPublished { get; set; } = null;
     /// <summary>Epub発行日時</summary>
     [Column ("published_at")] public DateTime? PublishedAt { get; set; } = null;
-    [Column ("read"), Required] public bool Readed { get; set; } = false;
+    [Column ("read")] public bool Readed { get; set; } = false;
     [Column ("memorandum")] public string? ReadedMemo { get; set; } = null;
-    [Column ("status"), Required] public string Status { get; set; } = "";
+    [Column ("status")] public string Status { get; set; } = "";
     [Column ("html_backup")] public string? HtmlBackup { get; set; } = null;
     [Column ("errata")] public string? Errata { get; set; } = null;
-    [Column ("wish"), Required] public bool Wish { get; set; } = false;
+    [Column ("wish")] public bool Wish { get; set; } = false;
     [Column ("bookmark")] public long? Bookmark { get; set; } = null;
 
     /// <summary>関係先シートの実数</summary>
@@ -166,6 +166,17 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
 
     /// <summary>ダイレクトコンテントである</summary>
     public bool IsDirectContent => !string.IsNullOrEmpty (_directContent);
+
+    /// <summary>外向きのシート数</summary>
+    public int NumberOfSheets {
+        get {
+            if (_numberOfSheets is null) {
+                _numberOfSheets = SheetUrls.Count;
+                IsDirty = true;
+            }
+            return _numberOfSheets ?? 0;
+        }
+    }
 
     /// <summary>外向きのDirectContent</summary>
     public string? DirectContent {
@@ -345,7 +356,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                     title = Url;
                 }
                 title = (title ?? "").Replace ('　', ' ').Trim ();
-                if (string.IsNullOrEmpty (title) && title != _title) {
+                if (!string.IsNullOrEmpty (title) && title != _title) {
                     _title = title;
                     IsDirty = true;
                 }
@@ -479,7 +490,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                     author = Url;
                 }
                 author = GetNormalizedName (author ?? "");
-                if (string.IsNullOrEmpty (author) && author != _author) {
+                if (!string.IsNullOrEmpty (author) && author != _author) {
                     _author = author;
                     IsDirty = true;
                 }
@@ -696,6 +707,29 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         }
     }
     protected List<DateTime>? __sheetUpdateDates = null;
+
+    /// <summary>最終ページ</summary>
+    // 変数を設定 [ $最終ページ; 値:Let ([
+    //  pager = Extract ( Book::html ; "novelview_pager-next" ; "novelview_pager-last" );
+    //  pager = If ( pager <> "" ; pager ; Extract ( Book::html ; "c-pager__item--next" ; "c-pager__item--last" ) );
+    //  maxpage = Extract ( pager ; "p=" ; "\" " ) ]
+    //  ; GetAsNumber ( maxpage ) ) ]
+    public int LastPage {
+        get {
+            if ((Site == Site.Narou || Site == Site.Novel18) && __lastPage <= 0 && !string.IsNullOrEmpty (_html) && Document is not null) {
+                var pager = Document.QuerySelector ("a.novelview_pager-last")?.GetAttribute ("href")
+                    ?? Document.QuerySelector ("a.c-pager__item.c-pager__item--last")?.GetAttribute ("href");
+                if (!string.IsNullOrEmpty (pager)) {
+                    var maxpage = pager.Split ("?p=").LastOrDefault ();
+                    if (int.TryParse (maxpage, out var page)) {
+                        __lastPage = page;
+                    }
+                }
+            }
+            return __lastPage;
+        }
+    }
+    protected int __lastPage = 0;
 
     /// <summary>名前の標準化</summary>
     /// <param name="name">名前</param>
@@ -922,7 +956,13 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         get => _html;
         set {
             if (value != _html) {
+                HtmlBackup = _html;
                 _html = value;
+                _site = Site.NotSet;
+                _title = null;
+                _author = null;
+                _directContent = null;
+                _numberOfSheets = null;
                 // パース結果のキャッシュをクリア
                 __htmlDocument = null;
                 __directLines = null;
@@ -932,6 +972,19 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                 __mainTitle = null;
                 __subTitle = null;
                 __explanation = null;
+                // 再パース
+                _ = Site;
+                _ = Title;
+                _ = Author;
+                _ = DirectContent;
+                _ = NumberOfSheets;
+                _ = SheetUrls;
+                _ = SheetUpdateDates;
+                _ = SeriesTitle;
+                _ = MainTitle;
+                _ = SubTitle;
+                _ = Explanation;
+                IsDirty = true;
             }
         }
     }
@@ -978,7 +1031,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         item._author = Author;
         item.DirectTitleWriterName = DirectTitleWriterName;
         item.DirectContent = DirectContent;
-        item.NumberOfSheets = NumberOfSheets;
+        item._numberOfSheets = _numberOfSheets;
         item.NumberOfPublished = NumberOfPublished;
         item.PublishedAt = PublishedAt;
         item.Readed = Readed;
@@ -1001,7 +1054,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         destination._author = Author;
         destination.DirectTitleWriterName = DirectTitleWriterName;
         destination.DirectContent = DirectContent;
-        destination.NumberOfSheets = NumberOfSheets;
+        destination._numberOfSheets = _numberOfSheets;
         destination.NumberOfPublished = NumberOfPublished;
         destination.PublishedAt = PublishedAt;
         destination.Readed = Readed;

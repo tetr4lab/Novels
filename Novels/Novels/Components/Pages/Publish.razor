@@ -39,6 +39,10 @@
                         <MudChip T="string" Variant="Variant.Outlined">@(Book.Label [nameof (Book.LastUpdate)]): @(Book.LastUpdate.ToString ("yyyy/MM/dd HH:mm"))</MudChip>
                         <MudSpacer />
                         <MudText>
+                            <MudTooltip Arrow Duration="1000" Text="@(Book.Label [nameof (Book.Site)])">
+                                <MudText Typo="Typo.inherit">@Book.Site</MudText>
+                            </MudTooltip>
+                            <span> : </span>
                             @if (Book.Released) {
                                 <MudTooltip Arrow Duration="1000" Text="@(Book.Label [nameof (Book.NumberOfPublished)])">
                                     <MudText Color="@(Book.NumberOfPublished < Book.NumberOfRelatedSheets && Book.NumberOfPublished < Book.NumberOfSheets ? Color.Warning : Color.Inherit)">@(Book.NumberOfPublished)</MudText>
@@ -102,7 +106,10 @@
             <tr>
                 <td>@(Book.Label [nameof (Book.Wish)])</td>
                 <td>
-                    <MudCheckBox @bind-Value="Book.Wish"></MudCheckBox>
+                    <MudStack Row Spacing="1" Class="align-center">
+                        <MudCheckBox @bind-Value="Book.Wish" />
+                        <MudSpacer />
+                    </MudStack>
                 </td>
             </tr>
             <tr>
@@ -112,6 +119,10 @@
             <tr>
                 <td>@(Book.Label [nameof (Book.Remarks)])</td>
                 <td><MudTextField T="string" @bind-Value="Book.Remarks" Lines="10" /></td>
+            </tr>
+            <tr>
+                <td>@(Book.Label [nameof (Book.Html)])</td>
+                <td><MudTextField Disabled="true" T="string" @bind-Value="Book._html" Lines="10" /></td>
             </tr>
         </tbody>
     </MudSimpleTable>
@@ -130,6 +141,9 @@
             <MudIconButton Disabled="IsNotDirty" OnClick="() => { if (editingItem is not null) { Commit (editingItem); StartEdit (); } }" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
         <MudSpacer />
+        <MudTooltip Arrow="true" Text="削除">
+            <MudIconButton OnClick="DeleteBook" Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Variant="Variant.Outlined" Size="Size.Small" />
+        </MudTooltip>
     </MudStack>
 } else if (Book.IsDirectContent) {
     <MudText>Direct content found.</MudText>
@@ -173,6 +187,23 @@
             }
         }
         return true;
+    }
+
+    /// <summary>書籍の削除 (ホームへ遷移)</summary>
+    protected async Task DeleteBook () {
+        if (Book is not null) {
+            var dialogResult = await DialogService.Confirmation ([$"以下の{Book.TableLabel}を完全に削除します。", Book.ToString ()], title: $"{Book.TableLabel}削除", position: DialogPosition.BottomCenter, acceptionLabel: "Delete", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
+            if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
+                var result = await DataSet.RemoveAsync (Book);
+                if (result.IsSuccess) {
+                    StateHasChanged ();
+                    Snackbar.Add ($"{Book.TableLabel}を削除しました。", Severity.Normal);
+                    NavigationManager.NavigateTo (NavigationManager.BaseUri);
+                } else {
+                    Snackbar.Add ($"{Book.TableLabel}を削除できませんでした。", Severity.Error);
+                }
+            }
+        }
     }
 
     /// <summary>取得と更新の確認</summary>

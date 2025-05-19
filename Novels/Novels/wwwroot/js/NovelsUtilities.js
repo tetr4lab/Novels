@@ -28,3 +28,7 @@ function openInNewTab(url) {
 function scrollToTop() {
     document.documentElement.scrollTop = 0;
 }
+
+function getClipboardText() {
+    return navigator.clipboard.readText();
+}
