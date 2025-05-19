@@ -56,7 +56,9 @@ builder.Services.AddScoped<CircuitHandler, CircuitClosureDetector> ();
 builder.Services.AddScoped (_ => (Database) new MySqlDatabase (connectionString, "MySqlConnector"));
 
 // HTTP Client
-builder.Services.AddHttpClient ();
+builder.Services.AddHttpClient ("Novels", client => {
+    client.DefaultRequestHeaders.Add ("User-Agent", "Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko");
+});
 
 // DataSet
 builder.Services.AddScoped<NovelsDataSet> ();
