@@ -99,6 +99,16 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
     }
     protected bool _inited;
 
+    //// <summary>着目書籍の変更</summary>
+    protected async Task ChangeCurrentBookAsync (Book book) {
+        if (book is T item) {
+            selectedItem = item;
+        }
+        if (CurrentBookId != book.Id) {
+            await SetCurrentBookId.InvokeAsync ((book.Id, 1));
+        }
+    }
+
     /// <summary>ページ辺りの行数を初期化</summary>
     protected void InitRowsPerPage () {
         if (_table != null) {

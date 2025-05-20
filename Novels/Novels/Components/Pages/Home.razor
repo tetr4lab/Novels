@@ -178,14 +178,6 @@
         }
     }
 
-    //// <summary>着目書籍の変更</summary>
-    protected async Task ChangeCurrentBookAsync (Book book) {
-        selectedItem = book;
-        if (CurrentBookId != book.Id) {
-            await SetCurrentBookId.InvokeAsync ((book.Id, 1));
-        }
-    }
-
     /// <summary>書籍を発行</summary>
     protected void PublishBook (long bookId) {
         NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}book/{bookId}");
