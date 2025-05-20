@@ -109,7 +109,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public int DetectedNumberOfSheets => SheetUrls.Count;
 
     /// <summary>書籍に所属するシート</summary>
-    public List<Sheet> Sheets { get; set; } = null!;
+    public List<Sheet> Sheets { get; set; } = new ();
 
     /// <summary>内容が空である</summary>
     public bool IsEmpty => NumberOfRelatedSheets <= 0 && string.IsNullOrEmpty (DirectContent);

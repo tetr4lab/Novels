@@ -102,4 +102,92 @@ public sealed class NovelsDataSet : BasicDataSet {
         return result;
     }
 
+    /// <summary>書籍の更新</summary>
+    /// <param name="client">HTTPクライアント</param>
+    /// <param name="url">対象の書籍のURL</param>
+    /// <param name="userIdentifier">ユーザ識別子</param>
+    /// <param name="withSheet">シートを含めるか</param>
+    /// <returns>書籍と問題のリスト</returns>
+    public async Task<Result<(Book book, List<string> issues)>> UpdateBookAsync (HttpClient client, string url, string userIdentifier, bool withSheet = false) {
+        var issues = new List<string> ();
+        var status = Status.Unknown;
+        if (Valid) {
+            var book = Books.FirstOrDefault (book => book.Url == url);
+            if (book == default) {
+                book = new Book () { Url1 = url, Creator = userIdentifier, Modifier = userIdentifier, };
+            } else {
+                book.Modifier = userIdentifier;
+            }
+            try {
+                book.Html = null;
+                var cookies = new Dictionary<string, string> () { { "over18", "yes" }, };
+                using (var message = await client.GetWithCookiesAsync (book.Url, cookies)) {
+                    if (message.IsSuccessStatusCode && message.StatusCode == System.Net.HttpStatusCode.OK) {
+                        var html = new List<string> { (book.Html = await message.Content.ReadAsStringAsync ()), };
+                        for (var i = 2; i <= book.LastPage; i++) {
+                            var additionalUrl = $"{book.Url}{(book.Url.EndsWith ('/') ? "" : "/")}?p={i}";
+                            using (var message2 = await client.GetWithCookiesAsync (additionalUrl, cookies)) {
+                                if (message2.IsSuccessStatusCode && message2.StatusCode == System.Net.HttpStatusCode.OK) {
+                                    html.Add (await message2.Content.ReadAsStringAsync ());
+                                } else {
+                                    issues.Add ($"Failed to get: {additionalUrl} {message.StatusCode} {message.ReasonPhrase}");
+                                    throw new Exception ("aborted");
+                                }
+                            }
+                        }
+                        book.Html = string.Join ('\n', html);
+                        if (book.Id == 0) {
+                            var result = await AddAsync (book);
+                            if (result.IsSuccess) {
+                                Id2Book [book.Id] = book;
+                                status = Status.Success;
+                            } else {
+                                issues.Add ($"Failed to add: {book.Url} {result.Status}");
+                                throw new Exception ("aborted");
+                            }
+                        }
+                        if (withSheet && (book.Id == 0 || CurrentBookId == book.Id)) {
+                            status = Status.Unknown;
+                            foreach (string sheetUrl in book.SheetUrls) {
+                                using (var message3 = await client.GetWithCookiesAsync (sheetUrl, cookies)) {
+                                    if (message3.IsSuccessStatusCode && message3.StatusCode == System.Net.HttpStatusCode.OK) {
+                                        var sheetHtml = await message3.Content.ReadAsStringAsync ();
+                                        var sheet = book.Sheets.FirstOrDefault (s => s.Url == sheetUrl);
+                                        if (sheet == default) {
+                                            sheet = new Sheet () { BookId = book.Id, Url = sheetUrl, Book = book, Creator = userIdentifier, Modifier = userIdentifier, };
+                                        } else {
+                                            sheet.Modifier = userIdentifier;
+                                        }
+                                        sheet.Html = sheetHtml;
+                                        if (sheet.Id == 0) {
+                                            var result = await AddAsync (sheet);
+                                            if (result.IsSuccess) {
+                                                Id2Sheet [sheet.Id] = sheet;
+                                            } else {
+                                                issues.Add ($"Failed to add: {sheetUrl} {result.Status}");
+                                                throw new Exception ("aborted");
+                                            }
+                                        }
+                                    } else {
+                                        issues.Add ($"Failed to get: {sheetUrl} {message.StatusCode} {message.ReasonPhrase}");
+                                    }
+                                }
+                            }
+                            status = issues.Count > 0 ? Status.Unknown : Status.Success;
+                        }
+                    } else {
+                        issues.Add ($"Failed to get: {book.Url} {message.StatusCode} {message.ReasonPhrase}");
+                    }
+                }
+            }
+            catch (Exception ex) {
+                issues.Add ($"Exception: {ex.Message}");
+            }
+            return new (status, (book, issues));
+        } else {
+            issues.Add ("Invalid DataSet");
+        }
+        return new (status, (new (), issues));
+    }
+
 }

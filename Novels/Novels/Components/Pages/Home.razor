@@ -220,22 +220,19 @@
                 // オーバーレイ
                 IsOverlayed = true;
                 StateHasChanged ();
-                // 入力されたurlからあたらしいBookに情報を取得する
-                newItem.Url1 = newUrl;
-                await HttpClient.UpdateBookAsync (newItem);
-                if (!string.IsNullOrEmpty (newItem.Html)) {
-                    // BookをDBへ追加・選択する
-                    await AddItem ();
-                    if (items is not null && lastCreatedId > 0) {
-                        var newBook = items.FirstOrDefault (x => x.Id == lastCreatedId);
-                        if (newBook is not null) {
-                            await ChangeCurrentBookAsync (newBook);
-                            // Publishページへ移動する
-                            PublishBook (newBook.Id);
-                        }
-                    } else {
-                        Snackbar.Add ($"追加に失敗: {(items is null ? "null, " : "")}{lastCreatedId}\n{newItem}", Severity.Error);
-                    }
+                // 入力されたurlからあたらしいBookに情報を取得、DBへ追加・選択する
+                var result = await DataSet.UpdateBookAsync (HttpClient, newUrl, UserIdentifier);
+                foreach (var issue in result.Value.issues) {
+                    Snackbar.Add (issue, Severity.Error);
+                }
+                if (result.IsSuccess) {
+                    var newBook = result.Value.book;
+                    lastCreatedId = newBook.Id;
+                    await ChangeCurrentBookAsync (newBook);
+                    // Publishページへ移動する
+                    PublishBook (newBook.Id);
+                } else {
+                    Snackbar.Add ($"追加に失敗: {(items is null ? "null, " : "")}{lastCreatedId}\n{newItem}", Severity.Error);
                 }
             }
         }
