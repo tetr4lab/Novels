@@ -460,6 +460,9 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     }
     protected string? __subTitle = null;
 
+    /// <summary>副章題を持つ</summary>
+    public bool HasChapterSubTitle => Site == Site.Kakuyomu || Site == Site.KakuyomuOld;
+
     /// <summary>外向けの著者 (検出結果が<see cref="_author" />に反映される)</summary>
     // Let ( [
     // Author = If ( IsEmpty ( html ) ; "" ; Correct ( Substitute ( TrimLF ( TagRemove ( Case (
@@ -727,7 +730,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                         }
                         break;
                     case Site.Kakuyomu:
-                        var regex = new Regex ("(?<=\"editedAt\":\")[^\"]+(?=\")");
+                        var regex = new Regex ("(?<=\"publishedAt\":\")[^\"]+(?=\")");
                         var match = regex.Match (_html);
                         if (match.Success) {
                             if (DateTime.TryParse (match.Value, out var dt)) {

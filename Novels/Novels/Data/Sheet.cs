@@ -81,7 +81,8 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
                     switch (Site) {
                         case Site.Narou:
                         case Site.Novel18:
-                            __sheetTitle = Document.QuerySelector ("p.novel_subtitle")?.TextContent ?? "";
+                            __sheetTitle = Document.QuerySelector ("p.novel_subtitle")?.TextContent
+                                ?? Document.QuerySelector ("h1.p-novel__title")?.TextContent ?? "";
                             break;
                         case Site.KakuyomuOld:
                         case Site.Kakuyomu:
@@ -310,7 +311,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         }
     }
 
-    /// <summary>書誌から抽出された章題</summary>
+    /// <summary>シートから抽出された章題</summary>
     // Correct ( Substitute ( TrimLF ( TagRemove ( ReplaceRuby ( Case (
     // site=1 ; Let ( [
     //   tmp = sExtract ( html ; "<p class=\"chapter_title\">" ; "</p>" ) ;
@@ -331,11 +332,11 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
                     case Site.Narou:
                     case Site.Novel18:
                         title = Document.QuerySelector ("p.chapter_title")?.TextContent
-                            ?? Document.QuerySelector ("h1.p-novel__title.p-novel__title--rensai")?.TextContent ?? "";
+                            ?? Document.QuerySelector ("div.c-announce:not(.c-announce--note)")?.QuerySelector ("span:not(.c-announce__emphasis)")?.TextContent ?? "";
                         break;
                     case Site.KakuyomuOld:
                     case Site.Kakuyomu:
-                        title = Document.QuerySelector ("p.chapterTitle.level1.js-vertical-composition-item")?.TextContent ?? "";
+                        title = Document.QuerySelector ("p.chapterTitle.level1")?.TextContent ?? "";
                         break;
                     case Site.Novelup:
                         title = Document.QuerySelector ("div.episode_chapter")?.TextContent ?? "";
@@ -361,7 +362,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     }
     protected string? __chapterTitle = null;
 
-    /// <summary>書誌から抽出された副章題</summary>
+    /// <summary>シートから抽出された副章題</summary>
     // Correct ( Substitute ( TrimLF ( TagRemove ( ReplaceRuby ( Case (
     // site=1 ; "" ;
     // site=2 ; sExtract ( html ; "<p class=\"chapterTitle level2 js-vertical-composition-item\">" ; "</p>" ) ;
@@ -375,7 +376,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
                 switch (Site) {
                     case Site.KakuyomuOld:
                     case Site.Kakuyomu:
-                        title = Document.QuerySelector ("p.chapterTitle.level2.js-vertical-composition-item")?.TextContent ?? "";
+                        title = Document.QuerySelector ("p.chapterTitle.level2")?.TextContent ?? "";
                         break;
                 }
                 __chapterSubTitle = Correct (title);
