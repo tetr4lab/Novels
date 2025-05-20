@@ -102,13 +102,19 @@ public sealed class NovelsDataSet : BasicDataSet {
         return result;
     }
 
+    /// <summary>データを取得する際の最低間隔</summary>
+    private static readonly TimeSpan AccessIntervalTime = new TimeSpan (0, 0, 3);
+
+    /// <summary>クッキー</summary>
+    private static readonly Dictionary<string, string> DefaultCookies = new  () { { "over18", "yes" }, };
+
     /// <summary>書籍の更新</summary>
     /// <param name="client">HTTPクライアント</param>
     /// <param name="url">対象の書籍のURL</param>
     /// <param name="userIdentifier">ユーザ識別子</param>
-    /// <param name="withSheet">シートを含めるか</param>
+    /// <param name="withSheets">シートを含めるか</param>
     /// <returns>書籍と問題のリスト</returns>
-    public async Task<Result<(Book book, List<string> issues)>> UpdateBookAsync (HttpClient client, string url, string userIdentifier, bool withSheet = false) {
+    public async Task<Result<(Book book, List<string> issues)>> UpdateBookAsync (HttpClient client, string url, string userIdentifier, bool withSheets = false) {
         var issues = new List<string> ();
         var status = Status.Unknown;
         if (Valid) {
@@ -119,14 +125,22 @@ public sealed class NovelsDataSet : BasicDataSet {
                 book.Modifier = userIdentifier;
             }
             try {
-                book.Html = null;
-                var cookies = new Dictionary<string, string> () { { "over18", "yes" }, };
-                using (var message = await client.GetWithCookiesAsync (book.Url, cookies)) {
+                // 取得日時を記録
+                var lastTime = DateTime.Now;
+                using (var message = await client.GetWithCookiesAsync (book.Url, DefaultCookies)) {
                     if (message.IsSuccessStatusCode && message.StatusCode == System.Net.HttpStatusCode.OK) {
                         var html = new List<string> { (book.Html = await message.Content.ReadAsStringAsync ()), };
                         for (var i = 2; i <= book.LastPage; i++) {
+                            // 規定間隔でアクセスする
+                            var now = DateTime.Now;
+                            var elapsedTime = now - lastTime;
+                            if (elapsedTime < AccessIntervalTime) {
+                                await Task.Delay (AccessIntervalTime - elapsedTime);
+                            }
+                            lastTime = now;
+                            // 追加ページの絶対URLを取得する
                             var additionalUrl = $"{book.Url}{(book.Url.EndsWith ('/') ? "" : "/")}?p={i}";
-                            using (var message2 = await client.GetWithCookiesAsync (additionalUrl, cookies)) {
+                            using (var message2 = await client.GetWithCookiesAsync (additionalUrl, DefaultCookies)) {
                                 if (message2.IsSuccessStatusCode && message2.StatusCode == System.Net.HttpStatusCode.OK) {
                                     html.Add (await message2.Content.ReadAsStringAsync ());
                                 } else {
@@ -146,10 +160,23 @@ public sealed class NovelsDataSet : BasicDataSet {
                                 throw new Exception ("aborted");
                             }
                         }
-                        if (withSheet && (book.Id == 0 || CurrentBookId == book.Id)) {
+                        if (withSheets && (book.Id == 0 || CurrentBookId == book.Id)) {
                             status = Status.Unknown;
-                            foreach (string sheetUrl in book.SheetUrls) {
-                                using (var message3 = await client.GetWithCookiesAsync (sheetUrl, cookies)) {
+                            foreach (string oneUrl in book.SheetUrls) {
+                                // 規定間隔でアクセスする
+                                var now = DateTime.Now;
+                                var elapsedTime = now - lastTime;
+                                if (elapsedTime < AccessIntervalTime) {
+                                    await Task.Delay (AccessIntervalTime - elapsedTime);
+                                }
+                                lastTime = now;
+                                // シートの絶対URLを取得する
+                                var sheetUrl = (new Uri (new Uri (url), oneUrl)).AbsoluteUri;
+                                if (string.IsNullOrEmpty (sheetUrl)) {
+                                    issues.Add ($"Invalid Sheet URL: {url} + {oneUrl}");
+                                    continue;
+                                }
+                                using (var message3 = await client.GetWithCookiesAsync (sheetUrl, DefaultCookies)) {
                                     if (message3.IsSuccessStatusCode && message3.StatusCode == System.Net.HttpStatusCode.OK) {
                                         var sheetHtml = await message3.Content.ReadAsStringAsync ();
                                         var sheet = book.Sheets.FirstOrDefault (s => s.Url == sheetUrl);
