@@ -17,7 +17,7 @@ public static class HttpClientHelper {
         var result = new List<string> ();
         if (book is not null) {
             book.Html = null;
-            var cookies = new List<KeyValuePair<string, string>> { new ("over18", "yes"), };
+            var cookies = new Dictionary<string, string> () { { "over18", "yes" }, };
             using (var message = await client.GetWithCookiesAsync (book.Url, cookies)) {
                 if (message.IsSuccessStatusCode && message.StatusCode == System.Net.HttpStatusCode.OK) {
                     var html = new List<string> { (book.Html = await message.Content.ReadAsStringAsync ()), };
