@@ -14,9 +14,11 @@
 } else if (!DataSet.IsReady || items is null || Book is null) {
     <MudProgressCircular Indeterminate="true" />
 } else if (items.Count > 0) {
-    <MudPaper Class="ma-4 pa-2" Elevation="2">
-        <MudText Typo="Typo.caption">@(Book.Explanation)</MudText>
-    </MudPaper>
+    @if (!string.IsNullOrEmpty (Book.Explanation)) {
+        <MudPaper Class="ma-4 pa-2" Elevation="2">
+            <MudText Typo="Typo.caption">@((MarkupString) Book.Explanation)</MudText>
+        </MudPaper>
+    }
     <style>
         th.mud-table-cell, td.mud-table-cell {
             padding-inline: 0.1em !important;

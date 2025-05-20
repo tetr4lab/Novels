@@ -150,6 +150,7 @@ public sealed class NovelsDataSet : BasicDataSet {
                             }
                         }
                         book.Html = string.Join ('\n', html);
+                        book.Status = BookStatus.NotSet;
                         if (book.Id == 0) {
                             var result = await AddAsync (book);
                             if (result.IsSuccess) {
@@ -162,7 +163,8 @@ public sealed class NovelsDataSet : BasicDataSet {
                         }
                         if (withSheets && (book.Id == 0 || CurrentBookId == book.Id)) {
                             status = Status.Unknown;
-                            foreach (string oneUrl in book.SheetUrls) {
+                            for (var index = 0; index < book.SheetUrls.Count; index++) {
+                                string sheetUrl = book.SheetUrls [index];
                                 // 規定間隔でアクセスする
                                 var now = DateTime.Now;
                                 var elapsedTime = now - lastTime;
@@ -170,10 +172,8 @@ public sealed class NovelsDataSet : BasicDataSet {
                                     await Task.Delay (AccessIntervalTime - elapsedTime);
                                 }
                                 lastTime = now;
-                                // シートの絶対URLを取得する
-                                var sheetUrl = (new Uri (new Uri (url), oneUrl)).AbsoluteUri;
                                 if (string.IsNullOrEmpty (sheetUrl)) {
-                                    issues.Add ($"Invalid Sheet URL: {url} + {oneUrl}");
+                                    issues.Add ($"Invalid Sheet URL: {url} + {sheetUrl}");
                                     continue;
                                 }
                                 using (var message3 = await client.GetWithCookiesAsync (sheetUrl, DefaultCookies)) {
@@ -185,6 +185,8 @@ public sealed class NovelsDataSet : BasicDataSet {
                                         } else {
                                             sheet.Modifier = userIdentifier;
                                         }
+                                        sheet.Url = sheetUrl;
+                                        sheet.NovelNumber = index + 1;
                                         sheet.Html = sheetHtml;
                                         if (sheet.Id == 0) {
                                             var result = await AddAsync (sheet);

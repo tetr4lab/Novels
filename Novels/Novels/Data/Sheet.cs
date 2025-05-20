@@ -108,6 +108,62 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     }
     protected string? __sheetTitle = null;
 
+    /// <summary>シートの序文</summary>
+    public string Preface {
+        get {
+            if (__preface is null) {
+                if (!string.IsNullOrEmpty (_html) && Document is not null) {
+                    switch (Site) {
+                        case Site.Narou:
+                        case Site.Novel18:
+                            __preface = Document.QuerySelector ("div.js-novel-text.p-novel__text.p-novel__text--preface")?.InnerHtml ?? "";
+                            break;
+                        case Site.KakuyomuOld:
+                        case Site.Kakuyomu:
+                        case Site.Novelup:
+                        case Site.Dyreitou:
+                        default:
+                            __preface = "";
+                            break;
+                    }
+                    __preface = Correct (__preface);
+                } else {
+                    __preface = DirectContent;
+                }
+            }
+            return __preface ?? "";
+        }
+    }
+    protected string? __preface = null;
+
+    /// <summary>シートの後書き</summary>
+    public string Afterword {
+        get {
+            if (__afterword is null) {
+                if (!string.IsNullOrEmpty (_html) && Document is not null) {
+                    switch (Site) {
+                        case Site.Narou:
+                        case Site.Novel18:
+                            __afterword = Document.QuerySelector ("div.js-novel-text.p-novel__text.p-novel__text--afterword")?.InnerHtml ?? "";
+                            break;
+                        case Site.KakuyomuOld:
+                        case Site.Kakuyomu:
+                        case Site.Novelup:
+                        case Site.Dyreitou:
+                        default:
+                            __afterword = "";
+                            break;
+                    }
+                    __afterword = Correct (__afterword);
+                } else {
+                    __afterword = DirectContent;
+                }
+            }
+            return __afterword ?? "";
+        }
+    }
+    protected string? __afterword = null;
+
     /// <summary>シートの本文</summary>
     // NovelHonbun = 
     // Correct ( TrimLFx ( ReplaceRepeater ( TagRemove ( ReplaceRuby ( Case (
@@ -129,7 +185,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
                         case Site.Narou:
                         case Site.Novel18:
                             __sheetHonbun = Document.QuerySelector ("div#novel_honbun.novel_view")?.InnerHtml
-                                ?? Document.QuerySelector ("div.js-novel-text.p-novel__text")?.InnerHtml ?? "";
+                                ?? Document.QuerySelector ("div.js-novel-text.p-novel__text:not(.p-novel__text--preface)")?.InnerHtml ?? "";
                             break;
                         case Site.KakuyomuOld:
                         case Site.Kakuyomu:
@@ -387,6 +443,9 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         __chapterTitle = null;
         __chapterSubTitle = null;
         __directLines = null;
+        __preface = null;
+        __afterword = null;
+        IsDirty = true;
     }
 
     /// <summary>パース結果</summary>

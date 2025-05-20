@@ -20,10 +20,20 @@
         SheetIndex ??= 1;
         if (Sheet is not null) {
             <NumberNavigationBar Number="@(SheetIndex.Value)" Min="1" Max="@(items.Count)" OnChangeNumber="OnChageSheetAsync" />
+            @if (!string.IsNullOrEmpty (Sheet.Preface)) {
+                <MudPaper Class="ma-4 pa-2" Elevation="1">
+                    <MudText Typo="Typo.caption">@((MarkupString) Sheet.Preface)</MudText>
+                </MudPaper>
+            }
             <MudPaper Elevation="0">
                 <MudText Class="mt-2 mb-4"><h2>@(Sheet?.SheetTitle)</h2></MudText>
-                @((MarkupString) Sheet.SheetHonbun)
+                <MudText Typo="Typo.inherit">@((MarkupString) Sheet.SheetHonbun)</MudText>
             </MudPaper>
+            @if (!string.IsNullOrEmpty (Sheet.Afterword)) {
+                <MudPaper Class="ma-4 pa-2" Elevation="1">
+                    <MudText Typo="Typo.caption">@((MarkupString) Sheet.Afterword)</MudText>
+                </MudPaper>
+            }
             <MudSimpleTable Elevation="0" Dense Bordered>
                 <thead>
                     <tr>

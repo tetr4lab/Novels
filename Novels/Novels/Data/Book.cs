@@ -1,15 +1,14 @@
-﻿using PetaPoco;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
-using System.Text.RegularExpressions;
-using MudBlazor;
-using System.Xml.Linq;
-using Novels.Components.Pages;
-using Novels.Services;
 using System.Data;
-using Tetr4lab;
+using System.Text.RegularExpressions;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
+using MudBlazor;
+using Novels.Components.Pages;
+using Novels.Services;
+using PetaPoco;
+using Tetr4lab;
 
 namespace Novels.Data;
 
@@ -31,6 +30,42 @@ public enum Site {
     Kakuyomu = 5,
     /// <summary>小説家になろう(年齢制限)</summary>
     Novel18 = 6,
+}
+
+/// <summary>書籍の刊行状態</summary>
+public enum BookStatus {
+    NotSet = 100, // 未設定
+    Completed = 0, // 完結
+    PartlyCompleted = 1, // 一応完結
+    NoUpdates = 2, // 更新途絶
+    Updating = 3, // 更新中
+    Disappeared = 4, // 消失
+}
+
+public static class BookStatusExtensions {
+    /// <summary>書籍の刊行状態を文字列化</summary>
+    public static string ToJString (this BookStatus status) {
+        return status switch {
+            BookStatus.Completed => "完結",
+            BookStatus.PartlyCompleted => "一応完結",
+            BookStatus.NoUpdates => "更新途絶",
+            BookStatus.Updating => "更新中",
+            BookStatus.Disappeared => "消失",
+            _ => "未設定",
+        };
+    }
+
+    /// <summary>文字列から書籍の刊行状態を得る</summary>
+    public static BookStatus ToBookStatus (this string status) {
+        return status switch {
+            "完結" => BookStatus.Completed,
+            "一応完結" => BookStatus.PartlyCompleted,
+            "更新途絶" => BookStatus.NoUpdates,
+            "更新中" => BookStatus.Updating,
+            "消失" => BookStatus.Disappeared,
+            _ => BookStatus.NotSet,
+        };
+    }
 }
 
 [TableName ("books")]
@@ -93,9 +128,9 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     [Column ("published_at")] public DateTime? PublishedAt { get; set; } = null;
     [Column ("read")] public bool Readed { get; set; } = false;
     [Column ("memorandum")] public string? ReadedMemo { get; set; } = null;
-    [Column ("status")] public string Status { get; set; } = "";
+    [Column ("status")] public string _status { get; set; } = "";
     [Column ("html_backup")] public string? HtmlBackup { get; set; } = null;
-    [Column ("errata")] public string? Errata { get; set; } = null;
+    [Column ("errata")] public string? _errata { get; set; } = null;
     [Column ("wish")] public bool Wish { get; set; } = false;
     [Column ("bookmark")] public long? Bookmark { get; set; } = null;
 
@@ -117,6 +152,16 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <summary>更新されている</summary>
     public bool IsDirty { get; protected set; } = false;
 
+    public BookStatus Status {
+        get => _status.ToBookStatus ();
+        set {
+            if (value != Status) {
+                _status = value.ToJString ();
+                IsDirty = true;
+            }
+        }
+    }
+
     /// <summary>状態に応じた背景色</summary>
     public Color StatusBgColor {
         get {
@@ -127,14 +172,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     }
 
     /// <summary>状態に応じた順位</summary>
-    public int StatusPriority => Status switch {
-        "完結" => 0,
-        "一応完結" => 1,
-        "更新途絶" => 2,
-        "更新中" => 3,
-        "消失" => 4,
-        _ => 100,
-    } + (Readed ? 10 : 0);
+    public int StatusPriority => ((int) Status) + (Readed ? 10 : 0);
 
     /// <summary>書誌、または、シートから得られる最終更新日時</summary>
     // Case (
@@ -519,21 +557,21 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                 switch (Site) {
                     case Site.Narou:
                     case Site.Novel18:
-                        explanation = (Document.QuerySelector ("div#novel_ex")?.TextContent
-                            ?? Document.QuerySelector ("div#novel_ex.p-novel__summary")?.TextContent
+                        explanation = (Document.QuerySelector ("div#novel_ex")?.InnerHtml
+                            ?? Document.QuerySelector ("div#novel_ex.p-novel__summary")?.InnerHtml
                             ?? "").Trim ();
                         break;
                     case Site.KakuyomuOld:
-                        explanation = Document.QuerySelector ("p#introduction")?.TextContent ?? "";
+                        explanation = Document.QuerySelector ("p#introduction")?.InnerHtml ?? "";
                         break;
                     case Site.Novelup:
-                        explanation = (Document.QuerySelector ("div.novel_synopsis")?.TextContent ?? "");
+                        explanation = (Document.QuerySelector ("div.novel_synopsis")?.InnerHtml ?? "");
                         break;
                     case Site.Dyreitou:
-                        explanation = Document.QuerySelector ("div.CollapseTextWithKakuyomuLinks")?.TextContent ?? "";
+                        explanation = "";
                         break;
                     case Site.Kakuyomu:
-                        explanation = Document.QuerySelector ("p#introduction")?.TextContent ?? "";
+                        explanation = Document.QuerySelector ("div[class^=CollapseTextWithKakuyomuLinks_collapseText__]")?.InnerHtml ?? "";
                         break;
                 }
                 __explanation = Correct (explanation);
@@ -584,6 +622,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public List<string> SheetUrls {
         get {
             if (__sheetUrls is null && !string.IsNullOrEmpty (_html) && Document is not null) {
+                var bookUri = new Uri (Url);
                 var sheetUrls = new List<string> ();
                 var tags = (AngleSharp.Dom.IHtmlCollection<AngleSharp.Dom.IElement>?) null;
                 switch (Site) {
@@ -607,7 +646,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                         var regex = new Regex ("(?<=\"__typename\":\"Episode\",\"id\":\")\\d+(?=\")");
                         foreach (Match match in regex.Matches (_html)) {
                             if (match.Success) {
-                                sheetUrls.Add ($"/episodes/{match.Value}");
+                                sheetUrls.Add ($"{Url}/episodes/{match.Value}");
                             }
                         }
                         break;
@@ -616,7 +655,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                     foreach (var atag in tags) {
                         var url = atag.GetAttribute ("href");
                         if (!string.IsNullOrEmpty (url)) {
-                            sheetUrls.Add (url);
+                            sheetUrls.Add (new Uri (bookUri, url).AbsoluteUri);
                         }
                     }
                 }
@@ -963,30 +1002,45 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                 _author = null;
                 _directContent = null;
                 _numberOfSheets = null;
-                // パース結果のキャッシュをクリア
-                __htmlDocument = null;
-                __directLines = null;
-                __sheetUrls = null;
-                __sheetUpdateDates = null;
-                __seriesTitle = null;
-                __mainTitle = null;
-                __subTitle = null;
-                __explanation = null;
-                // 再パース
-                _ = Site;
-                _ = Title;
-                _ = Author;
-                _ = DirectContent;
-                _ = NumberOfSheets;
-                _ = SheetUrls;
-                _ = SheetUpdateDates;
-                _ = SeriesTitle;
-                _ = MainTitle;
-                _ = SubTitle;
-                _ = Explanation;
-                IsDirty = true;
+                Flash ();
             }
         }
+    }
+
+    /// <summary>外向きの正誤表</summary>
+    public string? Errata {
+        get => _errata;
+        set {
+            if (value != _errata) {
+                _errata = value;
+                Flash ();
+            }
+        }
+    }
+
+    /// <summary>パース結果のキャッシュをクリア</summary>
+    protected void Flash () {
+        __htmlDocument = null;
+        __directLines = null;
+        __sheetUrls = null;
+        __sheetUpdateDates = null;
+        __seriesTitle = null;
+        __mainTitle = null;
+        __subTitle = null;
+        __explanation = null;
+        // 再パース
+        _ = Site;
+        _ = Title;
+        _ = Author;
+        _ = DirectContent;
+        _ = NumberOfSheets;
+        _ = SheetUrls;
+        _ = SheetUpdateDates;
+        _ = SeriesTitle;
+        _ = MainTitle;
+        _ = SubTitle;
+        _ = Explanation;
+        IsDirty = true;
     }
 
     /// <summary>パース結果</summary>
@@ -1007,7 +1061,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         $":{Site}.",
         Released ? "_is_released_" : "_not_released_",
         Readed ? "_is_readed_" : "_not_readed_",
-        $"_{Status}_",
+        $"_{Status.ToJString ()}_",
         Wish ? "_is_wished_" : "_not_wished_",
         $"%{NumberOfRelatedSheets}.",
         IsDirectContent ? "_is_direct_" : "_not_direct_",
@@ -1030,13 +1084,13 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         item._title = Title;
         item._author = Author;
         item.DirectTitleWriterName = DirectTitleWriterName;
-        item.DirectContent = DirectContent;
-        item._numberOfSheets = _numberOfSheets;
+        item._directContent = _directContent;
+        item._numberOfSheets = NumberOfSheets;
         item.NumberOfPublished = NumberOfPublished;
         item.PublishedAt = PublishedAt;
         item.Readed = Readed;
         item.ReadedMemo = ReadedMemo;
-        item.Status = Status;
+        item._status = _status;
         item.HtmlBackup = HtmlBackup;
         item.Errata = Errata;
         item.Wish = Wish;
@@ -1053,13 +1107,13 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         destination._title = Title;
         destination._author = Author;
         destination.DirectTitleWriterName = DirectTitleWriterName;
-        destination.DirectContent = DirectContent;
-        destination._numberOfSheets = _numberOfSheets;
+        destination._directContent = _directContent;
+        destination._numberOfSheets = NumberOfSheets;
         destination.NumberOfPublished = NumberOfPublished;
         destination.PublishedAt = PublishedAt;
         destination.Readed = Readed;
         destination.ReadedMemo = ReadedMemo;
-        destination.Status = Status;
+        destination._status = _status;
         destination.HtmlBackup = HtmlBackup;
         destination.Errata = Errata;
         destination.Wish = Wish;
@@ -1073,18 +1127,18 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         && Id == other.Id
         && Url1 == other.Url1
         && Url2 == other.Url2
-        && Html == other.Html
-        && Site == other.Site
-        && Title == other.Title
-        && Author == other.Author
+        && _html == other._html
+        && _site == other._site
+        && _title == other._title
+        && _author == other._author
         && DirectTitleWriterName == other.DirectTitleWriterName
-        && DirectContent == other.DirectContent
-        && NumberOfSheets == other.NumberOfSheets
+        && _directContent == other._directContent
+        && _numberOfSheets == other._numberOfSheets
         && NumberOfPublished == other.NumberOfPublished
         && PublishedAt == other.PublishedAt
         && Readed == other.Readed
         && ReadedMemo == other.ReadedMemo
-        && Status == other.Status
+        && _status == other._status
         && HtmlBackup == other.HtmlBackup
         && Errata == other.Errata
         && Wish == other.Wish
@@ -1094,8 +1148,9 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
 
     /// <inheritdoc/>
     public override int GetHashCode () => HashCode.Combine (
-        HashCode.Combine (Url1, Url2, _html, DirectTitleWriterName, _directContent, NumberOfSheets, NumberOfPublished, PublishedAt),
-        HashCode.Combine (Readed, ReadedMemo, Status, HtmlBackup, Errata, Wish, Bookmark, Remarks),
+        HashCode.Combine (Url1, Url2, _html, _site, _title, _author, DirectTitleWriterName, _directContent),
+        HashCode.Combine (_numberOfSheets, NumberOfPublished, PublishedAt, Readed, ReadedMemo, _status, HtmlBackup, Errata),
+        HashCode.Combine (Wish, Bookmark, Remarks),
         base.GetHashCode ());
 
     /// <inheritdoc/>
