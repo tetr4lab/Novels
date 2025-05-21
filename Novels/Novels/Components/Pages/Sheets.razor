@@ -71,7 +71,9 @@
                             </MudTooltip>
                         }
                         <MudSpacer />
-                        @(context.NovelNumber)
+                        <MudLink Href="@context.Url" Target="_blank" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">
+                            @(context.NovelNumber)
+                        </MudLink>
                     </MudStack>
                 </MudTd>
                 <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.ChapterTitle)])">@(context.ChapterTitle)</MudTd>
@@ -200,7 +202,7 @@
         await reload;
         // 着目書籍オブジェクトを取得
         Book = DataSet.Books.Find (s => s.Id == currentBookId);
-        await SetSectionTitle.InvokeAsync (Book is null ? "Contents" : $"<span style=\"font-size:80%;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</span>");
+        await SetSectionTitle.InvokeAsync (Book is null ? "Contents" : $"<span style=\"font-size:80%;\"><a href=\"{Book?.Url}\" target=\"_blank\" style=\"text-decoration: none;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</a></span>");
     }
 
     /// <summary>遅延初期化</summary>
