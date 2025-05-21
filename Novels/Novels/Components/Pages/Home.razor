@@ -73,7 +73,7 @@
             <MudTd DataLabel="@(Book.Label[nameof(Book.Title)])">
                 <MudStack Row Spacing="0" Class="align-center">
                     <MudIconButton OnClick="@(() => PublishBook (context.Id))" Icon="@(context.IsEmpty ? Icons.Material.Filled.Download : Icons.Material.Filled.Publish)" Size="Size.Small" />
-                    <MudIconButton OnClick="@(() => OpenBook (context.Id))" Icon="@Icons.Material.Filled.Book" Size="Size.Small" />
+                    <MudIconButton OnClick="@(() => OpenBook (context.Id))" Icon="@Icons.Material.Filled.ViewHeadline" Size="Size.Small" />
                     <MudText Typo="Typo.inherit">@(context.Title)</MudText>
                 </MudStack>
             </MudTd>
