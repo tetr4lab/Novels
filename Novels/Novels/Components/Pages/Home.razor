@@ -96,7 +96,7 @@
                 </MudTooltip>
             </MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.Site)])" Class="align-middle text-nowrap">
-                <MudTooltip Text="@($"{Book.Label[nameof(Book.Url)]}を開く")" Arrow Duration="1000">
+                <MudTooltip Text="@($"{Book.Label[nameof(Book.Site)]}を開く")" Arrow Duration="1000">
                     <MudLink OnClick="@(async () => { await JSRuntime.OpenUrl (context.Url); await ChangeCurrentBookAsync (context); })" Target="_blank" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Site)</MudLink>
                 </MudTooltip>
             </MudTd>
