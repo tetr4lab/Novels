@@ -86,7 +86,8 @@
                 </MudTd>
                 <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.SheetUpdatedAt)])">
                     @{
-                        var dateTime = SheetIndex > 0 ? Book.SheetUpdateDates [SheetIndex.Value] : DateTime.MinValue;
+                        var index = items.IndexOf (context);
+                        var dateTime = index >= 0 && Book.SheetUpdateDates.Count > 0 ? Book.SheetUpdateDates [index] : DateTime.MinValue;
                     }
                     <MudText Typo="Typo.inherit" Color="@(dateTime > context.SheetUpdatedAt ? Color.Warning : Color.Inherit)">
                         <MudTooltip Text="@(dateTime == DateTime.MinValue ? "" : $"最終更新: {dateTime.ToString ("yyyy/MM/dd HH:mm")}")" Duration="1000">
