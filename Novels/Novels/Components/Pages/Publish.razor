@@ -140,7 +140,7 @@
     </MudSimpleTable>
     <MudStack Row Class="mt-5 justify-center">
         <MudTooltip Arrow="true" Text="@(Book.IsEmpty ? "取得" : "更新")">
-            <MudIconButton Disabled="!IsNotDirty" OnClick="async () => await ConfirmUpdateBookAsync ()" Color="Color.Primary" Icon="@Icons.Material.Filled.Download" Variant="Variant.Outlined" Size="Size.Large" />
+            <MudIconButton Disabled="!IsNotDirty" OnClick="async () => await ConfirmUpdateBookAsync ()" Color="Color.Primary" Icon="@(Book.IsEmpty ? Icons.Material.Filled.Download : Icons.Material.Filled.Refresh)" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
         <MudTooltip Arrow="true" Text="発行">
             <MudIconButton Disabled="Book.IsEmpty || Book.Released || !IsNotDirty" OnClick="ConfirmPublishBookAsync" Color="Color.Tertiary" Icon="@Icons.Material.Filled.Publish" Variant="Variant.Outlined" Size="Size.Large" />
@@ -215,10 +215,10 @@
     /// <summary>編集内容破棄の確認</summary>
     protected async Task<bool> ConfirmCancelEditAsync () {
         if (editingItem is not null && !IsNotDirty) {
-            var dialogResult = await DialogService.Confirmation ([$"編集内容が破棄されます。", editingItem.ToString (), backupedItem.ToString ()], title: "編集破棄", position: DialogPosition.BottomCenter, acceptionLabel: "破棄", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
+            var dialogResult = await DialogService.Confirmation ([$"編集内容を破棄して書誌を復旧します。", editingItem.ToString (), backupedItem.ToString ()], title: "編集破棄", position: DialogPosition.BottomCenter, acceptionLabel: "破棄", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 Cancel (editingItem);
-                Snackbar.Add ("編集内容を破棄しました。", Severity.Normal);
+                Snackbar.Add ("編集内容を破棄して書誌を復旧しました。", Severity.Normal);
             } else {
                 return false;
             }
@@ -233,7 +233,7 @@
             var dialogResult = await DialogService.Confirmation ([
                 $"以下の{Book.TableLabel}{(withSheets ? "を" : $"の{Sheet.TableLabel}のみを")}完全に削除します。", 
                 Book.ToString (),
-        ], title: $"{Book.TableLabel}削除", position: DialogPosition.BottomCenter, acceptionLabel: "Delete", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
+    ], title: $"{Book.TableLabel}削除", position: DialogPosition.BottomCenter, acceptionLabel: "Delete", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 IsOverlayed = true;
                 StateHasChanged ();
@@ -389,7 +389,8 @@
                 }
                 // Close the Epub instance
                 System.Diagnostics.Debug.WriteLine ("completed!");
-
+                // Send to Kindle
+                await Task.Delay (1000);
                 Snackbar.Add ($"{Book.TableLabel}を発行しました。", Severity.Normal);
             } else {
                 Snackbar.Add ($"{Book.TableLabel}の発行に失敗しました。", Severity.Error);
