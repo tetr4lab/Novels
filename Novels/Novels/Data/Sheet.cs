@@ -166,6 +166,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     protected string? __afterword = null;
 
     /// <summary>シートの本文</summary>
+    // AngleSharpは`<br />`を`<br>`に変換するが、HTML5ではそれが推奨されている
     // NovelHonbun = 
     // Correct ( TrimLFx ( ReplaceRepeater ( TagRemove ( ReplaceRuby ( Case (
     // site=1 ; Let ( [ 

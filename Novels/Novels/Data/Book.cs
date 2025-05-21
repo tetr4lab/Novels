@@ -428,7 +428,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                     __mainTitle = GetNormalizedName (title, monadic: false, brackets: true);
                 }
             }
-            return __mainTitle ?? "";
+            return __mainTitle ?? $"novel_{Id}";
         }
     }
     protected string? __mainTitle = null;
@@ -991,6 +991,26 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
             text = text.Replace (e.errr, e.crct);
         }
         return text;
+    }
+
+    /// <summary>内容のクリア</summary>
+    public void Clear () {
+        _site = Site.Unknown;
+        _title = null;
+        _author = null;
+        DirectTitleWriterName = null;
+        _directContent = null;
+        _numberOfSheets = null;
+        NumberOfPublished = null;
+        PublishedAt = null;
+        Readed = false;
+        ReadedMemo = null;
+        _status = string.Empty;
+        Errata = null;
+        Wish = false;
+        Bookmark = null;
+        HtmlBackup = null; // 次で必ずバックアップされる
+        Html = null; // Flushを伴う
     }
 
     /// <summary>外向けのHTML</summary>
