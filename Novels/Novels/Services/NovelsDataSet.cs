@@ -102,8 +102,8 @@ public sealed class NovelsDataSet : BasicDataSet {
         return result;
     }
 
-    /// <summary>データを取得する際の最低間隔</summary>
-    private static readonly TimeSpan AccessIntervalTime = new TimeSpan (0, 0, 3);
+    /// <summary>データを取得する際の最低間隔 (msec)</summary>
+    private static readonly int AccessIntervalTime = 1000;
 
     /// <summary>クッキー</summary>
     private static readonly Dictionary<string, string> DefaultCookies = new  () { { "over18", "yes" }, };
@@ -114,7 +114,7 @@ public sealed class NovelsDataSet : BasicDataSet {
     /// <param name="userIdentifier">ユーザ識別子</param>
     /// <param name="withSheets">シートを含めるか</param>
     /// <returns>書籍と問題のリスト</returns>
-    public async Task<Result<(Book book, List<string> issues)>> UpdateBookAsync (HttpClient client, string url, string userIdentifier, bool withSheets = false) {
+    public async Task<Result<(Book book, List<string> issues)>> UpdateBookAsync (HttpClient client, string url, string userIdentifier, bool withSheets = false, Action<int, int>? progress = null) {
         var issues = new List<string> ();
         var status = Status.Unknown;
         if (Valid) {
@@ -131,13 +131,7 @@ public sealed class NovelsDataSet : BasicDataSet {
                     if (message.IsSuccessStatusCode && message.StatusCode == System.Net.HttpStatusCode.OK) {
                         var html = new List<string> { (book.Html = await message.Content.ReadAsStringAsync ()), };
                         for (var i = 2; i <= book.LastPage; i++) {
-                            // 規定間隔でアクセスする
-                            var now = DateTime.Now;
-                            var elapsedTime = now - lastTime;
-                            if (elapsedTime < AccessIntervalTime) {
-                                await Task.Delay (AccessIntervalTime - elapsedTime);
-                            }
-                            lastTime = now;
+                            await Task.Delay (AccessIntervalTime);
                             // 追加ページの絶対URLを取得する
                             var additionalUrl = $"{book.Url}{(book.Url.EndsWith ('/') ? "" : "/")}?p={i}";
                             using (var message2 = await client.GetWithCookiesAsync (additionalUrl, DefaultCookies)) {
@@ -160,18 +154,22 @@ public sealed class NovelsDataSet : BasicDataSet {
                                 issues.Add ($"Failed to add: {book.Url} {result.Status}");
                                 throw new Exception ("aborted");
                             }
+                        } else {
+                            var result = await UpdateAsync (book);
+                            if (result.IsSuccess) {
+                                status = Status.Success;
+                            } else {
+                                issues.Add ($"Failed to update: {book.Url} {result.Status}");
+                                throw new Exception ("aborted");
+                            }
                         }
+                        progress?.Invoke (0, book.NumberOfSheets);
+                        /// シート
                         if (withSheets && (book.Id == 0 || CurrentBookId == book.Id)) {
                             status = Status.Unknown;
                             for (var index = 0; index < book.SheetUrls.Count; index++) {
                                 string sheetUrl = book.SheetUrls [index];
-                                // 規定間隔でアクセスする
-                                var now = DateTime.Now;
-                                var elapsedTime = now - lastTime;
-                                if (elapsedTime < AccessIntervalTime) {
-                                    await Task.Delay (AccessIntervalTime - elapsedTime);
-                                }
-                                lastTime = now;
+                                await Task.Delay (AccessIntervalTime);
                                 if (string.IsNullOrEmpty (sheetUrl)) {
                                     issues.Add ($"Invalid Sheet URL: {url} + {sheetUrl}");
                                     continue;
@@ -188,6 +186,7 @@ public sealed class NovelsDataSet : BasicDataSet {
                                         sheet.Url = sheetUrl;
                                         sheet.NovelNumber = index + 1;
                                         sheet.Html = sheetHtml;
+                                        sheet.SheetUpdatedAt = DateTime.Now;
                                         if (sheet.Id == 0) {
                                             var result = await AddAsync (sheet);
                                             if (result.IsSuccess) {
@@ -196,11 +195,18 @@ public sealed class NovelsDataSet : BasicDataSet {
                                                 issues.Add ($"Failed to add: {sheetUrl} {result.Status}");
                                                 throw new Exception ("aborted");
                                             }
+                                        } else {
+                                            var result = await UpdateAsync (sheet);
+                                            if (result.IsFailure) {
+                                                issues.Add ($"Failed to update: {sheetUrl} {result.Status}");
+                                                throw new Exception ("aborted");
+                                            }
                                         }
                                     } else {
                                         issues.Add ($"Failed to get: {sheetUrl} {message.StatusCode} {message.ReasonPhrase}");
                                     }
                                 }
+                                progress?.Invoke (index, book.NumberOfSheets);
                             }
                             status = issues.Count > 0 ? Status.Unknown : Status.Success;
                         }

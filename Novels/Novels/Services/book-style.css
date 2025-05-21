@@ -1,0 +1,70 @@
+﻿@charset "UTF-8";
+@import "style-reset.css";
+
+/* 縦書き 右→左 */
+html {
+    -webkit-writing-mode: vertical-rl;
+    -epub-writing-mode: vertical-rl;
+    writing-mode: vertical-rl;
+    font-family: "UD デジタル 教科書体 NP", "UD Digi Kyokasho NP", "@ＭＳ 明朝", "@MS Mincho", "ヒラギノ明朝 ProN W3", "HiraMinProN-W3", serif, sans-serif;
+}
+
+/* 大見出し */
+h1 {
+    margin: 8% 1em;
+    font-size: 1.50em;
+}
+
+/* 中見出し */
+h2 {
+    margin: 10% 1em;
+    font-size: 1.30em;
+}
+
+/* 小見出し */
+h3 {
+    margin: 12% 1em;
+    font-size: 1.10em;
+}
+
+/* 段落 */
+p {
+    margin: 0 0.25em;
+}
+
+/* 章の前書き */
+.preface {
+    font-size: 0.9em;
+    margin: 20% 4em 0;
+}
+
+/* 章の本文 */
+.chapter-body {
+    margin: 0 5em;
+}
+
+/* 章の後書き */
+.note {
+    font-size: 0.9em;
+    margin: 20% 4em 0;
+}
+
+/* 本扉 */
+div.title-page {
+    line-height: 1.7;
+    margin: 10% 18%;
+}
+
+/* 表題 */
+div.title {
+    margin: 0 1em;
+    font-size: 1.50em;
+}
+
+/* 著者 */
+div.author {
+    font-size: 1.10em;
+    text-align: right;
+    -webkit-text-align-last: auto;
+    -epub-text-align-last: auto;
+}

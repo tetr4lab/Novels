@@ -1,4 +1,6 @@
-﻿@inherits ItemListBase<Book>
+﻿@using QuickEPUB
+
+@inherits ItemListBase<Book>
 
 @page "/book/{BookId:long?}"
 
@@ -137,7 +139,7 @@
         </tbody>
     </MudSimpleTable>
     <MudStack Row Class="mt-5 justify-center">
-        <MudTooltip Arrow="true" Text="@($"{(Book.IsEmpty ? "取得" : "更新")} (+ctrlで書誌のみ)")">
+        <MudTooltip Arrow="true" Text="@(Book.IsEmpty ? "取得" : "更新")">
             <MudIconButton Disabled="!IsNotDirty" OnClick="async () => await ConfirmUpdateBookAsync ()" Color="Color.Primary" Icon="@Icons.Material.Filled.Download" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
         <MudTooltip Arrow="true" Text="発行">
@@ -152,7 +154,7 @@
         </MudTooltip>
         <MudSpacer />
         <MudTooltip Arrow="true" Text="削除">
-            <MudIconButton OnClick="DeleteBook" Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Variant="Variant.Outlined" Size="Size.Large" />
+            <MudIconButton Disabled="!IsNotDirty" OnClick="DeleteBook" Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
     </MudStack>
 } else if (Book.IsDirectContent) {
@@ -161,7 +163,16 @@
     <MudText>No items found.</MudText>
 }
 <MudOverlay @bind-Visible="IsOverlayed" DarkBackground="true" ZIndex="9999">
-    <MudProgressCircular Indeterminate="true" />
+    @if (OverlayValue < 0) {
+        <MudProgressCircular Color="Color.Tertiary" Rounded Size="Size.Large" Indeterminate />
+    } else {
+        <MudPaper Elevation="0" Class="pa-4" Style="background-color: var(--mud-palette-background-gray);">
+            <MudStack>
+                <MudProgressCircular Color="Color.Tertiary" Rounded Size="Size.Large" Value="OverlayValue" Min="0" Max="OverlayMax" />
+                <MudText Align="Align.Center">@(OverlayValue) / @(OverlayMax)</MudText>
+            </MudStack>
+        </MudPaper> 
+    }
 </MudOverlay>
 
 @code {
@@ -171,6 +182,12 @@
 
     /// <summary>オーバーレイの表示</summary>
     protected bool IsOverlayed { get; set; } = false;
+
+    /// <summary>オーバーレイの進行</summary>
+    protected int OverlayValue = -1;
+
+    /// <summary>オーバーレイの進行の最大値</summary>
+    protected int OverlayMax = 0;
 
     /// <summary>指定された書籍</summary>
     [Parameter] public long? BookId { get; set; } = null;
@@ -212,19 +229,54 @@
     /// <summary>書籍の削除 (ホームへ遷移)</summary>
     protected async Task DeleteBook () {
         if (Book is not null) {
-            var dialogResult = await DialogService.Confirmation ([$"以下の{Book.TableLabel}を完全に削除します。", Book.ToString ()], title: $"{Book.TableLabel}削除", position: DialogPosition.BottomCenter, acceptionLabel: "Delete", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
+            var withSheets = !(await JSRuntime.InvokeAsync<ModifierKeys> ("getModifierKeys")).Ctrl;
+            var dialogResult = await DialogService.Confirmation ([
+                $"以下の{Book.TableLabel}{(withSheets ? "を" : $"の{Sheet.TableLabel}のみを")}完全に削除します。", 
+                Book.ToString (),
+        ], title: $"{Book.TableLabel}削除", position: DialogPosition.BottomCenter, acceptionLabel: "Delete", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
-                var result = await DataSet.RemoveAsync (Book);
-                if (result.IsSuccess) {
-                    if (CurrentBookId == Book.Id) {
-                        await SetCurrentBookId.InvokeAsync ((0, 1));
+                IsOverlayed = true;
+                StateHasChanged ();
+                if (withSheets) {
+                    var result = await DataSet.RemoveAsync (Book);
+                    if (result.IsSuccess) {
+                        if (CurrentBookId == Book.Id) {
+                            await SetCurrentBookId.InvokeAsync ((0, 1));
+                        }
+                        StateHasChanged ();
+                        Snackbar.Add ($"{Book.TableLabel}を削除しました。", Severity.Normal);
+                        NavigationManager.NavigateTo (NavigationManager.BaseUri);
+                    } else {
+                        Snackbar.Add ($"{Book.TableLabel}を削除できませんでした。", Severity.Error);
                     }
-                    StateHasChanged ();
-                    Snackbar.Add ($"{Book.TableLabel}を削除しました。", Severity.Normal);
-                    NavigationManager.NavigateTo (NavigationManager.BaseUri);
                 } else {
-                    Snackbar.Add ($"{Book.TableLabel}を削除できませんでした。", Severity.Error);
+                    try {
+                        // 元リストは要素が削除されるので複製でループする
+                        var sheets = new List<Sheet> (Book.Sheets);
+                        var success = 0;
+                        OverlayMax = sheets.Count;
+                        OverlayValue = 0;
+                        foreach (var sheet in sheets) {
+                            if ((await DataSet.RemoveAsync (sheet)).IsSuccess) {
+                                success++;
+                                OverlayValue++;
+                                StateHasChanged ();
+                            }
+                        }
+                        await ReLoadAsync (Book.Id);
+                        if (success == sheets.Count) {
+                            Snackbar.Add ($"{Book.TableLabel}の{Sheet.TableLabel}のみを削除しました。", Severity.Normal);
+                        } else {
+                            Snackbar.Add ($"{Sheet.TableLabel}の一部({sheets.Count - success}/{sheets.Count})を削除できませんでした。", Severity.Error);
+                        }
+                        StateHasChanged ();
+                    }
+                    catch (Exception e) {
+                        Snackbar.Add ($"Exception: {e.Message}", Severity.Error);
+                    }
                 }
+                IsOverlayed = false;
+                OverlayValue = -1;
             }
         }
     }
@@ -241,6 +293,7 @@
                 Snackbar.Add ($"{Book.TableLabel}の{operation}を開始しました。", Severity.Normal);
                 StateHasChanged ();
                 await UpdateBookAsync (Book, operation, withSheets);
+                OverlayValue = -1;
                 IsOverlayed = false;
                 StateHasChanged ();
             } else {
@@ -294,14 +347,15 @@
     /// <summary>取得・更新</summary>
     protected async Task UpdateBookAsync (Book book, string operation, bool withSheets) {
         if (book is not null) {
-            var result = await DataSet.UpdateBookAsync (HttpClient, book.Url, UserIdentifier, withSheets);
+            var result = await DataSet.UpdateBookAsync (HttpClient, book.Url, UserIdentifier, withSheets, (value, max) => { OverlayValue = value; OverlayMax = max; StateHasChanged (); });
             foreach (var issue in result.Value.issues) {
                 Snackbar.Add (issue, Severity.Error);
             }
+            OverlayValue = -1;
             if (result.IsSuccess) {
-                var newBook = result.Value.book;
-                await ReLoadAsync (newBook.Id);
-                await ChangeCurrentBookAsync (newBook);
+                var updatedBook = result.Value.book;
+                await ReLoadAsync (updatedBook.Id);
+                await ChangeCurrentBookAsync (updatedBook);
                 Snackbar.Add ($"{Book.TableLabel}を{operation}しました。", Severity.Normal);
             } else {
                 Snackbar.Add ($"{Book.TableLabel}の{operation}に失敗しました。", Severity.Error);
@@ -314,6 +368,28 @@
         if (book is not null) {
             var result = new Result<int> { Status = Status.Success, };
             if (result.IsSuccess) {
+                // Create an Epub instance
+                var doc = new Epub (book.Title, book.Author);
+                doc.Language = "ja";
+                // 右綴じにするために"content.opf"の`<spine toc="ncx">`に`page-progression-direction="rtl"`を含める必要がある
+                doc.IsLeftToRight = false;
+                // Adding sections of HTML content
+                doc.AddTitle ();
+                doc.AddChapter (null, null, "概要", book.Explanation);
+                foreach (var sheet in book.Sheets) {
+                    doc.AddChapter (sheet.ChapterTitle, sheet.ChapterSubTitle, sheet.SheetTitle, sheet.SheetHonbun, sheet.Afterword, sheet.Preface);
+                }
+                // Add the CSS file referenced in the HTML content
+                using (var cssStream = new FileStream ("Services/book-style.css", FileMode.Open)) {
+                    doc.AddResource ("book-style.css", EpubResourceType.CSS, cssStream);
+                }
+                // Export the result
+                using (var fs = new FileStream ($"{book.MainTitle}.epub", FileMode.Create)) {
+                    doc.Export (fs);
+                }
+                // Close the Epub instance
+                System.Diagnostics.Debug.WriteLine ("completed!");
+
                 Snackbar.Add ($"{Book.TableLabel}を発行しました。", Severity.Normal);
             } else {
                 Snackbar.Add ($"{Book.TableLabel}の発行に失敗しました。", Severity.Error);
