@@ -49,7 +49,7 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
     [Column ("smtp_mailaddress")] public string SmtpMailAddress { get; set; } = "";
     [Column ("smtp_replyto")] public string SmtpReplyTo { get; set; } = "";
     [Column ("smtp_server")] public string SmtpServer { get; set; } = "";
-    [Column ("smtp_port")] public string SmtpPort { get; set; } = "";
+    [Column ("smtp_port")] public int SmtpPort { get; set; } = 25;
     [Column ("smtp_username")] public string SmtpUserName { get; set; } = "";
     [Column ("smtp_password")] public string SmtpPassword { get; set; } = "";
     [Column ("smtp_mailto")] public string SmtpMailto { get; set; } = "";

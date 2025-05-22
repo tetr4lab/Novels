@@ -45,7 +45,7 @@
             </tr>
             <tr>
                 <td>@(Setting.Label [nameof (Setting.SmtpPort)])</td>
-                <td><MudTextField T="string" @bind-Value="selectedItem.SmtpPort" /></td>
+                <td><MudTextField T="int" @bind-Value="selectedItem.SmtpPort" /></td>
             </tr>
             <tr>
                 <td>@(Setting.Label [nameof (Setting.SmtpUserName)])</td>
