@@ -72,7 +72,7 @@ public static class BookStatusExtensions {
 public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
 
     /// <inheritdoc/>
-    public static string TableLabel => "書籍";
+    public static string TableLabel => "書誌";
 
     /// <inheritdoc/>
     public static Dictionary<string, string> Label { get; } = new () {

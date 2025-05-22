@@ -47,7 +47,7 @@ public partial class Publish : ItemListBase<Book> {
         if (Book is not null) {
             var withSheets = !(await JSRuntime.InvokeAsync<ModifierKeys> ("getModifierKeys")).Ctrl;
             var dialogResult = await DialogService.Confirmation ([
-                $"以下の{Book.TableLabel}{(withSheets ? "を" : $"の{Sheet.TableLabel}のみを")}完全に削除します。",
+                $"以下の{Book.TableLabel}{(withSheets ? $"と{Sheet.TableLabel}を" : "のみを")}完全に削除します。",
                 Book.ToString (),
             ], title: $"{Book.TableLabel}削除", position: DialogPosition.BottomCenter, acceptionLabel: "Delete", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
@@ -60,10 +60,10 @@ public partial class Publish : ItemListBase<Book> {
                             await SetCurrentBookId.InvokeAsync ((0, 1));
                         }
                         StateHasChanged ();
-                        Snackbar.Add ($"{Book.TableLabel}を削除しました。", Severity.Normal);
+                        Snackbar.Add ($"{Book.TableLabel}と{Sheet.TableLabel}を削除しました。", Severity.Normal);
                         NavigationManager.NavigateTo (NavigationManager.BaseUri);
                     } else {
-                        Snackbar.Add ($"{Book.TableLabel}を削除できませんでした。", Severity.Error);
+                        Snackbar.Add ($"{Book.TableLabel}と{Sheet.TableLabel}の削除に失敗しました。", Severity.Error);
                     }
                 } else {
                     try {
@@ -81,7 +81,7 @@ public partial class Publish : ItemListBase<Book> {
                         }
                         await ReLoadAsync (Book.Id);
                         if (success == sheets.Count) {
-                            Snackbar.Add ($"{Book.TableLabel}の{Sheet.TableLabel}のみを削除しました。", Severity.Normal);
+                            Snackbar.Add ($"{Sheet.TableLabel}のみを削除しました。", Severity.Normal);
                         } else {
                             Snackbar.Add ($"{Sheet.TableLabel}の一部({sheets.Count - success}/{sheets.Count})を削除できませんでした。", Severity.Error);
                         }
@@ -103,13 +103,18 @@ public partial class Publish : ItemListBase<Book> {
         if (Book is not null && !IsDirty) {
             var operation = Book.IsEmpty ? "取得" : "更新";
             var withSheets = !(await JSRuntime.InvokeAsync<ModifierKeys> ("getModifierKeys")).Ctrl;
-            var dialogResult = await DialogService.Confirmation ([$"{Book.TableLabel}『{Book.Title}』を{Book.Site}から{operation}します。", withSheets ? "書誌とページの全てを更新します。" : "書誌のみを更新し、ページは更新しません。"], title: $"{Book.TableLabel}{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: Color.Success, acceptionIcon: Icons.Material.Filled.Download);
+            var target = $"{Book.TableLabel}{(withSheets ? $"と{Sheet.TableLabel}" : "")}";
+            var dialogResult = await DialogService.Confirmation ([$"『{Book.Title}』の{target}を{Book.Site}から{operation}します。", withSheets ? $"{Book.TableLabel}と{Sheet.TableLabel}全てを更新します。" : $"{Book.TableLabel}のみを更新し、{Sheet.TableLabel}は更新しません。"], title: $"{target}の{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: Color.Success, acceptionIcon: Icons.Material.Filled.Download);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 // オーバーレイ
                 IsOverlayed = true;
-                Snackbar.Add ($"{Book.TableLabel}の{operation}を開始しました。", Severity.Normal);
+                Snackbar.Add ($"{target}の{operation}を開始しました。", Severity.Normal);
                 StateHasChanged ();
-                await UpdateBookFromSiteAsync (Book, operation, withSheets);
+                if (await UpdateBookFromSiteAsync (Book, withSheets)) {
+                    Snackbar.Add ($"{target}を{operation}しました。", Severity.Normal);
+                } else {
+                    Snackbar.Add ($"{target}の{operation}に失敗しました。", Severity.Error);
+                }
                 OverlayValue = -1;
                 IsOverlayed = false;
                 StateHasChanged ();
@@ -130,11 +135,10 @@ public partial class Publish : ItemListBase<Book> {
     /// <summary>発行の確認</summary>
     protected async Task<bool> ConfirmPublishBookAsync () {
         if (Book is not null && !IsDirty) {
-            var dialogResult = await DialogService.Confirmation ([$"{Book.TableLabel}『{Book.MainTitle}.epub』を<{DataSet.Setting.SmtpMailto}>へ発行します。",], title: $"{Book.TableLabel}発行", position: DialogPosition.BottomCenter, acceptionLabel: "発行", acceptionColor: Color.Success, acceptionIcon: Icons.Material.Filled.Publish);
+            var dialogResult = await DialogService.Confirmation ([$"『{Book.MainTitle}.epub』を<{DataSet.Setting.SmtpMailto}>へ発行します。",], title: $"『{Book.MainTitle}.epub』発行", position: DialogPosition.BottomCenter, acceptionLabel: "発行", acceptionColor: Color.Success, acceptionIcon: Icons.Material.Filled.Publish);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 // オーバーレイ
                 IsOverlayed = true;
-                Snackbar.Add ($"{Book.TableLabel}の発行を開始しました。", Severity.Normal);
                 StateHasChanged ();
                 await PublishBookAsync (Book);
                 IsOverlayed = false;
@@ -155,7 +159,7 @@ public partial class Publish : ItemListBase<Book> {
                 Book.PublishedAt = null;
                 Snackbar.Add ($"{Book.TableLabel}の発行記録を抹消しました。", Severity.Normal);
                 if ((await UpdateBookAsync (Book)).IsFailure) {
-                    Snackbar.Add ($"{Book.TableLabel}の更新に失敗しました。", Severity.Normal);
+                    Snackbar.Add ($"{Book.TableLabel}の保存に失敗しました。", Severity.Normal);
                 }
             } else {
                 return false;
@@ -165,7 +169,7 @@ public partial class Publish : ItemListBase<Book> {
     }
 
     /// <summary>取得・更新</summary>
-    protected async Task UpdateBookFromSiteAsync (Book book, string operation, bool withSheets) {
+    protected async Task<bool> UpdateBookFromSiteAsync (Book book, bool withSheets) {
         if (book is not null) {
             var result = await DataSet.UpdateBookFromSiteAsync (HttpClient, book.Url, UserIdentifier, withSheets, (value, max) => { OverlayValue = value; OverlayMax = max; StateHasChanged (); });
             foreach (var issue in result.Value.issues) {
@@ -176,17 +180,19 @@ public partial class Publish : ItemListBase<Book> {
                 var updatedBook = result.Value.book;
                 await ReLoadAsync (updatedBook.Id);
                 await ChangeCurrentBookAsync (updatedBook);
-                Snackbar.Add ($"{Book.TableLabel}を{operation}しました。", Severity.Normal);
-            } else {
-                Snackbar.Add ($"{Book.TableLabel}の{operation}に失敗しました。", Severity.Error);
+                return true;
             }
         }
+        return false;
     }
 
     /// <summary>発行</summary>
     protected async Task PublishBookAsync (Book book) {
         if (book is not null) {
-            var epubPath = "novels_temp.epub";
+            var title = $"{book.MainTitle}.epub";
+            Snackbar.Add ($"『{title}』の発行を開始しました。", Severity.Normal);
+            var rand = new Random ();
+            var epubPath = $"novels_temp{rand.Next ()}.epub";
             try {
                 // Create an Epub instance
                 var doc = new Epub (book.Title, book.Author);
@@ -207,11 +213,9 @@ public partial class Publish : ItemListBase<Book> {
                 using (var fs = new FileStream (epubPath, FileMode.Create)) {
                     doc.Export (fs);
                 }
-                // Close the Epub instance
-                System.Diagnostics.Debug.WriteLine ("completed!");
                 // Send to Kindle
-                if (SendToKindle (epubPath, book.MainTitle)) {
-                    Snackbar.Add ($"{Book.TableLabel}を発行しました。", Severity.Normal);
+                if (SendToKindle (epubPath, title)) {
+                    Snackbar.Add ($"『{title}』を発行しました。", Severity.Normal);
                     book.PublishedAt = DateTime.Now;
                     book.NumberOfPublished = book.Sheets.Count;
                     var result = await UpdateBookAsync (book);
@@ -219,13 +223,13 @@ public partial class Publish : ItemListBase<Book> {
                         Snackbar.Add ($"{Book.TableLabel}の更新に失敗しました。", Severity.Error);
                     }
                 } else {
-                    Snackbar.Add ($"{Book.TableLabel}の発行に失敗しました。", Severity.Error);
+                    Snackbar.Add ($"『{title}』の発行に失敗しました。", Severity.Error);
                 }
             }
             catch (Exception e) {
                 System.Diagnostics.Debug.WriteLine ($"Exception: {e.Message}\n{e.StackTrace}");
                 Snackbar.Add ($"Exception: {e.Message}", Severity.Error);
-                Snackbar.Add ($"{Book.TableLabel}の生成に失敗しました。", Severity.Error);
+                Snackbar.Add ($"『{title}』の生成に失敗しました。", Severity.Error);
             }
             finally {
                 // delete epub
@@ -264,7 +268,7 @@ public partial class Publish : ItemListBase<Book> {
                 attachment.Content = new MimeContent (File.OpenRead (epubPath));
                 attachment.ContentDisposition = new ContentDisposition ();
                 attachment.ContentTransferEncoding = ContentEncoding.Base64;
-                attachment.FileName = $"{title}.epub";
+                attachment.FileName = title;
                 message.Body = new MimeKit.Multipart ("mixed") { textPart, attachment, };
                 using var client = new SmtpClient ();
                 client.Connect (setting.SmtpServer, setting.SmtpPort, SecureSocketOptions.StartTls);
