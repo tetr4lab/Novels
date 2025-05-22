@@ -54,10 +54,10 @@
             </MudSimpleTable>
             <MudStack Row Class="mt-5 justify-center">
                 <MudTooltip Arrow="true" Text="復旧">
-                    <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="async () => { if (await ConfirmCancelEditAsync ()) StartEdit (); }" />
+                    <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" Disabled="!IsDirty" OnClick="async () => { if (await ConfirmCancelEditAsync ()) StartEdit (); }" />
                 </MudTooltip>
                 <MudTooltip Arrow="true" Text="保存">
-                    <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" Disabled="IsNotDirty" OnClick="() => { if (editingItem is not null) { Commit (editingItem); StartEdit (); } }" />
+                    <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" Disabled="!IsDirty" OnClick="() => { if (editingItem is not null) { Commit (editingItem); StartEdit (); } }" />
                 </MudTooltip>
             </MudStack>
             <NumberNavigationBar Number="@(SheetIndex.Value)" Min="1" Max="@(items.Count)" OnChangeNumber="OnChageSheetAsync" />
@@ -90,32 +90,6 @@
     /// <summary>着目中のシート</summary>
     protected Sheet? Sheet { get; set; } = null;
 
-    /// <summary>編集されていない</summary>
-    protected bool IsNotDirty => editingItem is null || backupedItem is null || editingItem.Equals (backupedItem);
-
-    /// <summary>編集された項目名の列挙</summary>
-    protected string EditedColumns {
-        get {
-            if (editingItem is null) { return "";}
-            var columnNames = new List<string> ();
-            if (editingItem.Errata != backupedItem.Errata) {
-                columnNames.Add (Sheet.Label [nameof (Sheet.Errata)]);
-            }
-            if (editingItem.Remarks != backupedItem.Remarks) {
-                columnNames.Add (Sheet.Label [nameof (Sheet.Remarks)]);
-            }
-            return string.Join (", ", columnNames);
-        }
-    }
-
-    /// <summary>編集開始</summary>
-    protected void StartEdit () {
-        if (editingItem is null && Sheet is not null) {
-            editingItem = Sheet;
-            backupedItem = Sheet.Clone ();
-        }
-    }
-
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
     protected override async Task OnInitializedAsync() {
         var currentBookId = BookId ?? CurrentBookId;
@@ -135,6 +109,7 @@
                 Cancel (editingItem);
             }
             Sheet = Book.Sheets [index - 1];
+            selectedItem = Sheet;
             await SetSectionTitle.InvokeAsync ($"<span style=\"font-size:80%;\"><a href=\"{Sheet.Url}\" target=\"_blank\" style=\"text-decoration: none;\">『{Book.Title}』 {Book.Author}</a></span>\n{Sheet.OriginalChapterTitle} {Sheet.ChapterSubTitle}");
             if (BookId != Book.Id || SheetIndex != index) {
                 // ルート(`@page`)が一致するため、アドレスバーが書き換わり、パラメータ`SheetIndex`に`index`が代入される
@@ -144,28 +119,6 @@
             StartEdit ();
         } else {
             await SetSectionTitle.InvokeAsync ("Read");
-        }
-    }
-
-    /// <summary>編集内容破棄の確認</summary>
-    protected async Task<bool> ConfirmCancelEditAsync () {
-        if (editingItem is not null && !IsNotDirty) {
-            var dialogResult = await DialogService.Confirmation ([$"以下の編集内容が破棄されます。", EditedColumns,], title: "編集破棄", position: DialogPosition.BottomCenter, acceptionLabel: "破棄", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
-            if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
-                Cancel (editingItem);
-                Snackbar.Add ("編集内容を破棄しました。", Severity.Normal);
-            } else {
-                // キャンセルされた場合は、シートの変更を行わない
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /// <summary>ページ遷移時の処理</summary>
-    protected async Task OnLocationChangingAsync (LocationChangingContext context) {
-        if (context.IsNavigationIntercepted && !await ConfirmCancelEditAsync ()) {
-            context.PreventNavigation ();
         }
     }
 

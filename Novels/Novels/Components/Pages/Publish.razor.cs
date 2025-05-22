@@ -42,39 +42,14 @@ public partial class Publish : ItemListBase<Book> {
     /// <summary>無効なURI</summary>
     protected bool IsInvalidUri (string? url) => !Uri.IsWellFormedUriString (url, UriKind.Absolute);
 
-    /// <summary>編集されていない</summary>
-    protected bool IsNotDirty => editingItem is null || backupedItem is null || editingItem.Equals (backupedItem);
-
-    /// <summary>編集開始</summary>
-    protected void StartEdit () {
-        if (editingItem is null && Book is not null) {
-            editingItem = Book;
-            backupedItem = Book.Clone ();
-        }
-    }
-
-    /// <summary>編集内容破棄の確認</summary>
-    protected async Task<bool> ConfirmCancelEditAsync () {
-        if (editingItem is not null && !IsNotDirty) {
-            var dialogResult = await DialogService.Confirmation ([$"編集内容を破棄して書誌を復旧します。", editingItem.ToString (), backupedItem.ToString ()], title: "編集破棄", position: DialogPosition.BottomCenter, acceptionLabel: "破棄", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
-            if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
-                Cancel (editingItem);
-                Snackbar.Add ("編集内容を破棄して書誌を復旧しました。", Severity.Normal);
-            } else {
-                return false;
-            }
-        }
-        return true;
-    }
-
     /// <summary>書籍の削除 (ホームへ遷移)</summary>
     protected async Task DeleteBook () {
         if (Book is not null) {
             var withSheets = !(await JSRuntime.InvokeAsync<ModifierKeys> ("getModifierKeys")).Ctrl;
             var dialogResult = await DialogService.Confirmation ([
                 $"以下の{Book.TableLabel}{(withSheets ? "を" : $"の{Sheet.TableLabel}のみを")}完全に削除します。",
-            Book.ToString (),
-], title: $"{Book.TableLabel}削除", position: DialogPosition.BottomCenter, acceptionLabel: "Delete", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
+                Book.ToString (),
+            ], title: $"{Book.TableLabel}削除", position: DialogPosition.BottomCenter, acceptionLabel: "Delete", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 IsOverlayed = true;
                 StateHasChanged ();
@@ -113,6 +88,7 @@ public partial class Publish : ItemListBase<Book> {
                         StateHasChanged ();
                     }
                     catch (Exception e) {
+                        System.Diagnostics.Debug.WriteLine ($"Exception: {e.Message}\n{e.StackTrace}");
                         Snackbar.Add ($"Exception: {e.Message}", Severity.Error);
                     }
                 }
@@ -124,7 +100,7 @@ public partial class Publish : ItemListBase<Book> {
 
     /// <summary>取得と更新の確認</summary>
     protected async Task<bool> ConfirmUpdateBookAsync () {
-        if (Book is not null && IsNotDirty) {
+        if (Book is not null && !IsDirty) {
             var operation = Book.IsEmpty ? "取得" : "更新";
             var withSheets = !(await JSRuntime.InvokeAsync<ModifierKeys> ("getModifierKeys")).Ctrl;
             var dialogResult = await DialogService.Confirmation ([$"{Book.TableLabel}『{Book.Title}』を{Book.Site}から{operation}します。", withSheets ? "書誌とページの全てを更新します。" : "書誌のみを更新し、ページは更新しません。"], title: $"{Book.TableLabel}{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: Color.Success, acceptionIcon: Icons.Material.Filled.Download);
@@ -153,7 +129,7 @@ public partial class Publish : ItemListBase<Book> {
 
     /// <summary>発行の確認</summary>
     protected async Task<bool> ConfirmPublishBookAsync () {
-        if (Book is not null && IsNotDirty) {
+        if (Book is not null && !IsDirty) {
             var dialogResult = await DialogService.Confirmation ([$"{Book.TableLabel}『{Book.MainTitle}.epub』を<{DataSet.Setting.SmtpMailto}>へ発行します。",], title: $"{Book.TableLabel}発行", position: DialogPosition.BottomCenter, acceptionLabel: "発行", acceptionColor: Color.Success, acceptionIcon: Icons.Material.Filled.Publish);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 // オーバーレイ
@@ -172,7 +148,7 @@ public partial class Publish : ItemListBase<Book> {
 
     /// <summary>発行抹消の確認</summary>
     protected async Task<bool> ConfirmUnPublishBookAsync () {
-        if (Book is not null && Book.Released && IsNotDirty) {
+        if (Book is not null && Book.Released && !IsDirty) {
             var dialogResult = await DialogService.Confirmation ([$"{Book.TableLabel}の発行記録を抹消します。",], title: $"発行抹消", position: DialogPosition.BottomCenter, acceptionLabel: "抹消", acceptionColor: Color.Success, acceptionIcon: Icons.Material.Filled.Download);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 Book.NumberOfPublished = null;
@@ -247,6 +223,7 @@ public partial class Publish : ItemListBase<Book> {
                 }
             }
             catch (Exception e) {
+                System.Diagnostics.Debug.WriteLine ($"Exception: {e.Message}\n{e.StackTrace}");
                 Snackbar.Add ($"Exception: {e.Message}", Severity.Error);
                 Snackbar.Add ($"{Book.TableLabel}の生成に失敗しました。", Severity.Error);
             }
@@ -299,7 +276,7 @@ public partial class Publish : ItemListBase<Book> {
                 result = true;
             }
             catch (Exception e) {
-                System.Diagnostics.Debug.WriteLine ($"Exception: {e.Message}");
+                System.Diagnostics.Debug.WriteLine ($"Exception: {e.Message}\n{e.StackTrace}");
                 Snackbar.Add ($"Exception: {e.Message}", Severity.Error);
             }
         }
@@ -316,19 +293,15 @@ public partial class Publish : ItemListBase<Book> {
         return result;
     }
 
-    /// <summary>ページ遷移時の処理</summary>
-    protected async Task OnLocationChangingAsync (LocationChangingContext context) {
-        if (context.IsNavigationIntercepted && !await ConfirmCancelEditAsync ()) {
-            context.PreventNavigation ();
-        }
-    }
-
     /// <summary>再読み込み</summary>
     protected async Task ReLoadAsync (long bookId) {
         // リロード完了待機
         await DataSet.LoadAsync ();
         // 着目書籍オブジェクトを取得
         Book = DataSet.Books.Find (s => s.Id == bookId);
+        if (Book is not null) {
+            selectedItem = Book;
+        }
         await SetSectionTitle.InvokeAsync (Book is null ? "Publish" : $"<span style=\"font-size:80%;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</span>");
         // 再開
         editingItem = null;
@@ -350,6 +323,9 @@ public partial class Publish : ItemListBase<Book> {
         await reload;
         // 着目書籍オブジェクトを取得
         Book = DataSet.Books.Find (s => s.Id == currentBookId);
+        if (Book is not null) {
+            selectedItem = Book;
+        }
         await SetSectionTitle.InvokeAsync (Book is null ? "Publish" : $"<span style=\"font-size:80%;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</span>");
         StartEdit ();
     }

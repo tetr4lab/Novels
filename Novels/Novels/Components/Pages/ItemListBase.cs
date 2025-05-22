@@ -1,10 +1,11 @@
-﻿using Novels.Data;
-using Novels.Services;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
-using MudBlazor;
-using Tetr4lab;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Routing;
+using MudBlazor;
+using Novels.Data;
+using Novels.Services;
+using Tetr4lab;
 
 namespace Novels.Components.Pages;
 
@@ -295,5 +296,37 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
             NavManager.NavigateTo (uri);
         }
     }
+
+    /// <summary>編集開始</summary>
+    protected virtual void StartEdit () {
+        if (editingItem is null) {
+            editingItem = selectedItem;
+            backupedItem = selectedItem.Clone ();
+        }
+    }
+
+    /// <summary>ページ遷移時の処理</summary>
+    protected virtual async Task OnLocationChangingAsync (LocationChangingContext context) {
+        if (context.IsNavigationIntercepted && !await ConfirmCancelEditAsync ()) {
+            context.PreventNavigation ();
+        }
+    }
+
+    /// <summary>編集内容破棄の確認</summary>
+    protected virtual async Task<bool> ConfirmCancelEditAsync () {
+        if (editingItem is not null && IsDirty) {
+            var dialogResult = await DialogService.Confirmation ([$"編集内容を破棄して編集前の状態を復元します。", editingItem.ToString (), backupedItem.ToString (),], title: "編集破棄", position: DialogPosition.BottomCenter, acceptionLabel: "破棄", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
+            if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
+                Cancel (editingItem);
+                Snackbar.Add ("編集内容を破棄して編集前の状態を復元しました。", Severity.Normal);
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>編集されている</summary>
+    protected bool IsDirty => editingItem is not null && backupedItem is not null && !editingItem.Equals (backupedItem);
 
 }

@@ -139,21 +139,21 @@
     </MudSimpleTable>
     <MudStack Row Class="mt-5 justify-center">
         <MudTooltip Arrow="true" Text="@($"{(Book.IsEmpty ? "取得" : "更新")}^")">
-            <MudIconButton Disabled="@(!IsNotDirty || Book.Status == BookStatus.Disappeared)" OnClick="async () => await ConfirmUpdateBookAsync ()" Color="Color.Primary" Icon="@(Book.IsEmpty ? Icons.Material.Filled.Download : Icons.Material.Filled.Refresh)" Variant="Variant.Outlined" Size="Size.Large" />
+            <MudIconButton Disabled="@(IsDirty || Book.Status == BookStatus.Disappeared)" OnClick="async () => await ConfirmUpdateBookAsync ()" Color="Color.Primary" Icon="@(Book.IsEmpty ? Icons.Material.Filled.Download : Icons.Material.Filled.Refresh)" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
         <MudTooltip Arrow="true" Text="発行">
-            <MudIconButton Disabled="Book.IsEmpty || Book.Released || !IsNotDirty" OnClick="ConfirmPublishBookAsync" Color="Color.Tertiary" Icon="@Icons.Material.Filled.Publish" Variant="Variant.Outlined" Size="Size.Large" />
+            <MudIconButton Disabled="Book.IsEmpty || Book.Released || IsDirty" OnClick="ConfirmPublishBookAsync" Color="Color.Tertiary" Icon="@Icons.Material.Filled.Publish" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
         <MudSpacer />
         <MudTooltip Arrow="true" Text="復旧">
-            <MudIconButton Disabled="IsNotDirty" OnClick="async () => { if (await ConfirmCancelEditAsync ()) StartEdit (); }" Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" />
+            <MudIconButton Disabled="!IsDirty" OnClick="async () => { if (await ConfirmCancelEditAsync ()) StartEdit (); }" Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
         <MudTooltip Arrow="true" Text="保存">
-            <MudIconButton Disabled="IsNotDirty" OnClick="() => { if (editingItem is not null) { Commit (editingItem); StartEdit (); } }" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
+            <MudIconButton Disabled="!IsDirty" OnClick="() => { if (editingItem is not null) { Commit (editingItem); StartEdit (); } }" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
         <MudSpacer />
         <MudTooltip Arrow="true" Text="削除^">
-            <MudIconButton Disabled="!IsNotDirty" OnClick="DeleteBook" Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Variant="Variant.Outlined" Size="Size.Large" />
+            <MudIconButton Disabled="IsDirty" OnClick="DeleteBook" Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
     </MudStack>
 } else if (Book.IsDirectContent) {
