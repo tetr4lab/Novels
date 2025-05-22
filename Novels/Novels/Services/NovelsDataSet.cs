@@ -215,8 +215,9 @@ public sealed class NovelsDataSet : BasicDataSet {
                     }
                 }
             }
-            catch (Exception ex) {
-                issues.Add ($"Exception: {ex.Message}");
+            catch (Exception e) {
+                System.Diagnostics.Debug.WriteLine ($"Exception: {e.Message}\n{e.StackTrace}");
+                issues.Add ($"Exception: {e.Message}");
             }
             return new (status, (book, issues));
         } else {
