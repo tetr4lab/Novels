@@ -54,6 +54,11 @@
             <MudTh>@(Book.Label [nameof (Book.Remarks)])</MudTh>
         </HeaderContent>
         <RowTemplate>
+            @{
+                var isErrorForNumberOfSheets = (context.NumberOfPublished ?? 0) > context.NumberOfRelatedSheets || context.NumberOfRelatedSheets > context.NumberOfSheets;
+                var isUpdatable = context.NumberOfRelatedSheets < context.NumberOfSheets;
+                var isPublishable = (context.NumberOfPublished ?? 0) < context.NumberOfRelatedSheets;
+            }
             <MudTd DataLabel="@(Book.Label[nameof(Book.Id)])" Class="align-right text-nowrap">
                 <MudStack Row Spacing="0" Class="align-center">
                     @if (context.Id == CurrentBookId) {
@@ -72,7 +77,7 @@
             </MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.Title)])">
                 <MudStack Row Spacing="0" Class="align-center">
-                    <MudIconButton OnClick="@(() => PublishBook (context.Id))" Icon="@(context.IsEmpty ? Icons.Material.Filled.Download : Icons.Material.Filled.Publish)" Size="Size.Small" />
+                    <MudIconButton OnClick="@(() => PublishBook (context.Id))" Icon="@(context.IsEmpty ? Icons.Material.Filled.Download : isUpdatable && !isErrorForNumberOfSheets ? Icons.Material.Filled.Refresh : context.Released && !isPublishable ? Icons.Material.Filled.Sync : Icons.Material.Filled.Publish)" Size="Size.Small" />
                     <MudIconButton OnClick="@(() => OpenBook (context.Id))" Icon="@Icons.Material.Filled.ViewHeadline" Size="Size.Small" />
                     <MudText Typo="Typo.inherit">@(context.Title)</MudText>
                 </MudStack>
@@ -110,10 +115,7 @@
                     <MudTooltip Arrow Duration="1000">
                         <ChildContent>
                             <MudStack Row Spacing="0">
-                                <MudText Typo="Typo.inherit" Color="@(
-                                            (context.NumberOfPublished ?? 0) > context.NumberOfRelatedSheets || context.NumberOfRelatedSheets > (context.NumberOfSheets) ? Color.Error :
-                                            (context.NumberOfPublished ?? 0) < context.NumberOfRelatedSheets || context.NumberOfRelatedSheets < (context.NumberOfSheets) ? Color.Warning : Color.Inherit
-                                        )">
+                                <MudText Typo="Typo.inherit" Color="@(isErrorForNumberOfSheets ? Color.Error : isUpdatable ? Color.Warning : Color.Inherit)">
                                     @(context.NumberOfRelatedSheets)
                                 </MudText>
                                 <MudText Typo="Typo.inherit">
@@ -213,7 +215,7 @@
                 IsOverlayed = true;
                 StateHasChanged ();
                 // 入力されたurlからあたらしいBookに情報を取得、DBへ追加・選択する
-                var result = await DataSet.UpdateBookAsync (HttpClient, newUrl, UserIdentifier);
+                var result = await DataSet.UpdateBookFromSiteAsync (HttpClient, newUrl, UserIdentifier);
                 foreach (var issue in result.Value.issues) {
                     Snackbar.Add (issue, Severity.Error);
                 }

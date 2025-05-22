@@ -114,7 +114,7 @@ public sealed class NovelsDataSet : BasicDataSet {
     /// <param name="userIdentifier">ユーザ識別子</param>
     /// <param name="withSheets">シートを含めるか</param>
     /// <returns>書籍と問題のリスト</returns>
-    public async Task<Result<(Book book, List<string> issues)>> UpdateBookAsync (HttpClient client, string url, string userIdentifier, bool withSheets = false, Action<int, int>? progress = null) {
+    public async Task<Result<(Book book, List<string> issues)>> UpdateBookFromSiteAsync (HttpClient client, string url, string userIdentifier, bool withSheets = false, Action<int, int>? progress = null) {
         var issues = new List<string> ();
         var status = Status.Unknown;
         if (Valid) {
