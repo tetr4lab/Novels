@@ -16,7 +16,7 @@ public static class MudDialogServiceHelper {
             ["TextFieldLabel"] = label,
             ["TextFieldValue"] = value,
         };
-        return await service.ShowAsync<InputUrlDialog> ($"{Book.TableLabel}生成", parameters, options);
+        return await service.ShowAsync<InputUrlDialog> ($"{TItem.TableLabel}生成", parameters, options);
     }
 
 }
