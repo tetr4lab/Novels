@@ -1,8 +1,6 @@
-using System.Net.Http;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.JSInterop;
 using MimeKit;
 using MimeKit.Text;
@@ -191,8 +189,7 @@ public partial class Publish : ItemListBase<Book> {
         if (book is not null) {
             var title = $"{book.MainTitle}.epub";
             Snackbar.Add ($"『{title}』の発行を開始しました。", Severity.Normal);
-            var rand = new Random ();
-            var epubPath = $"novels_temp{rand.Next ()}.epub";
+            var epubPath = Path.GetTempFileName ();
             try {
                 // Create an Epub instance
                 var doc = new Epub (book.Title, book.Author);
