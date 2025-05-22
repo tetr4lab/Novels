@@ -1178,5 +1178,5 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         base.GetHashCode ());
 
     /// <inheritdoc/>
-    public override string ToString () => $"{TableLabel} {Id}: {Url1} {_site} {Title} {Author} {NumberOfPublished}/{NumberOfSheets} {PublishedAt} \"{Remarks}\"";
+    public override string ToString () => $"{TableLabel} {Id}: {Url1}, {Url2}, {_site}, {_title}, {_author}, {_status}, {(Readed ? "Readed, " : "")}\"{ReadedMemo}\", {(Wish? "Wish, " : "")}{NumberOfPublished}/{_numberOfSheets}, {PublishedAt}, {(Errata is null ? "" : string.Join (',', Errata.Split ('\n')) + ", ")}\"{Remarks}\"";
 }

@@ -132,5 +132,5 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
         base.GetHashCode ());
 
     /// <inheritdoc/>
-    public override string ToString () => $"{TableLabel} {Id}: {PersonalDocumentLimitSize} {SmtpMailAddress} {SmtpReplyTo} {SmtpServer} {SmtpPort} {SmtpUserName} {SmtpMailto} {SmtpCc} {SmtpBcc} {SmtpSubject} \"{Remarks}\"";
+    public override string ToString () => $"{TableLabel} {Id}: {PersonalDocumentLimitSize}, {SmtpAccount}, {SmtpMailAddress}, {SmtpReplyTo}, {SmtpServer}, {SmtpPort}, {SmtpUserName}, {SmtpMailto}, {SmtpCc}, {SmtpBcc}, {SmtpSubject}, {SmtpBody}, \"{Remarks}\"";
 }

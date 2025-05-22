@@ -521,5 +521,5 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         base.GetHashCode ());
 
     /// <inheritdoc/>
-    public override string ToString () => $"{TableLabel} {Id}: {Url} {NovelNumber} {SheetUpdatedAt} \"{Remarks}\"";
+    public override string ToString () => $"{TableLabel} {Id}: {Url}, {NovelNumber}, {SheetUpdatedAt}, {(Errata is null ? "" : string.Join (',', Errata.Split ('\n')) + ", ")}\"{Remarks}\"";
 }
