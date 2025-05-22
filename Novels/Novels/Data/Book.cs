@@ -149,9 +149,10 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <summary>内容が空である</summary>
     public bool IsEmpty => NumberOfRelatedSheets <= 0 && string.IsNullOrEmpty (DirectContent);
 
-    /// <summary>更新されている</summary>
+    /// <summary>更新されている (不完全)</summary>
     public bool IsDirty { get; protected set; } = false;
 
+    /// <summary>外向きの状態</summary>
     public BookStatus Status {
         get => _status.ToBookStatus ();
         set {
@@ -205,7 +206,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <summary>ダイレクトコンテントである</summary>
     public bool IsDirectContent => !string.IsNullOrEmpty (_directContent);
 
-    /// <summary>外向きのシート数</summary>
+    /// <summary>外向きのシート(Url)数</summary>
     public int NumberOfSheets {
         get {
             if (_numberOfSheets is null) {

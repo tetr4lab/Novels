@@ -62,7 +62,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     /// <summary>サイト</summary>
     public Site Site => Book.Site;
 
-    /// <summary>更新されている</summary>
+    /// <summary>更新されている (不完全)</summary>
     public bool IsDirty { get; protected set; } = false;
 
     /// <summary>シートのタイトル</summary>
