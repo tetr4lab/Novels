@@ -131,15 +131,19 @@
                 <td>@(Book.Label [nameof (Book.Remarks)])</td>
                 <td><MudTextField T="string" @bind-Value="Book.Remarks" Lines="10" /></td>
             </tr>
-            <tr>
-                <td>@(Book.Label [nameof (Book.Html)])</td>
-                <td><MudTextField Disabled="true" T="string" @bind-Value="Book._html" Lines="10" /></td>
-            </tr>
         </tbody>
     </MudSimpleTable>
     <MudStack Row Class="mt-5 justify-center">
-        <MudTooltip Arrow="true" Text="@($"{(Book.IsEmpty ? "取得" : "更新")}^")">
-            <MudIconButton Disabled="@(IsDirty || Book.Status == BookStatus.Disappeared)" OnClick="async () => await ConfirmUpdateBookAsync ()" Color="Color.Primary" Icon="@(Book.IsEmpty ? Icons.Material.Filled.Download : Icons.Material.Filled.Refresh)" Variant="Variant.Outlined" Size="Size.Large" />
+        <MudTooltip Arrow="true">
+            <TooltipContent>
+                @(Book.IsEmpty ? "取得" : "更新")<br />
+                <span style="writing-mode: vertical-rl;">（</span><br />
+                <span style="border: 1px solid;border-radius: 10%;">Ctrl</span><br />
+                <span style="writing-mode: vertical-rl;">で@(Sheet.TableLabel)を含めない）</span>
+            </TooltipContent>
+            <ChildContent>
+                <MudIconButton Disabled="@(IsDirty || Book.Status == BookStatus.Disappeared)" OnClick="async () => await ConfirmUpdateBookAsync ()" Color="Color.Primary" Icon="@(Book.IsEmpty ? Icons.Material.Filled.Download : Icons.Material.Filled.Refresh)" Variant="Variant.Outlined" Size="Size.Large" />
+            </ChildContent>
         </MudTooltip>
         <MudTooltip Arrow="true" Text="発行">
             <MudIconButton Disabled="Book.IsEmpty || Book.Released || IsDirty" OnClick="ConfirmPublishBookAsync" Color="Color.Tertiary" Icon="@Icons.Material.Filled.Publish" Variant="Variant.Outlined" Size="Size.Large" />
@@ -152,8 +156,16 @@
             <MudIconButton Disabled="!IsDirty" OnClick="() => { if (editingItem is not null) { Commit (editingItem); StartEdit (); } }" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
         <MudSpacer />
-        <MudTooltip Arrow="true" Text="削除^">
-            <MudIconButton Disabled="IsDirty" OnClick="DeleteBook" Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Variant="Variant.Outlined" Size="Size.Large" />
+        <MudTooltip Arrow="true">
+            <TooltipContent>
+                削除<br />
+                <span style="writing-mode: vertical-rl;">（</span><br />
+                <span style="border: 1px solid;border-radius: 10%;">Ctrl</span><br />
+                <span style="writing-mode: vertical-rl;">で@(Sheet.TableLabel)のみ）</span>
+            </TooltipContent>
+            <ChildContent>
+                <MudIconButton Disabled="IsDirty" OnClick="DeleteBook" Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Variant="Variant.Outlined" Size="Size.Large" />
+            </ChildContent>
         </MudTooltip>
     </MudStack>
 } else if (Book.IsDirectContent) {
