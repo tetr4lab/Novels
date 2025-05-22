@@ -315,10 +315,10 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
     /// <summary>編集内容破棄の確認</summary>
     protected virtual async Task<bool> ConfirmCancelEditAsync () {
         if (editingItem is not null && IsDirty) {
-            var dialogResult = await DialogService.Confirmation ([$"編集内容を破棄して編集前の状態を復元します。", "　", $"破棄される{editingItem}", "　⬇", $"復元される{backupedItem}",], title: "編集破棄", position: DialogPosition.BottomCenter, width: MaxWidth.Large, acceptionLabel: "破棄", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
+            var dialogResult = await DialogService.Confirmation ([$"編集内容を破棄して編集前の状態を復元します。", "　", $"破棄される{editingItem}", "　⬇", $"復元される{backupedItem}",], title: $"{T.TableLabel}編集破棄", position: DialogPosition.BottomCenter, width: MaxWidth.Large, acceptionLabel: "破棄", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 Cancel (editingItem);
-                Snackbar.Add ("編集内容を破棄して編集前の状態を復元しました。", Severity.Normal);
+                Snackbar.Add ($"{T.TableLabel}の編集内容を破棄して編集前の状態を復元しました。", Severity.Normal);
             } else {
                 return false;
             }
