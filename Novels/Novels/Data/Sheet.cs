@@ -48,7 +48,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     [Column ("html")] protected string? _html { get; set; } = null;
     /// <summary>公に明示された更新日時、または、シートの取り込み日時</summary>
     [Column ("sheet_update")] public DateTime? SheetUpdatedAt { get; set; } = null;
-    /// <summary>シートの並び順 新規では、シート生成時に1からの連番が振られる (FMでは別ルールで生成された)</remarks>
+    /// <summary>シートの並び順 新規では、シート生成時に1からの連番が振られる</remarks>
     [Column ("novel_no"), Required] public int NovelNumber { get; set; } = 0;
     /// <summary>直書き 番号、章題、本文に分解して使われ、再構成される</summary>
     [Column ("direct_content")] protected string? _directContent { get; set; } = null;
