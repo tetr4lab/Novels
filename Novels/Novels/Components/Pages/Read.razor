@@ -70,7 +70,7 @@
     } else {
         <MudText>No books found.</MudText>
     }
-} else if (!string.IsNullOrEmpty (Book.Html)) {
+} else if (Book.Site == Site.Unknown && !string.IsNullOrEmpty (Book.Html)) {
     var body = Book.Document?.QuerySelector ("body");
     if (body is not null && body.TextContent != Book.Html) {
         @((MarkupString) body.InnerHtml)
