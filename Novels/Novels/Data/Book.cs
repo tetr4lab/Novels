@@ -172,11 +172,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public int StatusPriority => ((int) Status) + (Readed ? 10 : 0);
 
     /// <summary>書誌、または、シートから得られる最終更新日時</summary>
-    // Case (
-    // not IsEmpty ( direct_content ) ; modified ;
-    // not IsEmpty ( sheet_updates ) ; MaxTimestamp ( sheet_updates ) + Case ( site = 2 ; Time ( 9 ; 0 ; 0 ) ; 0 ) ;
-    // Count ( Sheet::sheet_lastupdate ) ; Max ( Sheet::sheet_lastupdate ) ;
-    //  modified )
     public DateTime LastUpdate {
         get {
             if (!string.IsNullOrEmpty (_directContent)) {
@@ -194,7 +189,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     }
 
     /// <summary>発行済みである</summary>
-    // If ( not IsEmpty ( number_of_published ) and number_of_published ≥ number_of_sheets and ( IsEmpty ( published_at ) or published_at ≥ last_update ) ; 1 )
     public bool Released =>
         NumberOfPublished is not null && NumberOfPublished >= NumberOfSheets
         && (PublishedAt is null || PublishedAt >= LastUpdate);
@@ -292,10 +286,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     }
 
     /// <summary>シリーズタイトル</summary>
-    // Correct ( Substitute ( TrimLF ( TagRemove ( Case (
-    // site = 1; sExtract ( html ; "<p class=\"series_title\">" ; "</p>" ) ;
-    // site = 4; sExtract ( novel_title ; "『" ; "』" ) ;
-    // "" ) ) ) ; "　" ; " " ) ; errata )
     public string SeriesTitle {
         get {
             // 存在しないことはよくあるので空文字を許容し、nullの場合のみ解析する
@@ -323,35 +313,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     protected string? __seriesTitle = null;
 
     /// <summary>外向けのタイトル (検出結果が<see cref="_title" />に反映される)</summary>
-    // Let ( [
-    // Title = If ( IsEmpty ( html ) ; "" ; Correct ( Substitute ( TrimLF ( TagRemove ( Case (
-    // site = 1; Substitute ( Let ( [
-    //   tmp = sExtract ( html ; "<p class=\"novel_title\">" ; "</p>" ) ;
-    //   tmp = If ( tmp <> "" ; tmp ; sExtract ( html ; "<h1 class=\"p-novel__title\">" ; "</h1>" ) )
-    // ];
-    //   tmp
-    // ) ; ["&quot;" ; "\""] ) ;
-    // site = 2; sExtract ( html ; "<h1 id=\"workTitle\">" ; "</h1>" ) ;
-    // site = 3; TrimLFx ( sExtract ( html ; "<div class=\"novel_title\">" ; "</div>" ) ) ;
-    // site = 4; TagRemove ( sExtract ( html ; "<div class=\"cat-title\">" ; "</div>" ) ) ;
-    // site = 5; TagRemove ( sExtractEnclosed ( html ; "<h1 class=\"Heading_heading" ; "</h1>" ) ) ;
-    //  ) ) ) ; "　" ; " " ) ; errata ) );
-    // memo1 = GetValue ( direct_title_writername ; 1 )
-    //  ] ; 
-    //     If ( IsEmpty ( Title ) ; 
-    //         If ( IsEmpty ( memo1 ) ; 
-    //             If ( IsEmpty ( direct_title_writername ) ;
-    //                 If ( IsEmpty ( memo ) ; 
-    //                     TextColor ( url ; RGB ( 100 ; 100 ; 100 ) ) ; 
-    //                     TextColor ( GetValue ( memo ; 1 ) ; RGB ( 100 ; 100 ; 100 ) ) 
-    //                 ) ;
-    //                 TextColor ( GetValue ( direct_title_writername ; 1 ) ; RGB ( 100 ; 100 ; 100 ) ) 
-    //             ) ; 
-    //             TextColor ( memo1 ; RGB ( 100 ; 100 ; 100 ) ) 
-    //         ) ; 
-    //         Title 
-    //     )
-    //  )
     public string Title {
         get {
             if (string.IsNullOrEmpty (_title)) {
@@ -400,11 +361,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     protected char [] TitleSeparator = { '～', '〜', '－', '（' };
 
     /// <summary>メインタイトル</summary>
-    // Correct ( Case ( 
-    // PatternCount ( novel_title ; "～" ) = 2 ; Trim ( Left ( novel_title ; Position ( novel_title ; "～" ; 1 ; 1 ) - 1 ) );
-    // PatternCount ( novel_title ; "〜" ) = 2 ; Trim ( Left ( novel_title ; Position ( novel_title ; "〜" ; 1 ; 1 ) - 1 ) );
-    // PatternCount ( novel_title ; "－" ) = 2 ; Trim ( Left ( novel_title ; Position ( novel_title ; "－" ; 1 ; 1 ) - 1 ) );
-    //  novel_title ) ; errata )
     public string MainTitle {
         get {
             if (string.IsNullOrEmpty (__mainTitle)) {
@@ -427,10 +383,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     protected string? __mainTitle = null;
 
     /// <summary>サブタイトル</summary>
-    // Correct ( Case ( 
-    // PatternCount ( novel_title ; "～" ) = 2 ; Trim ( Right ( novel_title ; Length ( novel_title ) + 1 - Position ( novel_title ; "～" ; 1 ; 1 ) ) );
-    // PatternCount ( novel_title ; "－" ) = 2 ; Trim ( Right ( novel_title ; Length ( novel_title ) + 1 - Position ( novel_title ; "－" ; 1 ; 1 ) ) );
-    //  "" ) ; errata )
     public string SubTitle {
         get {
             if (string.IsNullOrEmpty (__subTitle)) {
@@ -457,37 +409,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public bool HasChapterSubTitle => Site == Site.Kakuyomu || Site == Site.KakuyomuOld;
 
     /// <summary>外向けの著者 (検出結果が<see cref="_author" />に反映される)</summary>
-    // Let ( [
-    // Author = If ( IsEmpty ( html ) ; "" ; Correct ( Substitute ( TrimLF ( TagRemove ( Case (
-    // site = 1 ; Substitute ( Let ( [
-    //   tmp = sExtract ( html ; "<div class=\"novel_writername\">" ; "</div>" ) ;
-    //   tmp = If ( tmp <> "" ; tmp ; sExtract ( html ; "<div class=\"p-novel__author\">" ; "</div>" ) )
-    //  ];
-    //   tmp
-    //  ) ; "作者：" ; "" )  ;
-    // site = 2 ; sExtract ( html ; "<span id=\"workAuthor-activityName\">" ; "</span>" ) ;
-    // site = 3 ; TrimLFx ( sExtract ( html ; "<div class=\"novel_author\">" ; "</div>" ) ) ;
-    // site = 4 ; "dy冷凍" ;
-    // site = 5 ; TagRemove ( sExtractEnclosed ( html ; "<a href=\"/users" ; "</a>" ) ) ;
-    //  ) ) ) ; "　" ; " " ) ; errata ) );
-    // memo2 = GetValue ( direct_title_writername ; 2 )
-    //  ] ; 
-    // GetNormalizedAuthorName ( 
-    //     If ( IsEmpty ( Author ) ; 
-    //         If ( IsEmpty ( memo2 ) ; 
-    //             If ( IsEmpty ( direct_title_writername ) ;
-    //                 If ( IsEmpty ( memo ) ; 
-    //                     TextColor ( url ; RGB ( 100 ; 100 ; 100 ) ) ; 
-    //                     TextColor ( GetValue ( memo ; 2 ) ; RGB ( 100 ; 100 ; 100 ) ) 
-    //                 ) ;
-    //                 TextColor ( GetValue ( direct_title_writername ; 2 ) ; RGB ( 100 ; 100 ; 100 ) ) 
-    //             ) ; 
-    //             TextColor ( memo2 ; RGB ( 100 ; 100 ; 100 ) ) 
-    //         ) ; 
-    //         Author 
-    //     )
-    //  )
-    //  )
     public string Author {
         get {
             if (string.IsNullOrEmpty (_author)) {
@@ -533,17 +454,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     }
 
     /// <summary>説明</summary>
-    // Correct ( Case ( 
-    // site = 1 ; TrimLFx ( TagRemove ( Let ( [
-    //   tmp = sExtract ( html ; "<div id=\"novel_ex\">" ; "</div>" ) ;
-    //   tmp = If ( tmp <> "" ; tmp ; sExtract ( html ; "<div id=\"novel_ex\" class=\"p-novel__summary\">" ; "</div>" ) )
-    //  ];
-    //   tmp
-    // ) ) ) ;
-    // site = 2 ; TrimLFx ( TagRemove ( sExtract ( Substitute ( html ; "<span class=\"ui-truncateTextButton-expandButton-label\" aria-hidden=\"true\">…続きを読む</span>" ; "" ) ; "<p id=\"introduction\" class=\"ui-truncateTextButton js-work-introduction\">" ; "</p>" ) ) ) ;
-    // site = 3 ; Substitute ( TrimLFx ( TagRemove ( sExtract ( html ; "<div class=\"novel_synopsis\">" ; "</div>" ) ) ) ; [Char(13) & Char(10) ; ¶] ) ;
-    // site = 5 ; TrimLFx ( TagRemove ( sExtractEnclosed ( html ; "<div class=\"CollapseTextWithKakuyomuLinks" ; "</div>" ) ) ) ;
-    // ) ; errata )
     public string Explanation {
         get {
             // 存在しないことはよくあるので空文字を許容し、nullの場合のみ解析する
@@ -577,43 +487,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     protected string? __explanation = null;
 
     /// <summary>書誌に記された各シートのURL</summary>
-    // Case (
-    // site = 1 ; Let ( [
-    //   urls = Substitute ( ¶ & sExtract2List ( Let ( [
-    //     tmp = sExtract2List ( html ; "<dl class=\"novel_sublist2\">" ; "</dl>" ) ;
-    //     tmp = If ( tmp <> "" ; tmp ; sExtract2List ( html ; "<div class=\"p-eplist__sublist\">" ; "</div>" ) )
-    //   ];
-    //     tmp
-    //   ) ; "<a href=\"" ; "\"" ) ; "¶/" ; ¶ & Left ( url ; Position ( url ; "/" ; 1 ; 3 ) ) )
-    // ] ;
-    //   Right ( urls ; Length ( urls ) - 1 )
-    // ) ;
-    // site = 2 ; Let ( [
-    // urls = sExtract2List ( sExtract2List ( html ; "<li class=\"widget-toc-episode\">" ; "</li>" ) ; "<a href" ; "\" class=\"widget-toc-episode-episodeTitle\">" )
-    // ] ; Case (
-    // Left (urls ; 3 ) = "=\"/" ; Substitute ( urls ; "=\"/" ; Left ( url ; Position ( url ; "/" ; 1 ; 3 ) ) ) ;
-    // Right (url ; 1 ) = "/" ; Substitute ( urls ; "=\"/" ; url ) ;
-    // Substitute ( urls ; "=\"" ; url )
-    //  ) ) ;
-    // site = 3 ; Let ( [
-    // urls = sExtract2List ( sExtract2List ( html ; "<div class=\"episode_link episode_show_visited\">" ; "</div>" ) ; "<a href" ; "\">" )
-    // ] ; Case (
-    // Left (urls ; 3 ) = "=\"/" ; Substitute ( urls ; "=\"/" ; Left ( url ; Position ( url ; "/" ; 1 ; 3 ) ) ) ;
-    // Right (url ; 1 ) = "/" ; Substitute ( urls ; "=\"/" ; url ) ;
-    // Substitute ( urls ; "=\"" ; "" )
-    //  ) ) ;
-    // site = 4 ; Let ( [
-    // urls = sExtract2List ( sExtract2List ( html ; "<div class=\"mokuji\">" ; "</div>" ) ; "<a href" ; "\">" )
-    // ] ; Case (
-    // Left (urls ; 6 ) = "=\"http" ; Substitute ( urls ; "=\"http" ; "http" ) ;
-    // Left (urls ; 3 ) = "=\"/" ; Substitute ( urls ; "=\"/" ; Left ( url ; Position ( url ; "/" ; 1 ; 3 ) ) ) ;
-    // Right (url ; 1 ) = "/" ; Substitute ( urls ; "=\"/" ; url ) ;
-    // Substitute ( urls ; "=\"" ; url )
-    //  ) ) ;
-    // site = 5 ; Let ( [
-    // urls = Substitute ( Trim ( sExtract2List ( html ; "\"__typename\":\"Episode\"," ; "\"title\":" ) ) ; [ "\"id\":\"" ; url & "/episodes/" ] ; [ "\"," ; "" ] )
-    // ] ; urls ) ;
-    //  "" )
     public List<string> SheetUrls {
         get {
             if (__sheetUrls is null && !string.IsNullOrEmpty (_html) && Document is not null) {
@@ -664,17 +537,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     protected List<string>? __sheetUrls = null;
 
     /// <summary>書誌に記された各シートの更新日時</summary>
-    // Case (
-    // site = 1 ; sExtracts2List ( Let ( [
-    //   tmp = sExtract2List ( html ; "<dl class=\"novel_sublist2\">" ; "</dl>" ) ;
-    //   tmp = If (tmp <> "" ; tmp ; sExtract2List ( html ; "<div class=\"p-eplist__sublist\">" ; "</div>" ) )
-    //  ];
-    //   tmp
-    // ) ; "<span title=\"" ; " 改稿\">" ; "<dt class=\"long_update\">" ; "</dt>" ) ;
-    // site = 2 ; Substitute ( sExtract2List ( sExtract2List ( html ; "<li class=\"widget-toc-episode\">" ; "</li>" ) ; "<time class=\"widget-toc-episode-datePublished\" datetime=\"" ; "Z\">" ) ; ["T" ; " "] ; ["-" ; "/"] ) ;
-    // site = 3 ; sExtract2List ( sExtract2List ( html ; "<div class=\"update_date\">" ; "</div>" ) ; "<span>投稿日<span>" ; "</span>" ) ;
-    // site = 5 ; repeat ( Substitute ( sExtract2List ( html ; "\"editedAt\":\"" ; "\"," ) ; ["T" ; " "] ; ["Z" ; ¶] ; ["-" ; "/"] ) ; number_of_sheets ) ;
-    //  "" )
     public List<DateTime> SheetUpdateDates {
         get {
             if (__sheetUpdateDates is null && !string.IsNullOrEmpty (_html) && Document is not null) {
@@ -743,11 +605,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     protected List<DateTime>? __sheetUpdateDates = null;
 
     /// <summary>最終ページ</summary>
-    // 変数を設定 [ $最終ページ; 値:Let ([
-    //  pager = Extract ( Book::html ; "novelview_pager-next" ; "novelview_pager-last" );
-    //  pager = If ( pager <> "" ; pager ; Extract ( Book::html ; "c-pager__item--next" ; "c-pager__item--last" ) );
-    //  maxpage = Extract ( pager ; "p=" ; "\" " ) ]
-    //  ; GetAsNumber ( maxpage ) ) ]
     public int LastPage {
         get {
             if ((Site == Site.Narou || Site == Site.Novel18) && __lastPage <= 0 && !string.IsNullOrEmpty (_html) && Document is not null) {
@@ -770,90 +627,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <param name="monadic">単独記号以降を削除するか</param>
     /// <param name="binary">対合記号を削除するか</param>
     /// <param name="brackets">丸括弧を削除するか</param>
-    // Let ([
-    // 	s = Position ( text ; "【" ; 1 ; 1 );
-    // 	e = Position ( text ; "】" ; -1 ; 1 );
-    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    // 
-    // 	s = Position ( text ; "【" ; 1 ; 1 );
-    // 	e = Position ( text ; "】" ; -1 ; 1 );
-    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    // 
-    // 	s = Position ( text ; "【" ; 1 ; 1 );
-    // 	e = Position ( text ; "】" ; -1 ; 1 );
-    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    // 
-    // 	s = Position ( text ; "[" ; 1 ; 1 );
-    // 	e = Position ( text ; "]" ; -1 ; 1 );
-    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    // 
-    // //	s = Position ( text ; "(" ; 1 ; 1 );
-    // //	e = Position ( text ; ")" ; -1 ; 1 );
-    // //	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    // 
-    // 	s = Position ( text ; "{" ; 1 ; 1 );
-    // 	e = Position ( text ; "}" ; -1 ; 1 );
-    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    // 
-    // 	s = Position ( text ; "<" ; 1 ; 1 );
-    // 	e = Position ( text ; ">" ; -1 ; 1 );
-    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    // 
-    // 	s = Position ( text ; "［" ; 1 ; 1 );
-    // 	e = Position ( text ; "］" ; -1 ; 1 );
-    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    // 
-    // //	s = Position ( text ; "（" ; 1 ; 1 );
-    // //	e = Position ( text ; "）" ; -1 ; 1 );
-    // //	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    // 
-    // 	s = Position ( text ; "｛" ; 1 ; 1 );
-    // 	e = Position ( text ; "｝" ; -1 ; 1 );
-    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    // 
-    // 	s = Position ( text ; "〔" ; 1 ; 1 );
-    // 	e = Position ( text ; "〕" ; -1 ; 1 );
-    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    // 
-    // 	s = Position ( text ; "＜" ; 1 ; 1 );
-    // 	e = Position ( text ; "＞" ; -1 ; 1 );
-    // 	text = If ( s > 0 and e > s ; Left ( text ; s - 1 ) & Middle ( text ; e + 1 ; Length ( text ) ) ; text );
-    // 
-    // 	text = Trim ( text );
-    // 	s = Position ( text ; "@" ; 1 ; 1 );
-    // 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
-    // 
-    // 	text = Trim ( text );
-    // 	s = Position ( text ; "＠" ; 1 ; 1 );
-    // 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
-    // 
-    // 	text = Trim ( text );
-    // 	s = Position ( text ; "～" ; 1 ; 1 );
-    // 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
-    // 
-    // 	text = Trim ( text );
-    // 	s = Position ( text ; "〜" ; 1 ; 1 );
-    // 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
-    // 
-    // 	text = Trim ( text );
-    // 	s = Position ( text ; "─" ; 1 ; 1 );
-    // 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
-    // 
-    // 	text = Trim ( text );
-    // 	s = Position ( text ; "…" ; 1 ; 1 );
-    // 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
-    // 
-    // 	text = Trim ( text );
-    // 	s = Position ( text ; "、" ; 1 ; 1 );
-    // 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
-    // 
-    // 	text = Trim ( text );
-    // 	s = Position ( text ; "。" ; 1 ; 1 );
-    // 	text = If (  s > 1 ; Left ( text ; s - 1 ) ; text );
-    // 
-    // _ = "" ] ;
-    // 	
-    // 	Trim ( text )
     public string GetNormalizedName (string name, bool monadic = true, bool binary = true, bool brackets = false) {
         if (string.IsNullOrEmpty (name)) {
             return "";
@@ -962,15 +735,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     }
 
     /// <summary>文字校正</summary>
-    // // text を errata で corect する、errataは行毎に1件、"\n"を改行文字、char(9)をセパレータとする。セパレータがない場合は単にerrorを削除する。
-    // If ( IsEmpty( text ) or IsEmpty( errata ) ; text ; Let ([
-    // 	errr = Substitute( GetValue( errata ; 1 ) ; Char(9) ; ¶ ) ;
-    // 	crct = Substitute( GetValue( errr ; 2 ) ; "\n" ; ¶ );
-    // 	errr = Substitute( GetValue( errr ; 1 ) ; "\n" ; ¶ );
-    // 	errata = RightValues ( errata ; ValueCount( errata ) - 1 )
-    // ];
-    // 	Correct( Substitute( text ; errr ; crct ) ; errata )
-    // ))
     public string? Correct (string? text) {
         if (string.IsNullOrEmpty (text) || string.IsNullOrEmpty (Errata)) {
             return text;

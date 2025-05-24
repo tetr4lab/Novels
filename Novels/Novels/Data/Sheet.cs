@@ -63,14 +63,6 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     public Site Site => Book.Site;
 
     /// <summary>シートのタイトル</summary>
-    // NovelSubTitle = 
-    // Correct ( Substitute ( TrimLF ( TagRemove ( ReplaceRuby ( Case (
-    //   site=1 ; sExtract ( html ; "<p class=\"novel_subtitle\">" ; "</p>" ) ;
-    //   site=2 ; sExtract ( html ; "<p class=\"widget-episodeTitle js-vertical-composition-item\">" ; "</p>" ) ;
-    //   site=3 ; TrimLFx ( sExtract ( html ; "<div class=\"episode_title\">" ; "</div>" ) ) ; 
-    //   site=4 ; sExtract ( sExtract ( html ; "<article " ; "</article>" ) ; "<h1>" ; "</h1>" ) ;
-    //   direct_subtitle
-    //  ) ) ) ) ; ["　" ; " "] ; ["［" ; "〔"] ; ["］" ; "〕"] ) ; errata )
     public string SheetTitle {
         get {
             if (__sheetTitle is null) {
@@ -164,18 +156,6 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
 
     /// <summary>シートの本文</summary>
     // AngleSharpは`<br />`を`<br>`に変換するが、HTML5ではそれが推奨されている
-    // NovelHonbun = 
-    // Correct ( TrimLFx ( ReplaceRepeater ( TagRemove ( ReplaceRuby ( Case (
-    // site=1 ; Let ( [ 
-    //   tmp = sExtract ( html ; "<div id=\"novel_honbun\" class=\"novel_view\">" ; "</div>" ) ;
-    //   tmp = If ( tmp <> "" ; tmp ; fExtract ( sExtract ( html ; "<div class=\"js-novel-text p-novel__text\"" ; "</div>" ) ; ">" ; "" ) )
-    // ];
-    //   tmp
-    // ) ;
-    // site=2 ; "<" & sExtract ( html ; "<div class=\"widget-episodeBody js-episode-body\"" ; "</div>" ) ;
-    // site=3 ; Substitute ( sExtract ( html ; "<div class=\"content\">" ; "</div>" ) ; [Char(13) & Char(10) ; ¶] );
-    // site=4 ; Substitute ( sExtract2List ( sExtract ( "<" & sExtract ( html ; "<article " ; "</article>" ) ; "<!-- a -->" ; "<!-- ｓ -->" ) ; "<p>" ; "</p>" ) ; ["<br />" ; ¶] ) ;
-    // direct_honbun ) ) ) ; "-" ; 10 ; "‒" ) ) ; errata )
     public string SheetHonbun {
         get {
             if (__sheetHonbun is null) {
@@ -309,18 +289,6 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     }
 
     /// <summary>シートから抽出された章題</summary>
-    // Correct ( Substitute ( TrimLF ( TagRemove ( ReplaceRuby ( Case (
-    // site=1 ; Let ( [
-    //   tmp = sExtract ( html ; "<p class=\"chapter_title\">" ; "</p>" ) ;
-    //   tmp = If ( tmp <> "" ; tmp ; sExtract ( html ; "<h1 class=\"p-novel__title p-novel__title--rensai\">" ; "</h1>" ) )
-    // ] ;
-    //   tmp
-    // ) ;
-    // site=2 ; sExtract ( html ; "<p class=\"chapterTitle level1 js-vertical-composition-item\">" ; "</p>" ) ;
-    // site=3 ; TrimLFx ( sExtract ( html ; "<div class=\"episode_chapter\">" ; "</div>" ) ) ;
-    // site=4 ; "" ;
-    // direct_number > 0 ; direct_number
-    //  ) ) ) ) ; "　" ; " " ) ; errata )
     public string OriginalChapterTitle {
         get {
             if (__originalChapterTitle is null && !string.IsNullOrEmpty (_html) && Document is not null) {
@@ -360,12 +328,6 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     protected string? __chapterTitle = null;
 
     /// <summary>シートから抽出された副章題</summary>
-    // Correct ( Substitute ( TrimLF ( TagRemove ( ReplaceRuby ( Case (
-    // site=1 ; "" ;
-    // site=2 ; sExtract ( html ; "<p class=\"chapterTitle level2 js-vertical-composition-item\">" ; "</p>" ) ;
-    // site=3 ; "" ; 
-    // site=4 ; "" ; 
-    //  ) ) ) ) ; ["　" ; " "] ; ["［" ; "〔"] ; ["］" ; "〕"] ) ; errata )
     public string ChapterSubTitle {
         get {
             if (__chapterSubTitle is null && !string.IsNullOrEmpty (_html) && Document is not null) {
@@ -384,15 +346,6 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     protected string? __chapterSubTitle = null;
 
     /// <summary>文字校正</summary>
-    // // text を errata で corect する、errataは行毎に1件、"\n"を改行文字、char(9)をセパレータとする。セパレータがない場合は単にerrorを削除する。
-    // If ( IsEmpty( text ) or IsEmpty( errata ) ; text ; Let ([
-    // 	errr = Substitute( GetValue( errata ; 1 ) ; Char(9) ; ¶ ) ;
-    // 	crct = Substitute( GetValue( errr ; 2 ) ; "\n" ; ¶ );
-    // 	errr = Substitute( GetValue( errr ; 1 ) ; "\n" ; ¶ );
-    // 	errata = RightValues ( errata ; ValueCount( errata ) - 1 )
-    // ];
-    // 	Correct( Substitute( text ; errr ; crct ) ; errata )
-    // ))
     public string? Correct (string? text) {
         if (string.IsNullOrEmpty (text) || string.IsNullOrEmpty (Errata)) {
             return text;
