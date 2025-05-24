@@ -1,8 +1,6 @@
 ﻿using PetaPoco;
-using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using MudBlazor;
-using System.Xml.Linq;
 using Novels.Components.Pages;
 using Novels.Services;
 using System.Data;
@@ -47,14 +45,14 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
 
     [Column ("book_id"), Required] public long BookId { get; set; } = 0;
     [Column ("url")] public string Url { get; set; } = "";
-    [Column ("html")] public string? _html { get; set; } = null;
+    [Column ("html")] protected string? _html { get; set; } = null;
     /// <summary>公に明示された更新日時、または、シートの取り込み日時</summary>
     [Column ("sheet_update")] public DateTime? SheetUpdatedAt { get; set; } = null;
     /// <summary>シートの並び順 新規では、シート生成時に1からの連番が振られる (FMでは別ルールで生成された)</remarks>
     [Column ("novel_no"), Required] public int NovelNumber { get; set; } = 0;
     /// <summary>直書き 番号、章題、本文に分解して使われ、再構成される</summary>
-    [Column ("direct_content")] public string? _directContent { get; set; } = null;
-    [Column ("errata")] public string? _errata { get; set; } = null;
+    [Column ("direct_content")] protected string? _directContent { get; set; } = null;
+    [Column ("errata")] protected string? _errata { get; set; } = null;
 
     /// <summary>シートが所属する書籍</summary>
     public Book Book { get; set; } = null!;
@@ -195,6 +193,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     public bool IsDirectContent => !string.IsNullOrEmpty (_directContent);
 
     /// <summary>直書きの本文</summary>
+    /// <remarks>結果が<see cref="_directContent" />に反映される。</remarks>
     // directContentの2行目以降
     public string? DirectContent {
         get {
@@ -215,6 +214,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     protected List<string>? __directLines = null;
 
     /// <summary>直書きの番号</summary>
+    /// <remarks>結果が<see cref="_directContent" />に反映される。</remarks>
     // directContentの1行目で行頭の数値
     public int DirectNumber {
         get {
@@ -233,6 +233,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     protected int __directNumber = -1;
 
     /// <summary>直書きのタイトル</summary>
+    /// <remarks>結果が<see cref="_directContent" />に反映される。</remarks>
     // directContentの1行目で行頭の数値より後
     public string DirectTitle {
         get {
@@ -251,6 +252,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     protected string? __directTitle = null;
 
     /// <summary>直書きの構成</summary>
+    /// <remarks>結果が<see cref="_directContent" />に反映される。</remarks>
     protected void ConstructDirectContent () {
         if (__directNumber >= 0 && __directTitle is not null && __directContent is not null) {
             var content = $"{__directNumber} {__directTitle}\n{__directContent}";
@@ -361,6 +363,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     }
 
     /// <summary>外向けのHTML</summary>
+    /// <remarks>結果が<see cref="_html" />に反映される。</remarks>
     public string? Html {
         get => _html;
         set {
@@ -371,7 +374,8 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         }
     }
 
-    /// <summary>外向きの正誤表</summary>
+    /// <summary>外向けの正誤表</summary>
+    /// <remarks>結果が<see cref="_errata" />に反映される。</remarks>
     public string? Errata {
         get => _errata;
         set {

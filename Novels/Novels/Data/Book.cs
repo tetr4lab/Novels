@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Text.RegularExpressions;
 using AngleSharp.Html.Dom;
@@ -30,6 +29,10 @@ public enum Site {
     Kakuyomu = 5,
     /// <summary>小説家になろう(年齢制限)</summary>
     Novel18 = 6,
+    /// <summary>ハーメルン</summary>
+    Hameln = 7,
+    /// <summary>アルファポリス</summary>
+    Alphapolis = 8,
 }
 
 /// <summary>書籍の刊行状態</summary>
@@ -86,7 +89,8 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (Site), "掲載" },
         { nameof (Title), "書名" },
         { nameof (Author), "著者" },
-        { nameof (DirectTitleWriterName), "著作/著者" },
+        { nameof (DirectTitle), "著作" },
+        { nameof (DirectWriterName), "著者" },
         { nameof (DirectContent), "本文" },
         { nameof (NumberOfSheets), "シート数" },
         { nameof (NumberOfPublished), "発行済みシート数" },
@@ -114,23 +118,23 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
 
     [Column ("url1")] public string Url1 { get; set; } = "";
     [Column ("url2")] public string Url2 { get; set; } = "";
-    [Column ("html")] public string? _html { get; set; } = null;
-    [Column ("site")] public Site _site { get; set; } = Site.NotSet;
-    [Column ("title")] public string? _title { get; set; } = null;
-    [Column ("author")] public string? _author { get; set; } = null;
-    [Column ("direct_title_writername")] public string? DirectTitleWriterName { get; set; } = null;
-    [Column ("direct_content")] public string? _directContent { get; set; } = null;
+    [Column ("html")] protected string? _html { get; set; } = null;
+    [Column ("site")] protected Site _site { get; set; } = Site.NotSet;
+    [Column ("title")] protected string? _title { get; set; } = null;
+    [Column ("author")] protected string? _author { get; set; } = null;
+    [Column ("direct_title_writername")] protected string? _directTitleWriterName { get; set; } = null;
+    [Column ("direct_content")] protected string? _directContent { get; set; } = null;
     /// <summary>書誌上のシート数</summary>
-    [Column ("number_of_sheets")] public int? _numberOfSheets { get; set; } = null;
+    [Column ("number_of_sheets")] protected int? _numberOfSheets { get; set; } = null;
     /// <summary>Epub発行シート数</summary>
     [Column ("number_of_published")] public int? NumberOfPublished { get; set; } = null;
     /// <summary>Epub発行日時</summary>
     [Column ("published_at")] public DateTime? PublishedAt { get; set; } = null;
     [Column ("read")] public bool Readed { get; set; } = false;
     [Column ("memorandum")] public string? ReadedMemo { get; set; } = null;
-    [Column ("status")] public string _status { get; set; } = "";
+    [Column ("status")] protected string _status { get; set; } = "";
     [Column ("html_backup")] public string? HtmlBackup { get; set; } = null;
-    [Column ("errata")] public string? _errata { get; set; } = null;
+    [Column ("errata")] protected string? _errata { get; set; } = null;
     [Column ("wish")] public bool Wish { get; set; } = false;
     [Column ("bookmark")] public long? Bookmark { get; set; } = null;
 
@@ -149,7 +153,8 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <summary>内容が空である</summary>
     public bool IsEmpty => NumberOfRelatedSheets <= 0 && string.IsNullOrEmpty (DirectContent);
 
-    /// <summary>外向きの状態</summary>
+    /// <summary>外向けの状態</summary>
+    /// <remarks>結果が<see cref="_status" />に反映される。</remarks>
     public BookStatus Status {
         get => _status.ToBookStatus ();
         set {
@@ -196,7 +201,8 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <summary>ダイレクトコンテントである</summary>
     public bool IsDirectContent => !string.IsNullOrEmpty (_directContent);
 
-    /// <summary>外向きのシート(Url)数</summary>
+    /// <summary>外向けのシート(Url)数</summary>
+    /// <remarks>結果が<see cref="_numberOfSheets" />に反映される。</remarks>
     public int NumberOfSheets {
         get {
             if (_numberOfSheets is null) {
@@ -206,7 +212,27 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         }
     }
 
-    /// <summary>外向きのDirectContent</summary>
+    /// <summary>外向けのDirectTitleWriterName</summary>
+    /// <remarks>
+    /// 結果が<see cref="_directTitleWriterName" />に反映される。
+    /// nullをセットすると全体がnullになる。
+    /// </remarks>
+    public string? DirectTitle {
+        get => _directTitleWriterName?.Split ('\n') [0];
+        set => _directTitleWriterName = value is null ? null : $"{value}\n{DirectWriterName}";
+    }
+
+    /// <summary>外向けのDirectTitleWriterName</summary>
+    /// <remarks>
+    /// 結果が<see cref="_directTitleWriterName" />に反映される。
+    /// nullをセットすると全体がnullになる。
+    /// </remarks>
+    public string? DirectWriterName {
+        get => _directTitleWriterName?.Split ('\n').ElementAtOrDefault (1);
+        set => _directTitleWriterName = value is null ? null : $"{DirectTitle}\n{value}";
+    }
+
+    /// <summary>外向けのDirectContent (結果が<see cref="_directContent" />に反映される)</summary>
     public string? DirectContent {
         get {
             if (__directLines is null) {
@@ -233,7 +259,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     }
     protected List<string>? __directLines = null;
 
-    /// <summary>行数が制限された外向きのDirectContent</summary>
+    /// <summary>行数が制限された外向けのDirectContent</summary>
     public string? GetLimitedDirectContent (int limit = 100) {
         if (__directLines is null) {
             _ = DirectContent;
@@ -252,7 +278,8 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         return null;
     }
 
-    /// <summary>外向けのサイト (結果が<see cref="_site" />に反映される)</summary>
+    /// <summary>外向けのサイト</summary>
+    /// <remarks>結果が<see cref="_site" />に反映される。</remarks>
     public Site Site {
         get {
             if (_site == Site.NotSet && !string.IsNullOrEmpty (Url)) {
@@ -274,6 +301,10 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                     site = Site.Novelup;
                 } else if (Url.Contains ("dyreitou.com")) {
                     site = Site.Dyreitou;
+                } else if (Url.Contains ("syosetu.org")) {
+                    site = Site.Hameln;
+                } else if (Url.Contains ("alphapolis.co.jp")) {
+                    site = Site.Alphapolis;
                 } else {
                     site = Site.Unknown;
                 }
@@ -312,7 +343,8 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     }
     protected string? __seriesTitle = null;
 
-    /// <summary>外向けのタイトル (検出結果が<see cref="_title" />に反映される)</summary>
+    /// <summary>外向けのタイトル</summary>
+    /// <remarks>検出結果が<see cref="_title" />に反映される。</remarks>
     public string Title {
         get {
             if (string.IsNullOrEmpty (_title)) {
@@ -340,10 +372,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                     }
                 }
                 if (string.IsNullOrEmpty (title)) {
-                    var s = (DirectTitleWriterName ?? Remarks)?.Split ('\n');
-                    if (s is not null && s.Length > 0) {
-                        title = s [0];
-                    }
+                    title = DirectTitle;
                 }
                 if (string.IsNullOrEmpty (title)) {
                     title = Url;
@@ -408,7 +437,8 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <summary>副章題を持つ</summary>
     public bool HasChapterSubTitle => Site == Site.Kakuyomu || Site == Site.KakuyomuOld;
 
-    /// <summary>外向けの著者 (検出結果が<see cref="_author" />に反映される)</summary>
+    /// <summary>外向けの著者</summary>
+    /// <remarks>検出結果が<see cref="_author" />に反映される。</remarks>
     public string Author {
         get {
             if (string.IsNullOrEmpty (_author)) {
@@ -436,10 +466,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                     }
                 }
                 if (string.IsNullOrEmpty (author)) {
-                    var s = (DirectTitleWriterName ?? Remarks)?.Split ('\n');
-                    if (s is not null && s.Length > 1) {
-                        author = s [1];
-                    }
+                    author = DirectWriterName;
                 }
                 if (string.IsNullOrEmpty (author)) {
                     author = Url;
@@ -754,7 +781,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         _site = Site.Unknown;
         _title = null;
         _author = null;
-        DirectTitleWriterName = null;
+        _directTitleWriterName = null;
         _directContent = null;
         _numberOfSheets = null;
         NumberOfPublished = null;
@@ -770,6 +797,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     }
 
     /// <summary>外向けのHTML</summary>
+    /// <remarks>結果が<see cref="_html" />に反映される。</remarks>
     public string? Html {
         get => _html;
         set {
@@ -786,7 +814,8 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         }
     }
 
-    /// <summary>外向きの正誤表</summary>
+    /// <summary>外向けの正誤表</summary>
+    /// <remarks>結果が<see cref="_errata" />に反映される。</remarks>
     public string? Errata {
         get => _errata;
         set {
@@ -861,7 +890,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         item._site = Site;
         item._title = Title;
         item._author = Author;
-        item.DirectTitleWriterName = DirectTitleWriterName;
+        item._directTitleWriterName = _directTitleWriterName;
         item._directContent = _directContent;
         item._numberOfSheets = NumberOfSheets;
         item.NumberOfPublished = NumberOfPublished;
@@ -884,7 +913,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         destination._site = Site;
         destination._title = Title;
         destination._author = Author;
-        destination.DirectTitleWriterName = DirectTitleWriterName;
+        destination._directTitleWriterName = _directTitleWriterName;
         destination._directContent = _directContent;
         destination._numberOfSheets = NumberOfSheets;
         destination.NumberOfPublished = NumberOfPublished;
@@ -909,7 +938,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         && _site == other._site
         && _title == other._title
         && _author == other._author
-        && DirectTitleWriterName == other.DirectTitleWriterName
+        && _directTitleWriterName == other._directTitleWriterName
         && _directContent == other._directContent
         && _numberOfSheets == other._numberOfSheets
         && NumberOfPublished == other.NumberOfPublished
@@ -926,7 +955,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
 
     /// <inheritdoc/>
     public override int GetHashCode () => HashCode.Combine (
-        HashCode.Combine (Url1, Url2, _html, _site, _title, _author, DirectTitleWriterName, _directContent),
+        HashCode.Combine (Url1, Url2, _html, _site, _title, _author, _directTitleWriterName, _directContent),
         HashCode.Combine (_numberOfSheets, NumberOfPublished, PublishedAt, Readed, ReadedMemo, _status, HtmlBackup, Errata),
         HashCode.Combine (Wish, Bookmark, Remarks),
         base.GetHashCode ());
