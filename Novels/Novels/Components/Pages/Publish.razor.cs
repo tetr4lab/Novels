@@ -43,25 +43,30 @@ public partial class Publish : ItemListBase<Book> {
     /// <summary>書籍の削除 (ホームへ遷移)</summary>
     protected async Task DeleteBook () {
         if (Book is not null) {
-            var withSheets = !(await JSRuntime.InvokeAsync<ModifierKeys> ("getModifierKeys")).Ctrl;
+            var complete = !(await JSRuntime.InvokeAsync<ModifierKeys> ("getModifierKeys")).Ctrl;
+            if (!complete && Book.IsEmpty) {
+                Snackbar.Add ($"削除すべきシートがありません。", Severity.Warning);
+                return;
+            }
+            var target = complete ? $"{Book.TableLabel}と{Sheet.TableLabel}" : $"{Sheet.TableLabel}のみ";
             var dialogResult = await DialogService.Confirmation ([
-                $"以下の{Book.TableLabel}{(withSheets ? $"と{Sheet.TableLabel}を" : "のみを")}完全に削除します。",
+                $"以下の{target}を完全に削除します。",
                 Book.ToString (),
             ], title: $"{Book.TableLabel}削除", position: DialogPosition.BottomCenter, acceptionLabel: "Delete", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 IsOverlayed = true;
                 StateHasChanged ();
-                if (withSheets) {
+                if (complete) {
                     var result = await DataSet.RemoveAsync (Book);
                     if (result.IsSuccess) {
                         if (CurrentBookId == Book.Id) {
                             await SetCurrentBookId.InvokeAsync ((0, 1));
                         }
                         StateHasChanged ();
-                        Snackbar.Add ($"{Book.TableLabel}と{Sheet.TableLabel}を削除しました。", Severity.Normal);
+                        Snackbar.Add ($"{target}を削除しました。", Severity.Normal);
                         NavigationManager.NavigateTo (NavigationManager.BaseUri);
                     } else {
-                        Snackbar.Add ($"{Book.TableLabel}と{Sheet.TableLabel}の削除に失敗しました。", Severity.Error);
+                        Snackbar.Add ($"{target}の削除に失敗しました。", Severity.Error);
                     }
                 } else {
                     try {
@@ -79,9 +84,9 @@ public partial class Publish : ItemListBase<Book> {
                         }
                         await ReLoadAsync (Book.Id);
                         if (success == sheets.Count) {
-                            Snackbar.Add ($"{Sheet.TableLabel}のみを削除しました。", Severity.Normal);
+                            Snackbar.Add ($"{target}を削除しました。", Severity.Normal);
                         } else {
-                            Snackbar.Add ($"{Sheet.TableLabel}の一部({sheets.Count - success}/{sheets.Count})を削除できませんでした。", Severity.Error);
+                            Snackbar.Add ($"{target}の一部({success}/{sheets.Count})を削除しました。", Severity.Error);
                         }
                         StateHasChanged ();
                     }
@@ -177,7 +182,9 @@ public partial class Publish : ItemListBase<Book> {
             if (result.IsSuccess) {
                 var updatedBook = result.Value.book;
                 await ReLoadAsync (updatedBook.Id);
-                await ChangeCurrentBookAsync (updatedBook);
+                if (Book is not null) {
+                    await ChangeCurrentBookAsync (Book);
+                }
                 return true;
             }
         }
