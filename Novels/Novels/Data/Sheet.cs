@@ -62,9 +62,6 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     /// <summary>サイト</summary>
     public Site Site => Book.Site;
 
-    /// <summary>更新されている (不完全)</summary>
-    public bool IsDirty { get; protected set; } = false;
-
     /// <summary>シートのタイトル</summary>
     // NovelSubTitle = 
     // Correct ( Substitute ( TrimLF ( TagRemove ( ReplaceRuby ( Case (
@@ -279,7 +276,6 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
             var content = $"{__directNumber} {__directTitle}\n{__directContent}";
             if (content != _directContent) {
                 _directContent = content;
-                IsDirty = true;
             }
         }
     }
@@ -447,7 +443,6 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         __directLines = null;
         __preface = null;
         __afterword = null;
-        IsDirty = true;
     }
 
     /// <summary>パース結果</summary>

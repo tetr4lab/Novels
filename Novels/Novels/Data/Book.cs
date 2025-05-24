@@ -149,16 +149,12 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <summary>内容が空である</summary>
     public bool IsEmpty => NumberOfRelatedSheets <= 0 && string.IsNullOrEmpty (DirectContent);
 
-    /// <summary>更新されている (不完全)</summary>
-    public bool IsDirty { get; protected set; } = false;
-
     /// <summary>外向きの状態</summary>
     public BookStatus Status {
         get => _status.ToBookStatus ();
         set {
             if (value != Status) {
                 _status = value.ToJString ();
-                IsDirty = true;
             }
         }
     }
@@ -211,7 +207,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         get {
             if (_numberOfSheets is null) {
                 _numberOfSheets = SheetUrls.Count;
-                IsDirty = true;
             }
             return _numberOfSheets ?? 0;
         }
@@ -239,7 +234,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
             if (value != _directContent) {
                 _directContent = value;
                 __directLines = null;
-                IsDirty = true;
             }
         }
     }
@@ -291,7 +285,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                 }
                 if (site != _site) {
                     _site = site;
-                    IsDirty = true;
                 }
             }
             return _site;
@@ -397,7 +390,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                 title = (title ?? "").Replace ('　', ' ').Trim ();
                 if (!string.IsNullOrEmpty (title) && title != _title) {
                     _title = title;
-                    IsDirty = true;
                 }
             }
             return Correct (_title) ?? "";
@@ -534,7 +526,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                 author = GetNormalizedName (author ?? "");
                 if (!string.IsNullOrEmpty (author) && author != _author) {
                     _author = author;
-                    IsDirty = true;
                 }
             }
             return Correct (_author) ?? "";
@@ -1064,7 +1055,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         _ = MainTitle;
         _ = SubTitle;
         _ = Explanation;
-        IsDirty = true;
     }
 
     /// <summary>パース結果</summary>
