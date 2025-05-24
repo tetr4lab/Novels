@@ -106,8 +106,6 @@
             </PagerContent>
         </MudTable>
         <MudText Typo="Typo.caption">@(Book.Label [nameof (Book.LastUpdate)]): @(Book.LastUpdate.ToString ("yyyy/MM/dd HH:mm"))</MudText>
-    } else if (Book.IsDirectContent) {
-        <MudText>Direct content found.</MudText>
     } else {
         <MudText>No items found.</MudText>
     }

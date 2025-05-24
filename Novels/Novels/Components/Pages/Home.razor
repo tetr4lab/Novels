@@ -109,31 +109,27 @@
                 <MudChip T="string" Label="true" Size="Size.Small" Variant="Variant.Outlined" Color="@(context.StatusBgColor)" Style="width: 6em">@(context.Status.ToJString ())</MudChip>
             </MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.NumberOfSheets)])" Class="align-middle text-nowrap">
-                @if (context.IsDirectContent) {
-                    <MudText Typo="Typo.inherit">1/1</MudText>
-                } else {
-                    <MudTooltip Arrow Duration="1000">
-                        <ChildContent>
-                            <MudStack Row Spacing="0">
-                                <MudText Typo="Typo.inherit" Color="@(isErrorForNumberOfSheets ? Color.Error : isUpdatable ? Color.Warning : Color.Inherit)">
-                                    @(context.NumberOfRelatedSheets)
-                                </MudText>
-                                <MudText Typo="Typo.inherit">
-                                    /@(context.NumberOfSheets)
-                                </MudText>
-                            </MudStack>
-                        </ChildContent>
-                        <TooltipContent>
-                            <MudStack Spacing="0" Class="align-start">
-                                <MudText Typo="Typo.inherit">発行数量: @(context.NumberOfPublished ?? 0)</MudText>
-                                <MudText Typo="Typo.inherit">取得数量: @(context.NumberOfRelatedSheets)</MudText>
-                                <MudText Typo="Typo.inherit">書誌数量: @(context.NumberOfSheets)</MudText>
-                                <MudText Typo="Typo.inherit">発行日時: @(context.PublishedAt)</MudText>
-                                <MudText Typo="Typo.inherit">更新日時: @(context.LastUpdate)</MudText>
-                            </MudStack>
-                        </TooltipContent>
-                    </MudTooltip>
-                }
+                <MudTooltip Arrow Duration="1000">
+                    <ChildContent>
+                        <MudStack Row Spacing="0">
+                            <MudText Typo="Typo.inherit" Color="@(isErrorForNumberOfSheets ? Color.Error : isUpdatable ? Color.Warning : Color.Inherit)">
+                                @(context.NumberOfRelatedSheets)
+                            </MudText>
+                            <MudText Typo="Typo.inherit">
+                                /@(context.NumberOfSheets)
+                            </MudText>
+                        </MudStack>
+                    </ChildContent>
+                    <TooltipContent>
+                        <MudStack Spacing="0" Class="align-start">
+                            <MudText Typo="Typo.inherit">発行数量: @(context.NumberOfPublished ?? 0)</MudText>
+                            <MudText Typo="Typo.inherit">取得数量: @(context.NumberOfRelatedSheets)</MudText>
+                            <MudText Typo="Typo.inherit">書誌数量: @(context.NumberOfSheets)</MudText>
+                            <MudText Typo="Typo.inherit">発行日時: @(context.PublishedAt)</MudText>
+                            <MudText Typo="Typo.inherit">更新日時: @(context.LastUpdate)</MudText>
+                        </MudStack>
+                    </TooltipContent>
+                </MudTooltip>
             </MudTd>
             <MudTd DataLabel="@(Book.Label[nameof(Book.Remarks)])">@context.Remarks</MudTd>
         </RowTemplate>

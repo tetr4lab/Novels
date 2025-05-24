@@ -129,7 +129,7 @@ public sealed class NovelsDataSet : BasicDataSet {
                 var lastTime = DateTime.Now;
                 using (var message = await client.GetWithCookiesAsync (book.Url, DefaultCookies)) {
                     if (message.IsSuccessStatusCode && message.StatusCode == System.Net.HttpStatusCode.OK) {
-                        var html = new List<string> { (book.Html = await message.Content.ReadAsStringAsync ()), };
+                        var html = new List<string> { await message.Content.ReadAsStringAsync (), };
                         for (var i = 2; i <= book.LastPage; i++) {
                             await Task.Delay (AccessIntervalTime);
                             // 追加ページの絶対URLを取得する

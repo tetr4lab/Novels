@@ -28,9 +28,6 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         { nameof (ChapterSubTitle), "章副題" },
         { nameof (SheetTitle), "表題" },
         { nameof (SheetHonbun), "本文" },
-        { nameof (DirectTitle), "表題" },
-        { nameof (DirectNumber), "番号" },
-        { nameof (DirectContent), "本文" },
         { nameof (NovelNumber), "No." },
         { nameof (SheetUpdatedAt), "更新日時" },
         { nameof (Errata), "正誤" },
@@ -45,14 +42,12 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
 
     [Column ("book_id"), Required] public long BookId { get; set; } = 0;
     [Column ("url")] public string Url { get; set; } = "";
-    [Column ("html")] protected string? _html { get; set; } = null;
+    [Column ("html")] public string? _html { get; set; } = null;
     /// <summary>公に明示された更新日時、または、シートの取り込み日時</summary>
     [Column ("sheet_update")] public DateTime? SheetUpdatedAt { get; set; } = null;
     /// <summary>シートの並び順 新規では、シート生成時に1からの連番が振られる</remarks>
     [Column ("novel_no"), Required] public int NovelNumber { get; set; } = 0;
-    /// <summary>直書き 番号、章題、本文に分解して使われ、再構成される</summary>
-    protected string? _directContent { get; set; } = null;
-    [Column ("errata")] protected string? _errata { get; set; } = null;
+    [Column ("errata")] public string? _errata { get; set; } = null;
 
     /// <summary>シートが所属する書籍</summary>
     public Book Book { get; set; } = null!;
@@ -87,8 +82,6 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
                             break;
                     }
                     __sheetTitle = Correct (__sheetTitle);
-                } else {
-                    __sheetTitle = DirectTitle;
                 }
             }
             return __sheetTitle ?? "";
@@ -115,8 +108,6 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
                             break;
                     }
                     __preface = Correct (__preface);
-                } else {
-                    __preface = DirectContent;
                 }
             }
             return __preface ?? "";
@@ -143,8 +134,6 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
                             break;
                     }
                     __afterword = Correct (__afterword);
-                } else {
-                    __afterword = DirectContent;
                 }
             }
             return __afterword ?? "";
@@ -176,119 +165,21 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
                             __sheetHonbun = tmp is null ? "" : string.Join ("\n", Array.ConvertAll (tmp.ToArray (), x => x.InnerHtml));
                             break;
                         default:
-                            __sheetHonbun = Html ?? Book.Html;
+                            var body = Document?.QuerySelector ("body");
+                            if (body is not null && body.TextContent != _html) {
+                                __sheetHonbun = body.InnerHtml;
+                            } else {
+                                __sheetHonbun = _html.Replace ("\n", "<br>\n");
+                            }
                             break;
                     }
                     __sheetHonbun = Correct (__sheetHonbun);
-                } else {
-                    __sheetHonbun = DirectContent;
                 }
             }
             return __sheetHonbun ?? "";
         }
     }
     protected string? __sheetHonbun = null;
-
-    /// <summary>ダイレクトコンテントである</summary>
-    public bool IsDirectContent => !string.IsNullOrEmpty (_directContent);
-
-    /// <summary>直書きの本文</summary>
-    /// <remarks>結果が<see cref="_directContent" />に反映される。</remarks>
-    // directContentの2行目以降
-    public string? DirectContent {
-        get {
-            if (string.IsNullOrEmpty (_directContent)) { return null; }
-            if (__directContent is null) {
-                DeconstructDirectContent ();
-            }
-            return __directLines is null ? "" : string.Join ('\n', __directLines);
-        }
-        set {
-            if (value != __directContent) {
-                __directContent = value;
-                ConstructDirectContent ();
-            }
-        }
-    }
-    protected string? __directContent = null;
-    protected List<string>? __directLines = null;
-
-    /// <summary>直書きの番号</summary>
-    /// <remarks>結果が<see cref="_directContent" />に反映される。</remarks>
-    // directContentの1行目で行頭の数値
-    public int DirectNumber {
-        get {
-            if (__directNumber < 0) {
-                DeconstructDirectContent ();
-            }
-            return __directNumber;
-        }
-        set {
-            if (value != __directNumber) {
-                __directNumber = value;
-                ConstructDirectContent ();
-            }
-        }
-    }
-    protected int __directNumber = -1;
-
-    /// <summary>直書きのタイトル</summary>
-    /// <remarks>結果が<see cref="_directContent" />に反映される。</remarks>
-    // directContentの1行目で行頭の数値より後
-    public string DirectTitle {
-        get {
-            if (__directTitle is null) {
-                DeconstructDirectContent ();
-            }
-            return __directTitle ?? "";
-        }
-        set {
-            if (value != __directTitle) {
-                __directTitle = value;
-                ConstructDirectContent ();
-            }
-        }
-    }
-    protected string? __directTitle = null;
-
-    /// <summary>直書きの構成</summary>
-    /// <remarks>結果が<see cref="_directContent" />に反映される。</remarks>
-    protected void ConstructDirectContent () {
-        if (__directNumber >= 0 && __directTitle is not null && __directContent is not null) {
-            var content = $"{__directNumber} {__directTitle}\n{__directContent}";
-            if (content != _directContent) {
-                _directContent = content;
-            }
-        }
-    }
-
-    /// <summary>直書きの分解</summary>
-    protected void DeconstructDirectContent () {
-        if (string.IsNullOrEmpty (_directContent)) { return; }
-        var match = new Regex (@"^(\d+)? ?(.*)\n?").Match (_directContent);
-        if (match.Success) {
-            var number = match.Groups [1].Value;
-            __directNumber = int.TryParse (number, out var result) ? result : 0;
-            __directTitle = match.Groups [2].Value.Trim ();
-            __directContent = _directContent.Substring (match.Length).Trim ();
-        } else {
-            __directNumber = 0;
-            __directTitle = "";
-            __directContent = _directContent;
-        }
-        // 行分解
-        __directLines = _directContent?.Split ('\n').ToList () ?? new ();
-        if (!string.IsNullOrEmpty (__directContent) && !__directContent.StartsWith ('<')) {
-            __directLines = __directLines.ConvertAll (s => {
-                if (s == "［＃改ページ］" || s == "［＃改丁］") {
-                    s = "<hr class=\"pagebreak\" />";
-                } else if (s == "") {
-                    s = "　";
-                }
-                return $"<p>{s}</p>";
-            });
-        }
-    }
 
     /// <summary>シートから抽出された章題</summary>
     public string OriginalChapterTitle {
@@ -389,15 +280,11 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     /// <summary>キャッシュをクリア</summary>
     protected void Flash () {
         __htmlDocument = null;
-        __directNumber = -1;
-        __directTitle = null;
-        __directContent = null;
         __sheetTitle = null;
         __sheetHonbun = null;
         __originalChapterTitle = null;
         __chapterTitle = null;
         __chapterSubTitle = null;
-        __directLines = null;
         __preface = null;
         __afterword = null;
     }
@@ -434,7 +321,6 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         item.BookId = BookId;
         item.Url = Url;
         item.Html = Html;
-        item._directContent = _directContent;
         item.NovelNumber = NovelNumber;
         item.SheetUpdatedAt = SheetUpdatedAt;
         item.Errata = Errata;
@@ -446,7 +332,6 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         destination.BookId = BookId;
         destination.Url = Url;
         destination.Html = Html;
-        destination._directContent = _directContent;
         destination.NovelNumber = NovelNumber;
         destination.SheetUpdatedAt = SheetUpdatedAt;
         destination.Errata = Errata;
@@ -460,7 +345,6 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         && BookId == other.BookId
         && Url == other.Url
         && Html == other.Html
-        && _directContent == other._directContent
         && NovelNumber == other.NovelNumber
         && SheetUpdatedAt == other.SheetUpdatedAt
         && Errata == other.Errata
@@ -469,7 +353,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
 
     /// <inheritdoc/>
     public override int GetHashCode () => HashCode.Combine (
-        HashCode.Combine (Url, _html, _directContent, NovelNumber, SheetUpdatedAt, Errata, BookId, Remarks),
+        HashCode.Combine (Url, _html, NovelNumber, SheetUpdatedAt, Errata, BookId, Remarks),
         base.GetHashCode ());
 
     /// <inheritdoc/>

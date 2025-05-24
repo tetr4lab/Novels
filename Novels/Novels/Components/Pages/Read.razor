@@ -70,12 +70,13 @@
     } else {
         <MudText>No books found.</MudText>
     }
-} else if (Book.IsDirectContent) {
-    @((MarkupString) (Book.DirectContent ?? ""))
-} else if (Sheet is not null && Sheet.IsDirectContent) {
-    @((MarkupString) (Sheet.DirectContent ?? ""))
 } else if (!string.IsNullOrEmpty (Book.Html)) {
-    @((MarkupString) Book.Html.Replace ("\n", "<br>"))
+    var body = Book.Document?.QuerySelector ("body");
+    if (body is not null && body.TextContent != Book.Html) {
+        @((MarkupString) body.InnerHtml)
+    } else {
+        @((MarkupString) Book.Html.Replace ("\n", "<br>"))
+    }
 } else {
     <MudText>No items found.</MudText>
 }
@@ -105,20 +106,23 @@
 
     /// <summary>シート番号に依存した設定</summary>
     protected async Task SetSheetAsync (int index) {
-        if (Book is not null && index >= 1 && index <= Book.Sheets.Count) {
+        if (Book is not null) {
+            index = Book.Sheets.Count > 0 ? Math.Clamp (index, 1, Book.Sheets.Count) : 1;
             await SetCurrentBookId.InvokeAsync ((Book.Id, index));
             if (editingItem is not null) {
                 Cancel (editingItem);
             }
-            Sheet = Book.Sheets [index - 1];
-            selectedItem = Sheet;
-            await SetSectionTitle.InvokeAsync ($"<span style=\"font-size:80%;\"><a href=\"{Sheet.Url}\" target=\"_blank\" style=\"text-decoration: none;\">『{Book.Title}』 {Book.Author}</a></span>\n{Sheet.OriginalChapterTitle} {Sheet.ChapterSubTitle}");
+            if (Book.Sheets.Count > 0) {
+                Sheet = Book.Sheets [index - 1];
+                selectedItem = Sheet;
+                await SetSectionTitle.InvokeAsync ($"<span style=\"font-size:80%;\"><a href=\"{Sheet.Url}\" target=\"_blank\" style=\"text-decoration: none;\">『{Book.Title}』 {Book.Author}</a></span>\n{Sheet.OriginalChapterTitle} {Sheet.ChapterSubTitle}");
+                StartEdit ();
+            }
             if (BookId != Book.Id || SheetIndex != index) {
                 // ルート(`@page`)が一致するため、アドレスバーが書き換わり、パラメータ`SheetIndex`に`index`が代入される
                 // パラメータに相違があればページの遷移は生じない (全て同一だと再初期化が生じる)
                 NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}sheet/{Book.Id}/{index}");
             }
-            StartEdit ();
         } else {
             await SetSectionTitle.InvokeAsync ("Read");
         }
