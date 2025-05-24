@@ -51,7 +51,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     /// <summary>シートの並び順 新規では、シート生成時に1からの連番が振られる</remarks>
     [Column ("novel_no"), Required] public int NovelNumber { get; set; } = 0;
     /// <summary>直書き 番号、章題、本文に分解して使われ、再構成される</summary>
-    [Column ("direct_content")] protected string? _directContent { get; set; } = null;
+    protected string? _directContent { get; set; } = null;
     [Column ("errata")] protected string? _errata { get; set; } = null;
 
     /// <summary>シートが所属する書籍</summary>
@@ -176,7 +176,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
                             __sheetHonbun = tmp is null ? "" : string.Join ("\n", Array.ConvertAll (tmp.ToArray (), x => x.InnerHtml));
                             break;
                         default:
-                            __sheetHonbun = "";
+                            __sheetHonbun = Html ?? Book.Html;
                             break;
                     }
                     __sheetHonbun = Correct (__sheetHonbun);

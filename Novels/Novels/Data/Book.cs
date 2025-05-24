@@ -122,10 +122,8 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     [Column ("site")] protected Site _site { get; set; } = Site.NotSet;
     [Column ("title")] protected string? _title { get; set; } = null;
     [Column ("author")] protected string? _author { get; set; } = null;
-    [Column ("direct_title_writername")] protected string? _directTitleWriterName { get; set; } = null;
-    [Column ("direct_content")] protected string? _directContent { get; set; } = null;
-    /// <summary>書誌上のシート数</summary>
-    [Column ("number_of_sheets")] protected int? _numberOfSheets { get; set; } = null;
+    protected string? _directTitleWriterName { get; set; } = null;
+    protected string? _directContent { get; set; } = null;
     /// <summary>Epub発行シート数</summary>
     [Column ("number_of_published")] public int? NumberOfPublished { get; set; } = null;
     /// <summary>Epub発行日時</summary>
@@ -143,9 +141,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
 
     /// <summary>Urlの代表</summary>
     public string Url => Url1 ?? Url2 ?? "";
-
-    /// <summary>検出されたシート数</summary>
-    public int DetectedNumberOfSheets => SheetUrls.Count;
 
     /// <summary>書籍に所属するシート</summary>
     public List<Sheet> Sheets { get; set; } = new ();
@@ -201,16 +196,8 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <summary>ダイレクトコンテントである</summary>
     public bool IsDirectContent => !string.IsNullOrEmpty (_directContent);
 
-    /// <summary>外向けのシート(Url)数</summary>
-    /// <remarks>結果が<see cref="_numberOfSheets" />に反映される。</remarks>
-    public int NumberOfSheets {
-        get {
-            if (_numberOfSheets is null) {
-                _numberOfSheets = SheetUrls.Count;
-            }
-            return _numberOfSheets ?? 0;
-        }
-    }
+    /// <summary>シート(Url)数</summary>
+    public int NumberOfSheets => SheetUrls.Count;
 
     /// <summary>外向けのDirectTitleWriterName</summary>
     /// <remarks>
@@ -783,7 +770,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         _author = null;
         _directTitleWriterName = null;
         _directContent = null;
-        _numberOfSheets = null;
         NumberOfPublished = null;
         PublishedAt = null;
         Readed = false;
@@ -808,7 +794,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                 _title = null;
                 _author = null;
                 _directContent = null;
-                _numberOfSheets = null;
                 Flash ();
             }
         }
@@ -892,7 +877,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         item._author = Author;
         item._directTitleWriterName = _directTitleWriterName;
         item._directContent = _directContent;
-        item._numberOfSheets = NumberOfSheets;
         item.NumberOfPublished = NumberOfPublished;
         item.PublishedAt = PublishedAt;
         item.Readed = Readed;
@@ -915,7 +899,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         destination._author = Author;
         destination._directTitleWriterName = _directTitleWriterName;
         destination._directContent = _directContent;
-        destination._numberOfSheets = NumberOfSheets;
         destination.NumberOfPublished = NumberOfPublished;
         destination.PublishedAt = PublishedAt;
         destination.Readed = Readed;
@@ -940,7 +923,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         && _author == other._author
         && _directTitleWriterName == other._directTitleWriterName
         && _directContent == other._directContent
-        && _numberOfSheets == other._numberOfSheets
         && NumberOfPublished == other.NumberOfPublished
         && PublishedAt == other.PublishedAt
         && Readed == other.Readed
@@ -956,10 +938,10 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <inheritdoc/>
     public override int GetHashCode () => HashCode.Combine (
         HashCode.Combine (Url1, Url2, _html, _site, _title, _author, _directTitleWriterName, _directContent),
-        HashCode.Combine (_numberOfSheets, NumberOfPublished, PublishedAt, Readed, ReadedMemo, _status, HtmlBackup, Errata),
+        HashCode.Combine (NumberOfPublished, PublishedAt, Readed, ReadedMemo, _status, HtmlBackup, Errata),
         HashCode.Combine (Wish, Bookmark, Remarks),
         base.GetHashCode ());
 
     /// <inheritdoc/>
-    public override string ToString () => $"{TableLabel} {Id}: {Url1}, {Url2}, {_site}, {_title}, {_author}, {_status}, {(Readed ? "Readed, " : "")}\"{ReadedMemo}\", {(Wish? "Wish, " : "")}{NumberOfPublished}/{_numberOfSheets}, {PublishedAt}, {(Errata is null ? "" : string.Join (',', Errata.Split ('\n')) + ", ")}\"{Remarks}\"";
+    public override string ToString () => $"{TableLabel} {Id}: {Url1}, {Url2}, {_site}, {_title}, {_author}, {_status}, {(Readed ? "Readed, " : "")}\"{ReadedMemo}\", {(Wish? "Wish, " : "")}{NumberOfPublished}/{NumberOfSheets}, {PublishedAt}, {(Errata is null ? "" : string.Join (',', Errata.Split ('\n')) + ", ")}\"{Remarks}\"";
 }

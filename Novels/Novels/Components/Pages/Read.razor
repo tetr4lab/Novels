@@ -74,6 +74,8 @@
     @((MarkupString) (Book.DirectContent ?? ""))
 } else if (Sheet is not null && Sheet.IsDirectContent) {
     @((MarkupString) (Sheet.DirectContent ?? ""))
+} else if (!string.IsNullOrEmpty (Book.Html)) {
+    @((MarkupString) Book.Html.Replace ("\n", "<br>"))
 } else {
     <MudText>No items found.</MudText>
 }
