@@ -145,8 +145,16 @@
                 <MudIconButton Disabled="@(IsDirty || Book.Status == BookStatus.Disappeared)" OnClick="async () => await ConfirmUpdateBookAsync ()" Color="Color.Primary" Icon="@(Book.IsEmpty ? Icons.Material.Filled.Download : Icons.Material.Filled.Refresh)" Variant="Variant.Outlined" Size="Size.Large" />
             </ChildContent>
         </MudTooltip>
-        <MudTooltip Arrow="true" Text="発行">
-            <MudIconButton Disabled="Book.IsEmpty || Book.Released || IsDirty" OnClick="ConfirmPublishBookAsync" Color="Color.Tertiary" Icon="@Icons.Material.Filled.Publish" Variant="Variant.Outlined" Size="Size.Large" />
+        <MudTooltip Arrow="true">
+            <TooltipContent>
+                生成･発行<br />
+                <span style="writing-mode: vertical-rl;">（</span><br />
+                <span style="border: 1px solid;border-radius: 10%;">Ctrl</span><br />
+                <span style="writing-mode: vertical-rl;">で生成のみ）</span>
+            </TooltipContent>
+            <ChildContent>
+                <MudIconButton Disabled="Book.IsEmpty || Book.Released || IsDirty" OnClick="ConfirmPublishBookAsync" Color="Color.Tertiary" Icon="@Icons.Material.Filled.Publish" Variant="Variant.Outlined" Size="Size.Large" />
+            </ChildContent>
         </MudTooltip>
         <MudSpacer />
         <MudTooltip Arrow="true" Text="復旧">

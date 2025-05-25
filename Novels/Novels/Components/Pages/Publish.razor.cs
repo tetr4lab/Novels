@@ -132,12 +132,16 @@ public partial class Publish : ItemListBase<Book> {
     /// <summary>発行の確認</summary>
     protected async Task<bool> ConfirmPublishBookAsync () {
         if (Book is not null && !IsDirty) {
-            var dialogResult = await DialogService.Confirmation ([$"『{Book.MainTitle}.epub』を<{DataSet.Setting.SmtpMailto}>へ発行します。",], title: $"『{Book.MainTitle}.epub』発行", position: DialogPosition.BottomCenter, acceptionLabel: "発行", acceptionColor: Color.Success, acceptionIcon: Icons.Material.Filled.Publish);
+            var publish = !(await JSRuntime.InvokeAsync<ModifierKeys> ("getModifierKeys")).Ctrl;
+            var operation = publish ? "発行" : "生成";
+            var dialogResult = await DialogService.Confirmation ([
+                $"『{Book.MainTitle}.epub』を{(publish ? $"<{DataSet.Setting.SmtpMailto}>へ発行": "生成してダウンロード")}します。",
+            ], title: $"『{Book.MainTitle}.epub』{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: Color.Success, acceptionIcon: publish ? Icons.Material.Filled.Publish : Icons.Material.Filled.FileDownload);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 // オーバーレイ
                 IsOverlayed = true;
                 StateHasChanged ();
-                await PublishBookAsync (Book);
+                await PublishBookAsync (Book, publish);
                 IsOverlayed = false;
                 StateHasChanged ();
             } else {
@@ -186,10 +190,10 @@ public partial class Publish : ItemListBase<Book> {
     }
 
     /// <summary>発行</summary>
-    protected async Task PublishBookAsync (Book book) {
+    protected async Task PublishBookAsync (Book book, bool sendToKindle = true) {
         if (book is not null) {
             var title = $"{book.MainTitle}.epub";
-            Snackbar.Add ($"『{title}』の発行を開始しました。", Severity.Normal);
+            Snackbar.Add ($"『{title}』の生成を開始しました。", Severity.Normal);
             var epubPath = Path.GetTempFileName ();
             try {
                 // Create an Epub instance
@@ -211,17 +215,33 @@ public partial class Publish : ItemListBase<Book> {
                 using (var fs = new FileStream (epubPath, FileMode.Create)) {
                     doc.Export (fs);
                 }
-                // Send to Kindle
-                if (SendToKindle (epubPath, title)) {
-                    Snackbar.Add ($"『{title}』を発行しました。", Severity.Normal);
-                    book.PublishedAt = DateTime.Now;
-                    book.NumberOfPublished = book.Sheets.Count;
-                    var result = await UpdateBookAsync (book);
-                    if (result.IsFailure) {
-                        Snackbar.Add ($"{Book.TableLabel}の更新に失敗しました。", Severity.Error);
+                if (sendToKindle) {
+                    // Send to Kindle
+                    if (SendToKindle (epubPath, title)) {
+                        Snackbar.Add ($"『{title}』を発行しました。", Severity.Normal);
+                        book.PublishedAt = DateTime.Now;
+                        book.NumberOfPublished = book.Sheets.Count;
+                        var result = await UpdateBookAsync (book);
+                        if (result.IsFailure) {
+                            Snackbar.Add ($"{Book.TableLabel}の更新に失敗しました。", Severity.Error);
+                        }
+                    } else {
+                        Snackbar.Add ($"『{title}』の発行に失敗しました。", Severity.Error);
                     }
                 } else {
-                    Snackbar.Add ($"『{title}』の発行に失敗しました。", Severity.Error);
+                    // download
+                    Snackbar.Add ($"『{title}』を生成しました。", Severity.Normal);
+                    try {
+                        using (var fileStream = new FileStream (epubPath, FileMode.Open))
+                        using (var streamRef = new DotNetStreamReference (stream: fileStream)) {
+                            await JSRuntime.InvokeVoidAsync ("downloadFileFromStream", title, streamRef);
+                        }
+                    }
+                    catch (Exception e) {
+                        System.Diagnostics.Debug.WriteLine ($"Exception: {e.Message}\n{e.StackTrace}");
+                        Snackbar.Add ($"Exception: {e.Message}", Severity.Error);
+                        Snackbar.Add ($"『{title}』の取得に失敗しました。", Severity.Error);
+                    }
                 }
             }
             catch (Exception e) {
