@@ -154,7 +154,7 @@ public partial class Publish : ItemListBase<Book> {
     /// <summary>発行抹消の確認</summary>
     protected async Task<bool> ConfirmUnPublishBookAsync () {
         if (Book is not null && Book.Released && !IsDirty) {
-            var dialogResult = await DialogService.Confirmation ([$"{Book.TableLabel}の発行記録を抹消します。",], title: $"発行抹消", position: DialogPosition.BottomCenter, acceptionLabel: "抹消", acceptionColor: Color.Success, acceptionIcon: Icons.Material.Filled.Download);
+            var dialogResult = await DialogService.Confirmation ([$"{Book.TableLabel}の発行記録を抹消します。",], title: $"発行抹消", position: DialogPosition.BottomCenter, acceptionLabel: "抹消", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 Book.NumberOfPublished = null;
                 Book.PublishedAt = null;
