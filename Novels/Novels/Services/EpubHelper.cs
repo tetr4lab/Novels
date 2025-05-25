@@ -26,9 +26,11 @@ namespace QuickEPUB {
             if (string.IsNullOrEmpty (heading1) && string.IsNullOrEmpty (heading2) && string.IsNullOrEmpty (heading3)) {
                 throw new ArgumentNullException ($"{nameof (heading1)} or {nameof (heading2)} or {nameof (heading3)}");
             }
-            if (heading1 == "") { heading1 = null; }
-            if (heading2 == "") { heading2 = null; }
-            book.AddSection (heading1 ?? heading2 ?? heading3, string.Join ('\n', [
+            var heading = new List<string> ();
+            if (!string.IsNullOrEmpty (heading1)) { heading.Add (heading1); }
+            if (!string.IsNullOrEmpty (heading2)) { heading.Add (heading2); }
+            if (!string.IsNullOrEmpty (heading3)) { heading.Add (heading3); }
+            book.AddSection (string.Join ('／', heading), string.Join ('\n', [
                 string.IsNullOrEmpty (heading1) ? "" : $"<h1>{heading1}</h1>",
                 string.IsNullOrEmpty (heading2) ? "" : $"<h2>{heading2}</h2>",
                 string.IsNullOrEmpty (heading3) ? "" : $"<h3>{heading3}</h3>",
