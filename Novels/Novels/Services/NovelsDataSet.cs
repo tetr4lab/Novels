@@ -16,7 +16,7 @@ public sealed class NovelsDataSet : BasicDataSet {
     public NovelsDataSet (Database database) : base (database) { }
 
     /// <summary>着目中の書籍</summary>
-    public long CurrentBookId { get; private set; } = 0;
+    public long CurrentBookId { get; private set; } = long.MinValue;
 
     /// <summary>着目書籍の設定</summary>
     public async Task SetCurrentBookIdAsync (long id) {
@@ -48,16 +48,28 @@ public sealed class NovelsDataSet : BasicDataSet {
     public List<Book> Books => GetList<Book> ();
 
     /// <summary>着目中の書籍</summary>
-    public Book CurrentBook => Id2Book.TryGetValue (CurrentBookId, out var book) ? book : new ();
+    public Book CurrentBook => GetItemById<Book> (CurrentBookId);
+
+    /// <summary>IDからBookを得る</summary>
+    private T GetItemById<T> (long id) where T : NovelsBaseModel<T>, INovelsBaseModel, new () {
+        var id2item = new Dictionary<long, T> ();
+        if (typeof (T) == typeof (Book)) {
+            return (_id2Book.TryGetValue (id, out var item) ? item : null) as T ?? new ();
+        } else if (typeof (T) == typeof (Sheet)) {
+            return (_id2Sheet.TryGetValue (id, out var item) ? item : null) as T ?? new ();
+        } else {
+            throw new ArgumentException ($"The type param must be {nameof (Book)} or {nameof (Sheet)}", nameof (T));
+        }
+    }
 
     /// <summary>IdからBookを得る</summary>
-    private Dictionary<long, Book> Id2Book = new ();
+    private Dictionary<long, Book> _id2Book = new ();
 
     /// <summary>ロード済みのモデルインスタンス</summary>
     public List<Sheet> Sheets => GetList<Sheet> ();
 
     /// <summary>IdからSheetを得る</summary>
-    private Dictionary<long, Sheet> Id2Sheet = new ();
+    private Dictionary<long, Sheet> _id2Sheet = new ();
 
     /// <summary>ロード済みのモデルインスタンス</summary>
     public List<Setting> Settings => GetList<Setting> ();
@@ -83,10 +95,10 @@ public sealed class NovelsDataSet : BasicDataSet {
                 ListSet [typeof (Book)] = books;
                 ListSet [typeof (Sheet)] = sheets;
                 ListSet [typeof (Setting)] = settings;
-                Id2Book = books.ToDictionary (book => book.Id, book => book);
+                _id2Book = books.ToDictionary (book => book.Id, book => book);
                 if (sheets.Count > 0) {
-                    sheets.ForEach (sheet => sheet.Book = Id2Book [sheet.BookId]);
-                    Id2Sheet = sheets.ToDictionary (sheet => sheet.Id, sheet => sheet);
+                    sheets.ForEach (sheet => sheet.Book = GetItemById<Book> (sheet.BookId));
+                    _id2Sheet = sheets.ToDictionary (sheet => sheet.Id, sheet => sheet);
                     CurrentBook.Sheets = sheets;
                 }
                 return true;
@@ -148,7 +160,7 @@ public sealed class NovelsDataSet : BasicDataSet {
                         if (book.Id == 0) {
                             var result = await AddAsync (book);
                             if (result.IsSuccess) {
-                                Id2Book [book.Id] = book;
+                                _id2Book [book.Id] = book;
                                 status = Status.Success;
                             } else {
                                 issues.Add ($"Failed to add: {book.Url} {result.Status}");
@@ -190,7 +202,7 @@ public sealed class NovelsDataSet : BasicDataSet {
                                         if (sheet.Id == 0) {
                                             var result = await AddAsync (sheet);
                                             if (result.IsSuccess) {
-                                                Id2Sheet [sheet.Id] = sheet;
+                                                _id2Sheet [sheet.Id] = sheet;
                                             } else {
                                                 issues.Add ($"Failed to add: {sheetUrl} {result.Status}");
                                                 throw new Exception ("aborted");

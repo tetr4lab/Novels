@@ -316,9 +316,9 @@ public partial class Publish : ItemListBase<Book> {
         await base.OnInitializedAsync ();
         if (Book is not null) {
             selectedItem = Book;
+            await SetSectionTitle.InvokeAsync (Book is null ? "Publish" : $"<span style=\"font-size:80%;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</span>");
+            StartEdit ();
         }
-        await SetSectionTitle.InvokeAsync (Book is null ? "Publish" : $"<span style=\"font-size:80%;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</span>");
-        StartEdit ();
     }
 
 }

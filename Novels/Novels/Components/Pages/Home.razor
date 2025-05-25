@@ -1,6 +1,6 @@
 ﻿@inherits ItemListBase<Book>
 
-@page "/"
+@page "/{BookId:long?}"
 
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager NavigationManager
@@ -265,24 +265,23 @@
         }
     }
 
+    /// <summary>初期化</summary>
+    protected async override Task OnInitializedAsync() {
+        await base.OnInitializedAsync();
+        if (Book is null && DataSet.Books.Count > 0) {
+            // 新規セッション または書籍が見つからない場合
+            selectedItem = DataSet.Books [0];
+            await SetCurrentBookId.InvokeAsync ((selectedItem.Id, CurrentSheetIndex));
+        }
+    }
+
     /// <summary>遅延初期化</summary>
     protected override async Task OnAfterRenderAsync (bool firstRender) {
         await base.OnAfterRenderAsync (firstRender);
         if (_inited && !_inited2 && items?.Count > 0) {
             _inited2 = true;
-            if (CurrentBookId > 0) {
-                // 別ページから遷移 (既存セッション)
-                var item = items.FirstOrDefault (x => x.Id == CurrentBookId);
-                if (item is not null) {
-                    selectedItem = item;
-                } else {
-                    CurrentBookId = 0;
-                }
-            }
-            if (CurrentBookId <= 0) {
-                // 新規セッション または書籍が見つからない場合
-                selectedItem = items [0];
-                await SetCurrentBookId.InvokeAsync ((selectedItem.Id, CurrentSheetIndex));
+            if (Book is not null) {
+                selectedItem = Book;
             }
             TurnSelectedItemsPage ();
         }

@@ -78,6 +78,7 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
         newItem = NewEditItem;
         // Uriパラメータを優先して着目書籍を特定する
         var currentBookId = BookId ?? CurrentBookId;
+        if (currentBookId < 0) { currentBookId = 0; }
         if (currentBookId != CurrentBookId || SheetIndex is not null && SheetIndex != CurrentSheetIndex) {
             // パラメータによって着目書籍が変更されたら、レイアウトとナビに渡す
             await SetCurrentBookId.InvokeAsync ((currentBookId, SheetIndex ?? CurrentSheetIndex));
