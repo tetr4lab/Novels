@@ -81,7 +81,7 @@
             <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" Disabled="!IsDirty" OnClick="async () => { if (await ConfirmCancelEditAsync ()) StartEdit (); }" />
         </MudTooltip>
         <MudTooltip Arrow="true" Text="保存">
-            <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" Disabled="!IsDirty" OnClick="() => { if (editingItem is not null) { Commit (editingItem); StartEdit (); } }" />
+            <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" Disabled="!IsDirty" OnClick="async () => { if (editingItem is not null) { await Commit (editingItem); StartEdit (); } }" />
         </MudTooltip>
     </MudStack>
 } else {

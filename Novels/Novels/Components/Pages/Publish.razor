@@ -161,7 +161,7 @@
             <MudIconButton Disabled="!IsDirty" OnClick="async () => { if (await ConfirmCancelEditAsync ()) StartEdit (); }" Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
         <MudTooltip Arrow="true" Text="保存">
-            <MudIconButton Disabled="!IsDirty" OnClick="() => { if (editingItem is not null) { Commit (editingItem); StartEdit (); } }" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
+            <MudIconButton Disabled="!IsDirty" OnClick="async () => { if (editingItem is not null) { await Commit (editingItem); StartEdit (); } }" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
         <MudSpacer />
         <MudTooltip Arrow="true">

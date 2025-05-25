@@ -167,7 +167,7 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
     }
 
     /// <summary>編集完了</summary>
-    protected virtual async void Commit (object obj) {
+    protected virtual async Task Commit (object obj) {
         var item = GetT (obj);
         if (NovelsDataSet.EntityIsValid (item) && !backupedItem.Equals (item)) {
             item.Modifier = UserIdentifier;
