@@ -22,9 +22,7 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
         { nameof (Created), "生成日時" },
         { nameof (Modified), "更新日時" },
         { nameof (PersonalDocumentLimitSize), "制限サイズ" },
-        { nameof (SmtpAccount), "アカウント" },
         { nameof (SmtpMailAddress), "FROM" },
-        { nameof (SmtpReplyTo), "返信先" },
         { nameof (SmtpServer), "サーバ" },
         { nameof (SmtpPort), "ポート" },
         { nameof (SmtpUserName), "ユーザ名" },
@@ -34,7 +32,6 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
         { nameof (SmtpBcc), "BCC" },
         { nameof (SmtpSubject), "表題" },
         { nameof (SmtpBody), "本文" },
-        { nameof (ImportLog), "ログ" },
         { nameof (Remarks), "備考" },
     };
 
@@ -45,9 +42,7 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
     public static string UniqueKeysSql => "";
 
     [Column ("personal_document_limit_size"), Required] public int PersonalDocumentLimitSize { get; set; } = 0;
-    [Column ("smtp_account")] public string SmtpAccount { get; set; } = ""; // 削除候補
     [Column ("smtp_mailaddress")] public string SmtpMailAddress { get; set; } = "";
-    [Column ("smtp_replyto")] public string SmtpReplyTo { get; set; } = ""; // 削除候補
     [Column ("smtp_server")] public string SmtpServer { get; set; } = "";
     [Column ("smtp_port")] public int SmtpPort { get; set; } = 25;
     [Column ("smtp_username")] public string SmtpUserName { get; set; } = "";
@@ -57,7 +52,6 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
     [Column ("smtp_bcc")] public string SmtpBcc { get; set; } = "";
     [Column ("smtp_subject")] public string SmtpSubject { get; set; } = "";
     [Column ("smtp_body")] public string SmtpBody { get; set; } = "";
-    [Column ("import_log")] public string ImportLog { get; set; } = ""; // 削除候補
 
     /// <inheritdoc/>
     public override string? [] SearchTargets => [ ];
@@ -69,9 +63,7 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
     public override Setting Clone () {
         var item = base.Clone ();
         item.PersonalDocumentLimitSize = PersonalDocumentLimitSize;
-        item.SmtpAccount = SmtpAccount;
         item.SmtpMailAddress = SmtpMailAddress;
-        item.SmtpReplyTo = SmtpReplyTo;
         item.SmtpServer = SmtpServer;
         item.SmtpPort = SmtpPort;
         item.SmtpUserName = SmtpUserName;
@@ -81,16 +73,13 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
         item.SmtpBcc = SmtpBcc;
         item.SmtpSubject = SmtpSubject;
         item.SmtpBody = SmtpBody;
-        item.ImportLog = ImportLog;
         return item;
     }
 
     /// <inheritdoc/>
     public override Setting CopyTo (Setting destination) {
         destination.PersonalDocumentLimitSize = PersonalDocumentLimitSize;
-        destination.SmtpAccount = SmtpAccount;
         destination.SmtpMailAddress = SmtpMailAddress;
-        destination.SmtpReplyTo = SmtpReplyTo;
         destination.SmtpServer = SmtpServer;
         destination.SmtpPort = SmtpPort;
         destination.SmtpUserName = SmtpUserName;
@@ -100,7 +89,6 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
         destination.SmtpBcc = SmtpBcc;
         destination.SmtpSubject = SmtpSubject;
         destination.SmtpBody = SmtpBody;
-        destination.ImportLog = ImportLog;
         return base.CopyTo (destination);
     }
 
@@ -109,9 +97,7 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
         other != null
         && Id == other.Id
         && PersonalDocumentLimitSize == other.PersonalDocumentLimitSize
-        && SmtpAccount == other.SmtpAccount
         && SmtpMailAddress == other.SmtpMailAddress
-        && SmtpReplyTo == other.SmtpReplyTo
         && SmtpServer == other.SmtpServer
         && SmtpPort == other.SmtpPort
         && SmtpUserName == other.SmtpUserName
@@ -121,16 +107,15 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
         && SmtpBcc == other.SmtpBcc
         && SmtpSubject == other.SmtpSubject
         && SmtpBody == other.SmtpBody
-        && ImportLog == other.ImportLog
         && Remarks == other.Remarks
     ;
 
     /// <inheritdoc/>
     public override int GetHashCode () => HashCode.Combine (
-        HashCode.Combine (PersonalDocumentLimitSize, SmtpAccount, SmtpMailAddress, SmtpReplyTo, SmtpServer, SmtpPort, SmtpUserName, SmtpPassword),
-        HashCode.Combine (SmtpMailto, SmtpCc, SmtpBcc, SmtpSubject, SmtpBody, ImportLog, Remarks),
+        HashCode.Combine (PersonalDocumentLimitSize, SmtpMailAddress, SmtpServer, SmtpPort, SmtpUserName, SmtpPassword, SmtpMailto, SmtpCc),
+        HashCode.Combine (SmtpBcc, SmtpSubject, SmtpBody, Remarks),
         base.GetHashCode ());
 
     /// <inheritdoc/>
-    public override string ToString () => $"{TableLabel} {Id}: {PersonalDocumentLimitSize}, {SmtpAccount}, {SmtpMailAddress}, {SmtpReplyTo}, {SmtpServer}, {SmtpPort}, {SmtpUserName}, {SmtpMailto}, {SmtpCc}, {SmtpBcc}, {SmtpSubject}, {SmtpBody}, \"{Remarks}\"";
+    public override string ToString () => $"{TableLabel} {Id}: {PersonalDocumentLimitSize}, {SmtpMailAddress}, {SmtpServer}, {SmtpPort}, {SmtpUserName}, {SmtpMailto}, {SmtpCc}, {SmtpBcc}, {SmtpSubject}, {SmtpBody}, \"{Remarks}\"";
 }

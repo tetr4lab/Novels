@@ -28,18 +28,6 @@
                 <td><MudTextField T="int" @bind-Value="selectedItem.PersonalDocumentLimitSize" /></td>
             </tr>
             <tr>
-                <td>@(Setting.Label [nameof (Setting.SmtpAccount)])</td>
-                <td><MudTextField T="string" @bind-Value="selectedItem.SmtpAccount" /></td>
-            </tr>
-            <tr>
-                <td>@(Setting.Label [nameof (Setting.SmtpMailAddress)])</td>
-                <td><MudTextField T="string" @bind-Value="selectedItem.SmtpMailAddress" /></td>
-            </tr>
-            <tr>
-                <td>@(Setting.Label [nameof (Setting.SmtpReplyTo)])</td>
-                <td><MudTextField T="string" @bind-Value="selectedItem.SmtpReplyTo" /></td>
-            </tr>
-            <tr>
                 <td>@(Setting.Label [nameof (Setting.SmtpServer)])</td>
                 <td><MudTextField T="string" @bind-Value="selectedItem.SmtpServer" /></td>
             </tr>
@@ -54,6 +42,10 @@
             <tr>
                 <td>@(Setting.Label [nameof (Setting.SmtpPassword)])</td>
                 <td><MudTextField T="string" @bind-Value="selectedItem.SmtpPassword" InputType="@PasswordInputType" Adornment="Adornment.End" AdornmentIcon="@PasswordInputIcon" OnAdornmentClick="ButtonTestclick" AdornmentAriaLabel="Show Password" /></td>
+            </tr>
+            <tr>
+                <td>@(Setting.Label [nameof (Setting.SmtpMailAddress)])</td>
+                <td><MudTextField T="string" @bind-Value="selectedItem.SmtpMailAddress" /></td>
             </tr>
             <tr>
                 <td>@(Setting.Label [nameof (Setting.SmtpMailto)])</td>
@@ -76,10 +68,10 @@
                 <td><MudTextField T="string" @bind-Value="selectedItem.SmtpBody" /></td>
             </tr>
             <tr>
-                <td>@(Setting.Label [nameof (Setting.ImportLog)])</td>
+                <td>@(Setting.Label [nameof (Setting.Remarks)])</td>
                 <td>
                     <style>.horizontal-scroll textarea { overflow-x: auto; white-space: nowrap; }</style>
-                    <MudTextField Class="horizontal-scroll" T="string" @bind-Value="selectedItem.ImportLog" Lines="10" />
+                    <MudTextField Class="horizontal-scroll" T="string" @bind-Value="selectedItem.Remarks" Lines="10" />
                 </td>
             </tr>
         </tbody>
@@ -119,9 +111,12 @@
     /// <summary>遅延初期化</summary>
     protected override async Task OnAfterRenderAsync (bool firstRender) {
         await base.OnAfterRenderAsync (firstRender);
-        if (firstRender && items is not null) {
+        if (!_inited2 && items?.Count > 0) {
+            _inited2 = true;
             selectedItem = items [0];
             StartEdit ();
         }
     }
+    protected bool _inited2 = false;
+
 }

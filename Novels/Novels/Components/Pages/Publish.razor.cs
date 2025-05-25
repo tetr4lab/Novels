@@ -217,6 +217,9 @@ public partial class Publish : ItemListBase<Book> {
                 }
                 if (sendToKindle) {
                     // Send to Kindle
+                    if (new FileInfo (epubPath).Length > DataSet.Setting.PersonalDocumentLimitSize) {
+                        Snackbar.Add ($"『{title}』が制限サイズを超えています。", Severity.Warning);
+                    }
                     if (SendToKindle (epubPath, title)) {
                         Snackbar.Add ($"『{title}』を発行しました。", Severity.Normal);
                         book.PublishedAt = DateTime.Now;
@@ -334,11 +337,15 @@ public partial class Publish : ItemListBase<Book> {
     protected override async Task OnInitializedAsync () {
         // 基底クラスで着目書籍オブジェクトを取得
         await base.OnInitializedAsync ();
-        if (Book is not null) {
-            selectedItem = Book;
-            await SetSectionTitle.InvokeAsync (Book is null ? "Publish" : $"<span style=\"font-size:80%;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</span>");
-            StartEdit ();
+        if (!_inited2 && items?.Count > 0) {
+            _inited2 = true;
+            if (Book is not null) {
+                selectedItem = Book;
+                await SetSectionTitle.InvokeAsync (Book is null ? "Publish" : $"<span style=\"font-size:80%;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</span>");
+                StartEdit ();
+            }
         }
     }
+    protected bool _inited2 = false;
 
 }
