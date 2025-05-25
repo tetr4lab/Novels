@@ -100,7 +100,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (HtmlBackup), "原稿待避" },
         { nameof (Errata), "正誤" },
         { nameof (Wish), "希望" },
-        { nameof (SeriesTitle), "シリーズ" },
+        { nameof (SeriesTitle), "叢書" },
         { nameof (Remarks), "備考" },
         { nameof (LastUpdate), "最終更新" },
         { nameof (Bookmark), "栞" },

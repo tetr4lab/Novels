@@ -48,6 +48,7 @@
                 </MudTableSortLabel>
             </MudTh>
             <MudTh><MudTableSortLabel SortBy="new Func<Book, string?>(x=>x.Author)">@(Book.Label [nameof (Book.Author)])</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Book, string?>(x=>x.SeriesTitle)">@(Book.Label [nameof (Book.SeriesTitle)])</MudTableSortLabel></MudTh>
             <MudTh Class="align-middle text-nowrap"><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.Site)">@(Book.Label [nameof (Book.Site)])</MudTableSortLabel></MudTh>
             <MudTh Class="align-middle text-nowrap"><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.StatusPriority)">@(Book.Label [nameof (Book.Status)])</MudTableSortLabel></MudTh>
             <MudTh Class="align-middle text-nowrap"><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.NumberOfSheets)">@(Book.Label [nameof (Book.NumberOfSheets)])</MudTableSortLabel></MudTh>
@@ -93,6 +94,24 @@
                             <MudText Typo="Typo.inherit">「@(author)」で絞り込み</MudText>
                             @foreach (var book in items) {
                                 if (book.Author == context.Author) {
+                                    <MudText Typo="Typo.inherit">『@(book.Title)』</MudText>
+                                }
+                            }
+                        </MudStack>
+                    </TooltipContent>
+                </MudTooltip>
+            </MudTd>
+            <MudTd DataLabel="@(Book.Label [nameof (Book.SeriesTitle)])">
+                @{ var series = context.SeriesTitle.Replace (' ', '\u2423'); }
+                <MudTooltip Arrow Duration="1000">
+                    <ChildContent>
+                        <MudLink OnClick="@(async () => { await SetFilterText.InvokeAsync (series); await ChangeCurrentBookAsync (context); })" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.SeriesTitle)</MudLink>
+                    </ChildContent>
+                    <TooltipContent>
+                        <MudStack Spacing="0" Class="align-start">
+                            <MudText Typo="Typo.inherit">「@(series)」で絞り込み</MudText>
+                            @foreach (var book in items) {
+                                if (book.SeriesTitle == context.SeriesTitle) {
                                     <MudText Typo="Typo.inherit">『@(book.Title)』</MudText>
                                 }
                             }
