@@ -139,7 +139,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <summary>書籍に所属するシート</summary>
     public List<Sheet> Sheets { get; set; } = new ();
 
-    /// <summary>内容が空である</summary>
+    /// <summary>シート未取り込み</summary>
     public bool IsEmpty => NumberOfRelatedSheets <= 0;
 
     /// <summary>外向けの状態</summary>
@@ -198,14 +198,12 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                 } else if (Url.Contains ("novel18.syosetu.com")) {
                     site = Site.Novel18;
                 } else if (Url.Contains ("kakuyomu.jp")) {
-                    if (!string.IsNullOrEmpty (_html) && Document is not null) {
-                        if (Document?.QuerySelector ("h1#workTitle") is not null) {
-                            site = Site.KakuyomuOld;
-                        } else {
-                            site = Site.Kakuyomu;
-                        }
+                    if (string.IsNullOrEmpty (_html) || Document?.QuerySelector ("h1#workTitle") is null) {
+                        // 新規なら旧サイトではない
+                        site = Site.Kakuyomu;
+                    } else {
+                        site = Site.KakuyomuOld;
                     }
-                    // else は未判定のまま返す
                 } else if (Url.Contains ("novelup.plus")) {
                     site = Site.Novelup;
                 } else if (Url.Contains ("dyreitou.com")) {
