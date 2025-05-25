@@ -38,7 +38,6 @@
                                 <MudIconButton OnClick="@(async () => await ConfirmUnPublishBookAsync ())" Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
                             </MudChip>
                         }
-                        <MudChip T="string" Variant="Variant.Outlined">@(Book.Label [nameof (Book.LastUpdate)]): @(Book.LastUpdate.ToString ("yyyy/MM/dd HH:mm"))</MudChip>
                         <MudSpacer />
                         <MudText>
                             <MudTooltip Arrow Duration="1000" Text="@(Book.Label [nameof (Book.Site)])">
@@ -93,15 +92,16 @@
                 <td><MudTextField T="string" @bind-Value="Book.Url2" /></td>
             </tr>
             <tr>
-                <td>@(Book.Label [nameof (Book.LastUpdate)])</td>
+                <td>@(Book.Label [nameof (Book.Status)])</td>
                 <td>
                     <MudStack Row Spacing="5" Class="align-center">
-                        <MudText Typo="Typo.inherit">@(Book.LastUpdate.ToString ("yyyy/MM/dd HH:mm"))</MudText>
-                        <MudSelect @bind-Value="Book.Status" Typo="Typo.inherit" Dense FitContent>
+                        <MudSelect @bind-Value="Book.Status" Typo="Typo.inherit" AdornmentIcon="@Icons.Material.Filled.ArrowDropDown" AdornmentColor="Book.StatusBgColor" Dense FitContent>
                             @foreach (BookStatus status in Enum.GetValues (typeof (BookStatus))) {
                                 <MudSelectItem T="BookStatus" Value="@status">@(status.ToJString ())</MudSelectItem>
                             }
                         </MudSelect>
+                        <MudSpacer />
+                        @(Book.Label [nameof (Book.LastUpdate)]): @(Book.LastUpdate.ToString ("yyyy/MM/dd HH:mm"))
                     </MudStack>
                 </td>
             </tr>
