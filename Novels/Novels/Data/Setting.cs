@@ -23,9 +23,9 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
         { nameof (Modified), "更新日時" },
         { nameof (PersonalDocumentLimitSize), "制限サイズ" },
         { nameof (SmtpAccount), "アカウント" },
-        { nameof (SmtpMailAddress), "メールアドレス" },
+        { nameof (SmtpMailAddress), "FROM" },
         { nameof (SmtpReplyTo), "返信先" },
-        { nameof (SmtpServer), "SMTBサーバ" },
+        { nameof (SmtpServer), "サーバ" },
         { nameof (SmtpPort), "ポート" },
         { nameof (SmtpUserName), "ユーザ名" },
         { nameof (SmtpPassword), "パスワード" },
@@ -45,9 +45,9 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
     public static string UniqueKeysSql => "";
 
     [Column ("personal_document_limit_size"), Required] public int PersonalDocumentLimitSize { get; set; } = 0;
-    [Column ("smtp_account")] public string SmtpAccount { get; set; } = "";
+    [Column ("smtp_account")] public string SmtpAccount { get; set; } = ""; // 削除候補
     [Column ("smtp_mailaddress")] public string SmtpMailAddress { get; set; } = "";
-    [Column ("smtp_replyto")] public string SmtpReplyTo { get; set; } = "";
+    [Column ("smtp_replyto")] public string SmtpReplyTo { get; set; } = ""; // 削除候補
     [Column ("smtp_server")] public string SmtpServer { get; set; } = "";
     [Column ("smtp_port")] public int SmtpPort { get; set; } = 25;
     [Column ("smtp_username")] public string SmtpUserName { get; set; } = "";
@@ -57,7 +57,7 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
     [Column ("smtp_bcc")] public string SmtpBcc { get; set; } = "";
     [Column ("smtp_subject")] public string SmtpSubject { get; set; } = "";
     [Column ("smtp_body")] public string SmtpBody { get; set; } = "";
-    [Column ("import_log")] public string ImportLog { get; set; } = "";
+    [Column ("import_log")] public string ImportLog { get; set; } = ""; // 削除候補
 
     /// <inheritdoc/>
     public override string? [] SearchTargets => [ ];
