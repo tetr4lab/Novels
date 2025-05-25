@@ -1,6 +1,6 @@
 ﻿@inherits ItemListBase<Book>
 
-@page "/{BookId:long?}"
+@page "/{BookId:long?}/{SheetIndex:int?}"
 
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager NavigationManager

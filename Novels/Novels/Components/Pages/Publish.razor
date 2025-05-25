@@ -2,7 +2,7 @@
 
 @inherits ItemListBase<Book>
 
-@page "/book/{BookId:long?}"
+@page "/book/{BookId:long?}/{SheetIndex:int?}"
 
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
