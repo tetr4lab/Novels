@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Routing;
@@ -47,6 +48,12 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
     /// <summary>認証状況を得る</summary>
     [CascadingParameter] protected Task<AuthenticationState> AuthState { get; set; } = default!;
 
+    /// <summary>指定された書籍</summary>
+    [Parameter] public long? BookId { get; set; } = null;
+
+    /// <summary>ページ</summary>
+    [Parameter] public int? SheetIndex { get; set; } = null;
+
     /// <summary>項目一覧</summary>
     protected List<T>? items => DataSet.IsReady ? DataSet.GetList<T> () : null;
 
@@ -59,6 +66,9 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
     /// <summary>ユーザ識別子</summary>
     protected string UserIdentifier => Identity?.Identifier ?? "unknown";
 
+    /// <summary>着目中の書籍</summary>
+    protected virtual Book? Book { get; set; } = null;
+
     /// <summary>初期化</summary>
     protected override async Task OnInitializedAsync () {
         await base.OnInitializedAsync ();
@@ -66,6 +76,18 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
         // 認証・認可
         Identity = await AuthState.GetIdentityAsync ();
         newItem = NewEditItem;
+        // Uriパラメータを優先して着目書籍を特定する
+        var currentBookId = BookId ?? CurrentBookId;
+        if (currentBookId != CurrentBookId || SheetIndex is not null && SheetIndex != CurrentSheetIndex) {
+            // パラメータによって着目書籍が変更されたら、レイアウトとナビに渡す
+            await SetCurrentBookId.InvokeAsync ((currentBookId, SheetIndex ?? CurrentSheetIndex));
+        }
+        var reload = DataSet.SetCurrentBookIdAsync (currentBookId);
+        await base.OnInitializedAsync ();
+        // リロード完了待機
+        await reload;
+        // 着目書籍オブジェクトを取得
+        Book = DataSet.Books.Find (s => s.Id == currentBookId);
     }
 
     /// <summary>破棄</summary>

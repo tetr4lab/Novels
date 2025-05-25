@@ -28,14 +28,8 @@ public partial class Publish : ItemListBase<Book> {
     /// <summary>オーバーレイの進行の最大値</summary>
     protected int OverlayMax = 0;
 
-    /// <summary>指定された書籍</summary>
-    [Parameter] public long? BookId { get; set; } = null;
-
     /// <inheritdoc/>
     protected override int _initialPageSizeIndex => 1;
-
-    /// <summary>着目中の書籍</summary>
-    protected Book? Book { get; set; } = null;
 
     /// <summary>無効なURI</summary>
     protected bool IsInvalidUri (string? url) => !Uri.IsWellFormedUriString (url, UriKind.Absolute);
@@ -318,19 +312,8 @@ public partial class Publish : ItemListBase<Book> {
 
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
     protected override async Task OnInitializedAsync () {
-        // Uriパラメータを優先して着目書籍を特定する
-        var currentBookId = BookId ?? CurrentBookId;
-        if (currentBookId != CurrentBookId) {
-            // パラメータによって着目書籍が変更されたら、レイアウトとナビに渡す
-            await SetCurrentBookId.InvokeAsync ((currentBookId, CurrentSheetIndex));
-        }
-        // リロード開始 (CurrentBookIdが変化していなければ何もしない)
-        var reload = DataSet.SetCurrentBookIdAsync (currentBookId);
+        // 基底クラスで着目書籍オブジェクトを取得
         await base.OnInitializedAsync ();
-        // リロード完了待機
-        await reload;
-        // 着目書籍オブジェクトを取得
-        Book = DataSet.Books.Find (s => s.Id == currentBookId);
         if (Book is not null) {
             selectedItem = Book;
         }

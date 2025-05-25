@@ -112,19 +112,11 @@
 }
 
 @code {
-    /// <summary>指定された書籍</summary>
-    [Parameter] public long? BookId { get; set; } = null;
-    /// <summary>ページ</summary>
-    [Parameter] public int? SheetIndex { get; set; } = null;
-
     /// <inheritdoc/>
     protected override int _initialPageSizeIndex => 1;
 
     /// <summary>表示ページ</summary>
     protected int CurrentPage { get; set; } = 0;
-
-    /// <summary>着目中の書籍</summary>
-    protected Book? Book { get; set; } = null;
 
     /// <summary>行がクリックされた</summary>
     protected async Task OnRowClickAsync (TableRowClickEventArgs<Sheet> context) {
@@ -188,18 +180,8 @@
 
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
     protected override async Task OnInitializedAsync() {
-        // Uriパラメータを優先して着目書籍を特定する
-        var currentBookId = BookId ?? CurrentBookId;
-        if (currentBookId != CurrentBookId || SheetIndex is not null && SheetIndex != CurrentSheetIndex) {
-            // パラメータによって着目書籍が変更されたら、レイアウトとナビに渡す
-            await SetCurrentBookId.InvokeAsync ((currentBookId, SheetIndex ?? CurrentSheetIndex));
-        }
-        var reload = DataSet.SetCurrentBookIdAsync (currentBookId);
+        // 基底クラスで着目書籍オブジェクトを取得
         await base.OnInitializedAsync ();
-        // リロード完了待機
-        await reload;
-        // 着目書籍オブジェクトを取得
-        Book = DataSet.Books.Find (s => s.Id == currentBookId);
         await SetSectionTitle.InvokeAsync (Book is null ? "Contents" : $"<span style=\"font-size:80%;\"><a href=\"{Book?.Url}\" target=\"_blank\" style=\"text-decoration: none;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</a></span>");
     }
 

@@ -82,25 +82,12 @@
 }
 
 @code {
-    /// <summary>指定された書籍</summary>
-    [Parameter] public long? BookId { get; set; } = null;
-    /// <summary>ページ</summary>
-    [Parameter] public int? SheetIndex { get; set; } = null;
-
-    /// <summary>着目中の書籍</summary>
-    protected Book? Book { get; set; } = null;
-
     /// <summary>着目中のシート</summary>
     protected Sheet? Sheet { get; set; } = null;
 
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
     protected override async Task OnInitializedAsync() {
-        var currentBookId = BookId ?? CurrentBookId;
-        var reload = DataSet.SetCurrentBookIdAsync (currentBookId);
         await base.OnInitializedAsync ();
-        // リロード完了待機
-        await reload;
-        Book = DataSet.Books.Find (s => s.Id == currentBookId);
         await SetSheetAsync (SheetIndex ?? CurrentSheetIndex);
     }
 
