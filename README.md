@@ -1,89 +1,244 @@
+ï»¿---
+title: Webå°èª¬ã®å–å¾—ã¨ç™ºè¡Œ
+tags: epub webscraping smtp-mail blazor
 ---
-title: Web¬à‚Ìæ“¾‚Æ”­s
-tags: Blazor ASP.NET MudBlazor PetaPoco MySQL MariaDB
----
 
-# Web¬à‚Ìæ“¾‚Æ”­s
-## ‚Í‚¶‚ß‚É
-‚±‚ê‚Í‹É‚ß‚ÄŒÂl“I‚ÈƒvƒƒWƒFƒNƒg‚Å‚·B
+# Webå°èª¬ã®å–å¾—ã¨ç™ºè¡Œ
+## ã¯ã˜ã‚ã«
+ã“ã‚Œã¯æ¥µã‚ã¦å€‹äººçš„ãªãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆã§ã™ã€‚
 
-### –Ú“I
-Web¬à‚ğæ“¾‚µAEPUB‚ğ¶¬‚µ‚ÄKindleƒp[ƒ\ƒiƒ‹ƒhƒLƒ…ƒƒ“ƒgŒü‚¯‚É”­s(SendToKindle)‚µ‚Ü‚·B
+### ç›®çš„
+Webå°èª¬ã‚’å–å¾—ã—ã€EPUBã‚’ç”Ÿæˆã—ã¦ã€Kindleãƒ‘ãƒ¼ã‚½ãƒŠãƒ«ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆå‘ã‘ã«ç™ºè¡Œ(Send To Kindle)ã—ã¾ã™ã€‚
 
-#### ŒoˆÜ
-Œ³XAFileMaker‚ÅÀŒ»‚µ‚Ä‚¢‚½‚à‚Ì‚Å‚·B
+#### çµŒç·¯
+å…ƒã€…ã€FileMakerã§å®Ÿç¾ã—ã¦ã„ãŸã‚‚ã®ã§ã™ã€‚
 
-### ŠÂ‹«
-#### ƒrƒ‹ƒh
+### ç’°å¢ƒ
+#### ãƒ“ãƒ«ãƒ‰
 - .NET 8.0
+  - Microsoft.AspNetCore.Authentication.Google 8.0.16
+  - Microsoft.AspNetCore.Authorization 8.0.16
 - MudBlazor 8.6.0
 - PetaPoco 6.0.683
 - MySqlConnector 2.4.0
 - AngleSharp 1.3.0
 - MailKit 4.12.1
+- [Tetr4labNugetPackages](https://github.com/tetr4lab/Tetr4labNugetPackages)
 
-#### ƒT[ƒo
+#### ã‚µãƒ¼ãƒ
 
 https://zenn.dev/tetr4lab/articles/ad947ade600764
 
-## ‚Å‚«‚é‚±‚Æ
-- Web¬à‚Ìæ“¾ (‚È‚ë‚¤AƒmƒNƒ^[ƒ“AƒJƒNƒˆƒ€Aƒmƒxƒ‹ƒAƒbƒvA•¶š‚Ì—â“€ŒÉ)
-- ¬à“à—e‚ÌŠm”FAŠeíƒƒ‚A•¶šZ³
-- EPUB‚Ì¶¬‚ÆKindleƒp[ƒ\ƒiƒ‹ƒhƒLƒ…ƒƒ“ƒgŒü‚¯”­s
+## ã§ãã‚‹ã“ã¨
+- Webå°èª¬ã®å–å¾—ãƒ»æ›´æ–° (ãªã‚ã†ã€ãƒã‚¯ã‚¿ãƒ¼ãƒ³ã€ã‚«ã‚¯ãƒ¨ãƒ ã€ãƒãƒ™ãƒ«ã‚¢ãƒƒãƒ—ä»–)
+- å°èª¬å†…å®¹ã®ç¢ºèªã€å„ç¨®ãƒ¡ãƒ¢ã€æ–‡å­—æ ¡æ­£
+- EPUBã®ç”Ÿæˆã€å–å¾—
+- Kindleãƒ‘ãƒ¼ã‚½ãƒŠãƒ«ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆå‘ã‘é€ä¿¡
 
-## ƒf[ƒ^\‘¢
-### ˜_—\¬
-- İ’è
-  - 
-  - ”õl
-- ‘
-  - 
-  - ”õl
-- ƒV[ƒg
-  - 
-  - ”õl
+## ãƒ‡ãƒ¼ã‚¿æ§‹é€ 
+### è«–ç†æ§‹æˆ
+- æ›¸èªŒ
+  - æ›¸èªŒã¨ç›®æ¬¡
+- ã‚·ãƒ¼ãƒˆ
+  - ç™ºè¡¨å˜ä½ã®æœ¬æ–‡
+- è¨­å®š
+  - å–å¾—è¨­å®šã€ç™ºè¡Œè¨­å®š
 
-### ƒe[ƒuƒ‹ƒXƒL[ƒ}
+### ãƒ†ãƒ¼ãƒ–ãƒ«ã‚¹ã‚­ãƒ¼ãƒ
 
 <details><summary>sql</summary>
 
 ```sql:MariaDB
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `books`
+--
+
+DROP TABLE IF EXISTS `books`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `books` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `version` int(11) NOT NULL DEFAULT 0,
+  `created` datetime NOT NULL DEFAULT current_timestamp(),
+  `creator` varchar(50) NOT NULL DEFAULT '',
+  `modified` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `modifier` varchar(50) NOT NULL DEFAULT '',
+  `url1` varchar(255) NOT NULL DEFAULT '',
+  `url2` varchar(255) NOT NULL DEFAULT '',
+  `html` longtext DEFAULT NULL,
+  `site` int(11) NOT NULL DEFAULT 0,
+  `title` varchar(255) DEFAULT NULL,
+  `author` varchar(255) DEFAULT NULL,
+  `number_of_published` int(20) DEFAULT NULL,
+  `published_at` datetime DEFAULT NULL,
+  `read` bit(1) NOT NULL DEFAULT b'0',
+  `memorandum` varchar(255) DEFAULT NULL,
+  `status` varchar(50) NOT NULL DEFAULT '',
+  `html_backup` longtext DEFAULT NULL,
+  `errata` longtext DEFAULT NULL,
+  `wish` bit(1) NOT NULL DEFAULT b'0',
+  `bookmark` bigint(20) DEFAULT NULL,
+  `remarks` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50003 TRIGGER `version_check_before_update_on_books` BEFORE UPDATE ON `books` FOR EACH ROW begin
+    if new.version <= old.version then
+        signal SQLSTATE '45000'
+        set MESSAGE_TEXT = 'Version mismatch detected.';
+    end if;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
+--
+-- Table structure for table `settings`
+--
+
+DROP TABLE IF EXISTS `settings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `settings` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `version` int(11) NOT NULL DEFAULT 0,
+  `created` datetime NOT NULL DEFAULT current_timestamp(),
+  `creator` varchar(50) NOT NULL DEFAULT '',
+  `modified` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `modifier` varchar(50) NOT NULL DEFAULT '',
+  `personal_document_limit_size` int(11) NOT NULL DEFAULT 0,
+  `smtp_mailaddress` varchar(255) NOT NULL DEFAULT '',
+  `smtp_server` varchar(255) NOT NULL DEFAULT '',
+  `smtp_port` int(11) NOT NULL DEFAULT 25,
+  `smtp_username` varchar(255) NOT NULL DEFAULT '',
+  `smtp_password` varchar(255) NOT NULL DEFAULT '',
+  `smtp_mailto` varchar(255) NOT NULL DEFAULT '',
+  `smtp_cc` varchar(255) NOT NULL DEFAULT '',
+  `smtp_bcc` varchar(255) NOT NULL DEFAULT '',
+  `smtp_subject` varchar(255) NOT NULL DEFAULT '',
+  `smtp_body` varchar(255) NOT NULL DEFAULT '',
+  `user_agent` VARCHAR(255) NOT NULL DEFAULT 'Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko',
+  `access_interval_time` INT(11) NOT NULL DEFAULT 1000,
+  `default_cookies` LONGTEXT NOT NULL DEFAULT '{ "over18": "yes" }',
+  `remarks` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50003 TRIGGER `version_check_before_update_on_settings` BEFORE UPDATE ON `settings` FOR EACH ROW begin
+    if new.version <= old.version then
+        signal SQLSTATE '45000'
+        set MESSAGE_TEXT = 'Version mismatch detected.';
+    end if;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
+--
+-- Table structure for table `sheets`
+--
+
+DROP TABLE IF EXISTS `sheets`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `sheets` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `version` int(11) NOT NULL DEFAULT 0,
+  `created` datetime NOT NULL DEFAULT current_timestamp(),
+  `creator` varchar(50) NOT NULL DEFAULT '',
+  `modified` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `modifier` varchar(50) NOT NULL DEFAULT '',
+  `book_id` bigint(20) NOT NULL,
+  `url` varchar(255) NOT NULL DEFAULT '',
+  `html` longtext DEFAULT NULL,
+  `sheet_update` datetime DEFAULT NULL,
+  `novel_no` INT(20) NOT NULL DEFAULT 0,
+  `errata` longtext DEFAULT NULL,
+  `remarks` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  CONSTRAINT `fk_bookid_books_id` FOREIGN KEY (`book_id`) REFERENCES `books` (`id`) ON UPDATE RESTRICT ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50003 TRIGGER `version_check_before_update_on_sheets` BEFORE UPDATE ON `sheets` FOR EACH ROW begin
+    if new.version <= old.version then
+        signal SQLSTATE '45000'
+        set MESSAGE_TEXT = 'Version mismatch detected.';
+    end if;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 ```
 
 </details>
 
-## ‰æ–Ê‚Æ‹@”\
-- ‹¤’Ê: ƒiƒrƒQ[ƒVƒ‡ƒ“ƒo[
-  - ƒƒjƒ…[: ƒ{ƒ^ƒ“•À‚Ñ
-    - BooksAPublishAContentsAReadASettings ƒy[ƒWØ‚è‘Ö‚¦
-  - ŒŸõŒê: ƒtƒB[ƒ‹ƒh
-    - ŒŸõÀs: ƒ{ƒ^ƒ“
-    - i‰ğœ: ƒ{ƒ^ƒ“
-  - –¢’…è: ƒ{ƒ^ƒ“
-    - ŠÈˆÕŒŸõ
-  - ƒe[ƒ}: ƒ{ƒ^ƒ“
-    - ƒ‰ƒCƒg/ƒ_[ƒNƒ‚[ƒhØ‚è‘Ö‚¦
-- Books(ƒz[ƒ€): ¬àˆê——
-  - ƒe[ƒuƒ‹(•ÒW•s‰Â)
-    - ID: ”’l
-    - ŠùŠ§: ƒ`ƒFƒbƒNƒ{ƒbƒNƒX
-    - Šù“Ç: ƒ`ƒFƒbƒNƒ{ƒbƒNƒX
-    - Šó–]: ƒ`ƒFƒbƒNƒ{ƒbƒNƒX
-    - Publish: ƒAƒCƒRƒ“ƒ{ƒ^ƒ“
-    - Contents: ƒAƒCƒRƒ“ƒ{ƒ^ƒ“
-    - ‘–¼: ƒeƒLƒXƒg
-    - ’˜Ò: ƒeƒLƒXƒg
-    - ŒfÚ: ƒeƒLƒXƒg
-    - ó‘Ô: ƒeƒLƒXƒg’…F
-    - ”õl: ƒeƒLƒXƒg
-- Publish: ‘•ÒWAæ“¾EXVA”­sAíœ
-  - 
-- Contents: ƒV[ƒgˆê——
-  - 
-- Read: ƒV[ƒg‰{——A•ÒW
-  - 
+## ç”»é¢ã¨æ©Ÿèƒ½
+### è«–ç†æ§‹æˆ
+- å…±é€š: ãƒŠãƒ“ã‚²ãƒ¼ã‚·ãƒ§ãƒ³ãƒãƒ¼
+  - ãƒšãƒ¼ã‚¸åˆ‡ã‚Šæ›¿ãˆã€æ¤œç´¢ã€ãƒ†ãƒ¼ãƒåˆ‡ã‚Šæ›¿ãˆ
+- Books(ãƒ›ãƒ¼ãƒ )
+  - æ›¸èªŒä¸€è¦§ã€æ–°è¦ä½œæˆ
+- Publish
+  - æ›¸èªŒç·¨é›†ã€æ ¡æ­£ã€å–å¾—ãƒ»æ›´æ–°ã€ç™ºè¡Œã€å‰Šé™¤
+- Contents
+  - ã‚·ãƒ¼ãƒˆä¸€è¦§
+- Read
+  - ã‚·ãƒ¼ãƒˆé–²è¦§ã€æ ¡æ­£
 - Settings
-  - 
+  - è¨­å®š
 
-## ‚¨‚í‚è‚É
-ÅŒã‚Ü‚Å‚¨“Ç‚İ‚¢‚½‚¾‚«‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚µ‚½B
+## ãŠã‚ã‚Šã«
+ãŠèª­ã¿ã„ãŸã ãã‚ã‚ŠãŒã¨ã†ã”ã–ã„ã¾ã—ãŸã€‚
