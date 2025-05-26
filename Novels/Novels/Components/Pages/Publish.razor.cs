@@ -13,12 +13,6 @@ namespace Novels.Components.Pages;
 
 public partial class Publish : ItemListBase<Book> {
 
-    [Inject] protected IHttpClientFactory HttpClientFactory { get; set; } = null!;
-
-    /// <summary>HttpClient</summary>
-    protected HttpClient HttpClient => _httpClient ??= HttpClientFactory.CreateClient ("Novels");
-    protected HttpClient? _httpClient = null;
-
     /// <summary>オーバーレイの表示</summary>
     protected bool IsOverlayed { get; set; } = false;
 

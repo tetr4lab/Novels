@@ -91,6 +91,13 @@ public sealed class NovelsDataSet : BasicDataSet {
             var books = await database.FetchAsync<Book> (Book.BaseSelectSql);
             var sheets = await database.FetchAsync<Sheet> (Sheet.BaseSelectSql, new { BookId = CurrentBookId, });
             var settings = await database.FetchAsync<Setting> (Setting.BaseSelectSql);
+            if (settings.Count <= 0) {
+                // 新規設定を用意
+                var setting = new Setting ();
+                if ((await AddAsync (setting)).IsSuccess) {
+                    settings.Add (setting);
+                }
+            }
             if (books is not null && sheets is not null && settings is not null) {
                 ListSet [typeof (Book)] = books;
                 ListSet [typeof (Sheet)] = sheets;
@@ -114,12 +121,6 @@ public sealed class NovelsDataSet : BasicDataSet {
         return result;
     }
 
-    /// <summary>データを取得する際の最低間隔 (msec)</summary>
-    private static readonly int AccessIntervalTime = 1000;
-
-    /// <summary>クッキー</summary>
-    private static readonly Dictionary<string, string> DefaultCookies = new  () { { "over18", "yes" }, };
-
     /// <summary>書籍の更新</summary>
     /// <param name="client">HTTPクライアント</param>
     /// <param name="url">対象の書籍のURL</param>
@@ -132,21 +133,22 @@ public sealed class NovelsDataSet : BasicDataSet {
         if (Valid) {
             var book = Books.FirstOrDefault (book => book.Url == url);
             if (book == default) {
-                book = new Book () { Url1 = url, Creator = userIdentifier, Modifier = userIdentifier, };
+                book = new Book () { Url1 = url, Creator = userIdentifier, Modifier = userIdentifier, Status = BookStatus.NotSet, };
             } else {
                 book.Modifier = userIdentifier;
             }
             try {
                 // 取得日時を記録
+                client.DefaultRequestHeaders.Add ("User-Agent", Setting.UserAgent);
                 var lastTime = DateTime.Now;
-                using (var message = await client.GetWithCookiesAsync (book.Url, DefaultCookies)) {
+                using (var message = await client.GetWithCookiesAsync (book.Url, Setting.DefaultCookies)) {
                     if (message.IsSuccessStatusCode && message.StatusCode == System.Net.HttpStatusCode.OK) {
                         var html = new List<string> { await message.Content.ReadAsStringAsync (), };
                         for (var i = 2; i <= book.LastPage; i++) {
-                            await Task.Delay (AccessIntervalTime);
+                            await Task.Delay (Setting.AccessIntervalTime);
                             // 追加ページの絶対URLを取得する
                             var additionalUrl = $"{book.Url}{(book.Url.EndsWith ('/') ? "" : "/")}?p={i}";
-                            using (var message2 = await client.GetWithCookiesAsync (additionalUrl, DefaultCookies)) {
+                            using (var message2 = await client.GetWithCookiesAsync (additionalUrl, Setting.DefaultCookies)) {
                                 if (message2.IsSuccessStatusCode && message2.StatusCode == System.Net.HttpStatusCode.OK) {
                                     html.Add (await message2.Content.ReadAsStringAsync ());
                                 } else {
@@ -156,7 +158,6 @@ public sealed class NovelsDataSet : BasicDataSet {
                             }
                         }
                         book.Html = string.Join ('\n', html);
-                        book.Status = BookStatus.NotSet;
                         if (book.Id == 0) {
                             var result = await AddAsync (book);
                             if (result.IsSuccess) {
@@ -175,18 +176,18 @@ public sealed class NovelsDataSet : BasicDataSet {
                                 throw new Exception ("aborted");
                             }
                         }
-                        progress?.Invoke (0, book.NumberOfSheets);
                         /// シート
                         if (withSheets && (book.Id == 0 || CurrentBookId == book.Id)) {
+                            progress?.Invoke (0, book.NumberOfSheets);
                             status = Status.Unknown;
                             for (var index = 0; index < book.SheetUrls.Count; index++) {
                                 string sheetUrl = book.SheetUrls [index];
-                                await Task.Delay (AccessIntervalTime);
+                                await Task.Delay (Setting.AccessIntervalTime);
                                 if (string.IsNullOrEmpty (sheetUrl)) {
                                     issues.Add ($"Invalid Sheet URL: {url} + {sheetUrl}");
                                     continue;
                                 }
-                                using (var message3 = await client.GetWithCookiesAsync (sheetUrl, DefaultCookies)) {
+                                using (var message3 = await client.GetWithCookiesAsync (sheetUrl, Setting.DefaultCookies)) {
                                     if (message3.IsSuccessStatusCode && message3.StatusCode == System.Net.HttpStatusCode.OK) {
                                         var sheetHtml = await message3.Content.ReadAsStringAsync ();
                                         var sheet = book.Sheets.FirstOrDefault (s => s.Url == sheetUrl);

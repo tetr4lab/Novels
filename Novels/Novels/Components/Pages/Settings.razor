@@ -1,4 +1,6 @@
-﻿@inherits ItemListBase<Setting>
+﻿@using System.Text.Json
+
+@inherits ItemListBase<Setting>
 
 @page "/settings"
 
@@ -68,6 +70,18 @@
                 <td><MudTextField T="string" @bind-Value="selectedItem.SmtpBody" /></td>
             </tr>
             <tr>
+                <td>@(Setting.Label [nameof (Setting.UserAgent)])</td>
+                <td><MudTextField T="string" @bind-Value="selectedItem.UserAgent" /></td>
+            </tr>
+            <tr>
+                <td>@(Setting.Label [nameof (Setting.AccessIntervalTime)])</td>
+                <td><MudNumericField Min="1000" @bind-Value="selectedItem.AccessIntervalTime" /></td>
+            </tr>
+            <tr>
+                <td>@(Setting.Label [nameof (Setting.DefaultCookiesJson)])</td>
+                <td><MudTextField T="string" Validation="@(new Func<string, bool> (CookiesValidate))" @bind-Value="selectedItem.DefaultCookiesJson" @ref="_cookieField" /></td>
+            </tr>
+            <tr>
                 <td>@(Setting.Label [nameof (Setting.Remarks)])</td>
                 <td>
                     <style>.horizontal-scroll textarea { overflow-x: auto; white-space: nowrap; }</style>
@@ -81,7 +95,7 @@
             <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" Disabled="!IsDirty" OnClick="async () => { if (await ConfirmCancelEditAsync ()) StartEdit (); }" />
         </MudTooltip>
         <MudTooltip Arrow="true" Text="保存">
-            <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" Disabled="!IsDirty" OnClick="async () => { if (editingItem is not null) { await Commit (editingItem); StartEdit (); } }" />
+            <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" Disabled="@(!IsDirty || _cookieField?.Error != false)" OnClick="async () => { if (editingItem is not null) { await Commit (editingItem); StartEdit (); } }" />
         </MudTooltip>
     </MudStack>
 } else {
@@ -106,6 +120,21 @@
             PasswordInputIcon = Icons.Material.Filled.Visibility;
             PasswordInputType = InputType.Text;
         }
+    }
+
+    /// <summary>クッキーフィールド</summary>
+    protected MudTextField<string>? _cookieField = null;
+
+    /// <summary>クッキーの検証</summary>
+    protected bool CookiesValidate (string json) {
+        try {
+            if (JsonSerializer.Deserialize<Dictionary<string, string>> (json) is not null) {
+                return true;
+            }
+        }
+        catch {
+        }
+        return false;
     }
 
     /// <summary>遅延初期化</summary>

@@ -1,10 +1,11 @@
-﻿using PetaPoco;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 using MudBlazor;
 using System.Xml.Linq;
 using Novels.Components.Pages;
 using Novels.Services;
+using PetaPoco;
 using System.Data;
 using Tetr4lab;
 
@@ -23,7 +24,7 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
         { nameof (Modified), "更新日時" },
         { nameof (PersonalDocumentLimitSize), "制限サイズ" },
         { nameof (SmtpMailAddress), "FROM" },
-        { nameof (SmtpServer), "サーバ" },
+        { nameof (SmtpServer), "メールサーバ" },
         { nameof (SmtpPort), "ポート" },
         { nameof (SmtpUserName), "ユーザ名" },
         { nameof (SmtpPassword), "パスワード" },
@@ -32,6 +33,9 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
         { nameof (SmtpBcc), "BCC" },
         { nameof (SmtpSubject), "表題" },
         { nameof (SmtpBody), "本文" },
+        { nameof (UserAgent), "HTTP-UA" },
+        { nameof (AccessIntervalTime), "アクセス間隔(ms)" },
+        { nameof (DefaultCookiesJson), "クッキー(json)" },
         { nameof (Remarks), "備考" },
     };
 
@@ -52,6 +56,21 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
     [Column ("smtp_bcc")] public string SmtpBcc { get; set; } = "";
     [Column ("smtp_subject")] public string SmtpSubject { get; set; } = "";
     [Column ("smtp_body")] public string SmtpBody { get; set; } = "";
+    [Column ("user_agent")] public string UserAgent { get; set; } = "Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko";
+    [Column ("access_interval_time")] public int AccessIntervalTime { get; set; } = 1000;
+    [Column ("default_cookies")] public string DefaultCookiesJson { get; set; } = "{ \"over18\": \"yes\" }";
+
+    /// <summary>デフォルトクッキーの辞書表現</summary>
+    public Dictionary<string, string> DefaultCookies {
+        get {
+            try {
+                return JsonSerializer.Deserialize<Dictionary<string, string>> (DefaultCookiesJson) ?? new ();
+            }
+            catch {
+            }
+            return new ();
+        }
+    }
 
     /// <inheritdoc/>
     public override string? [] SearchTargets => [ ];
@@ -73,6 +92,9 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
         item.SmtpBcc = SmtpBcc;
         item.SmtpSubject = SmtpSubject;
         item.SmtpBody = SmtpBody;
+        item.UserAgent = UserAgent;
+        item.AccessIntervalTime = AccessIntervalTime;
+        item.DefaultCookiesJson = DefaultCookiesJson;
         return item;
     }
 
@@ -89,6 +111,9 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
         destination.SmtpBcc = SmtpBcc;
         destination.SmtpSubject = SmtpSubject;
         destination.SmtpBody = SmtpBody;
+        destination.UserAgent = UserAgent;
+        destination.AccessIntervalTime = AccessIntervalTime;
+        destination.DefaultCookiesJson = DefaultCookiesJson;
         return base.CopyTo (destination);
     }
 
@@ -107,13 +132,16 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
         && SmtpBcc == other.SmtpBcc
         && SmtpSubject == other.SmtpSubject
         && SmtpBody == other.SmtpBody
+        && UserAgent == other.UserAgent
+        && AccessIntervalTime == other.AccessIntervalTime
+        && DefaultCookiesJson == other.DefaultCookiesJson
         && Remarks == other.Remarks
     ;
 
     /// <inheritdoc/>
     public override int GetHashCode () => HashCode.Combine (
         HashCode.Combine (PersonalDocumentLimitSize, SmtpMailAddress, SmtpServer, SmtpPort, SmtpUserName, SmtpPassword, SmtpMailto, SmtpCc),
-        HashCode.Combine (SmtpBcc, SmtpSubject, SmtpBody, Remarks),
+        HashCode.Combine (SmtpBcc, SmtpSubject, SmtpBody, Remarks, UserAgent, AccessIntervalTime, DefaultCookiesJson),
         base.GetHashCode ());
 
     /// <inheritdoc/>
