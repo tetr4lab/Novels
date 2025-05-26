@@ -12,163 +12,165 @@
     <MudAlert Severity="Severity.Error" Elevation="3">Unable to connect to any of the specified database management hosts.</MudAlert>
 } else if (!DataSet.IsReady || items is null) {
     <MudProgressCircular Indeterminate="true" />
-} else if (items.Count > 0) {
-    <style>
-        th.mud-table-cell, td.mud-table-cell {
-            padding-inline: 0.1em !important;
-        }
-    </style>
-    <MudTable Items="items" Dense Breakpoint="Breakpoint.Xs" @ref="_table"
-    Filter="new Func<Book, bool> (FilterFunc)"
-    SortLabel="⇅"
-    AllowUnsorted="true"
-    @bind-SelectedItem="selectedItem"
-    @bind-CurrentPage="CurrentPage"
-    FooterClass="mud-background-gray"
-    Hover="true"
-    OnRowClick="EventCallback.Factory.Create<TableRowClickEventArgs<Book>> (this, OnRowClick)"
-    Striped="true"
-    ReadOnly="false">
-        <HeaderContent>
-            <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.Id)">@(Book.Label [nameof (Book.Id)])</MudTableSortLabel></MudTh>
-            <MudTh Class="align-middle text-nowrap">
-                <MudTooltip Text="クリックで絞り込み" Duration="1000">
-                    <MudLink OnClick="@(async () => await SetFilterText.InvokeAsync (FilterText == "_is_released_" ? "_not_released_" : FilterText == "_not_released_" ? "" : "_is_released_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Released)])</MudLink>
-                    <MudLink OnClick="@(async () => await SetFilterText.InvokeAsync (FilterText == "_is_readed_" ? "_not_readed_" : FilterText == "_not_readed_" ? "" : "_is_readed_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Readed)])</MudLink>
-                    <MudLink OnClick="@(async () => await SetFilterText.InvokeAsync (FilterText == "_is_wished_" ? "_not_wished_" : FilterText == "_not_wished_" ? "" : "_is_wished_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Wish)])</MudLink>
-                </MudTooltip>
-            </MudTh>
-            <MudTh>
-                <MudTableSortLabel SortBy="new Func<Book, string?>(x=>x.Title)">
+} else {
+    if (items.Count > 0) {
+        <style>
+            th.mud-table-cell, td.mud-table-cell {
+                padding-inline: 0.1em !important;
+            }
+        </style>
+        <MudTable Items="items" Dense Breakpoint="Breakpoint.Xs" @ref="_table"
+        Filter="new Func<Book, bool> (FilterFunc)"
+        SortLabel="⇅"
+        AllowUnsorted="true"
+        @bind-SelectedItem="selectedItem"
+        @bind-CurrentPage="CurrentPage"
+        FooterClass="mud-background-gray"
+        Hover="true"
+        OnRowClick="EventCallback.Factory.Create<TableRowClickEventArgs<Book>> (this, OnRowClick)"
+        Striped="true"
+        ReadOnly="false">
+            <HeaderContent>
+                <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.Id)">@(Book.Label [nameof (Book.Id)])</MudTableSortLabel></MudTh>
+                <MudTh Class="align-middle text-nowrap">
+                    <MudTooltip Text="クリックで絞り込み" Duration="1000">
+                        <MudLink OnClick="@(async () => await SetFilterText.InvokeAsync (FilterText == "_is_released_" ? "_not_released_" : FilterText == "_not_released_" ? "" : "_is_released_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Released)])</MudLink>
+                        <MudLink OnClick="@(async () => await SetFilterText.InvokeAsync (FilterText == "_is_readed_" ? "_not_readed_" : FilterText == "_not_readed_" ? "" : "_is_readed_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Readed)])</MudLink>
+                        <MudLink OnClick="@(async () => await SetFilterText.InvokeAsync (FilterText == "_is_wished_" ? "_not_wished_" : FilterText == "_not_wished_" ? "" : "_is_wished_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Wish)])</MudLink>
+                    </MudTooltip>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<Book, string?>(x=>x.Title)">
+                        <MudStack Row Spacing="0" Class="align-center">
+                            <MudIcon Icon="" />
+                            <MudIcon Icon="" />
+                            <MudText Typo="Typo.inherit">@(Book.Label [nameof (Book.Title)])</MudText>
+                        </MudStack>
+                    </MudTableSortLabel>
+                </MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Book, string?>(x=>x.Author)">@(Book.Label [nameof (Book.Author)])</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Book, string?>(x=>x.SeriesTitle)">@(Book.Label [nameof (Book.SeriesTitle)])</MudTableSortLabel></MudTh>
+                <MudTh Class="align-middle text-nowrap"><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.Site)">@(Book.Label [nameof (Book.Site)])</MudTableSortLabel></MudTh>
+                <MudTh Class="align-middle text-nowrap"><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.StatusPriority)">@(Book.Label [nameof (Book.Status)])</MudTableSortLabel></MudTh>
+                <MudTh Class="align-middle text-nowrap"><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.NumberOfSheets)">@(Book.Label [nameof (Book.NumberOfSheets)])</MudTableSortLabel></MudTh>
+                <MudTh>@(Book.Label [nameof (Book.Remarks)])</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                @{
+                    var isErrorForNumberOfSheets = (context.NumberOfPublished ?? 0) > context.NumberOfRelatedSheets || context.NumberOfRelatedSheets > context.NumberOfSheets;
+                    var isUpdatable = context.NumberOfRelatedSheets < context.NumberOfSheets;
+                    var isPublishable = (context.NumberOfPublished ?? 0) < context.NumberOfRelatedSheets;
+                }
+                <MudTd DataLabel="@(Book.Label[nameof(Book.Id)])" Class="align-right text-nowrap">
                     <MudStack Row Spacing="0" Class="align-center">
-                        <MudIcon Icon="" />
-                        <MudIcon Icon="" />
-                        <MudText Typo="Typo.inherit">@(Book.Label [nameof (Book.Title)])</MudText>
+                        @if (context.Id == CurrentBookId) {
+                            <MudTooltip Text="@($"着目中の{Book.TableLabel}")" Arrow Duration="1000">
+                                <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" />
+                            </MudTooltip>
+                        }
+                        <MudSpacer />
+                        @(context.Id)
                     </MudStack>
-                </MudTableSortLabel>
-            </MudTh>
-            <MudTh><MudTableSortLabel SortBy="new Func<Book, string?>(x=>x.Author)">@(Book.Label [nameof (Book.Author)])</MudTableSortLabel></MudTh>
-            <MudTh><MudTableSortLabel SortBy="new Func<Book, string?>(x=>x.SeriesTitle)">@(Book.Label [nameof (Book.SeriesTitle)])</MudTableSortLabel></MudTh>
-            <MudTh Class="align-middle text-nowrap"><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.Site)">@(Book.Label [nameof (Book.Site)])</MudTableSortLabel></MudTh>
-            <MudTh Class="align-middle text-nowrap"><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.StatusPriority)">@(Book.Label [nameof (Book.Status)])</MudTableSortLabel></MudTh>
-            <MudTh Class="align-middle text-nowrap"><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.NumberOfSheets)">@(Book.Label [nameof (Book.NumberOfSheets)])</MudTableSortLabel></MudTh>
-            <MudTh>@(Book.Label [nameof (Book.Remarks)])</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            @{
-                var isErrorForNumberOfSheets = (context.NumberOfPublished ?? 0) > context.NumberOfRelatedSheets || context.NumberOfRelatedSheets > context.NumberOfSheets;
-                var isUpdatable = context.NumberOfRelatedSheets < context.NumberOfSheets;
-                var isPublishable = (context.NumberOfPublished ?? 0) < context.NumberOfRelatedSheets;
-            }
-            <MudTd DataLabel="@(Book.Label[nameof(Book.Id)])" Class="align-right text-nowrap">
-                <MudStack Row Spacing="0" Class="align-center">
-                    @if (context.Id == CurrentBookId) {
-                        <MudTooltip Text="@($"着目中の{Book.TableLabel}")" Arrow Duration="1000">
-                            <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" />
-                        </MudTooltip>
-                    }
-                    <MudSpacer />
-                    @(context.Id)
-                </MudStack>
-            </MudTd>
-            <MudTd DataLabel="@($"{Book.Label[nameof(Book.Released)]} {Book.Label[nameof(Book.Readed)]} {Book.Label[nameof(Book.Wish)]}")" Class="align-middle text-nowrap">
-                <MudIcon Icon="@(context.Released ? Icons.Material.Outlined.CheckBox : Icons.Material.Outlined.CheckBoxOutlineBlank)" />
-                <MudIcon Icon="@(context.Readed ? Icons.Material.Outlined.CheckBox : Icons.Material.Outlined.CheckBoxOutlineBlank)" />
-                <MudIcon Icon="@(context.Wish ? Icons.Material.Outlined.CheckBox : Icons.Material.Outlined.CheckBoxOutlineBlank)" />
-            </MudTd>
-            <MudTd DataLabel="@(Book.Label[nameof(Book.Title)])">
-                <MudStack Row Spacing="0" Class="align-center">
-                    <MudIconButton OnClick="@(() => PublishBook (context.Id))" Icon="@(context.IsEmpty ? Icons.Material.Filled.Download : isUpdatable && !isErrorForNumberOfSheets ? Icons.Material.Filled.Refresh : context.Released && !isPublishable ? Icons.Material.Filled.Sync : Icons.Material.Filled.Publish)" Size="Size.Small" />
-                    <MudIconButton OnClick="@(() => OpenBook (context.Id))" Icon="@Icons.Material.Filled.ViewHeadline" Size="Size.Small" />
-                    <MudText Typo="Typo.inherit">@(context.Title)</MudText>
-                </MudStack>
-            </MudTd>
-            <MudTd DataLabel="@(Book.Label[nameof(Book.Author)])">
-                @{ var author = context.Author.Replace (' ', '\u2423'); }
-                <MudTooltip Arrow Duration="1000">
-                    <ChildContent>
-                        <MudLink OnClick="@(async () => { await SetFilterText.InvokeAsync (author); await ChangeCurrentBookAsync (context); })" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Author)</MudLink>
-                    </ChildContent>
-                    <TooltipContent>
-                        <MudStack Spacing="0" Class="align-start">
-                            <MudText Typo="Typo.inherit">「@(author)」で絞り込み</MudText>
-                            @foreach (var book in items) {
-                                if (book.Author == context.Author) {
-                                    <MudText Typo="Typo.inherit">『@(book.Title)』</MudText>
+                </MudTd>
+                <MudTd DataLabel="@($"{Book.Label[nameof(Book.Released)]} {Book.Label[nameof(Book.Readed)]} {Book.Label[nameof(Book.Wish)]}")" Class="align-middle text-nowrap">
+                    <MudIcon Icon="@(context.Released ? Icons.Material.Outlined.CheckBox : Icons.Material.Outlined.CheckBoxOutlineBlank)" />
+                    <MudIcon Icon="@(context.Readed ? Icons.Material.Outlined.CheckBox : Icons.Material.Outlined.CheckBoxOutlineBlank)" />
+                    <MudIcon Icon="@(context.Wish ? Icons.Material.Outlined.CheckBox : Icons.Material.Outlined.CheckBoxOutlineBlank)" />
+                </MudTd>
+                <MudTd DataLabel="@(Book.Label[nameof(Book.Title)])">
+                    <MudStack Row Spacing="0" Class="align-center">
+                        <MudIconButton OnClick="@(() => PublishBook (context.Id))" Icon="@(context.IsEmpty ? Icons.Material.Filled.Download : isUpdatable && !isErrorForNumberOfSheets ? Icons.Material.Filled.Refresh : context.Released && !isPublishable ? Icons.Material.Filled.Sync : Icons.Material.Filled.Publish)" Size="Size.Small" />
+                        <MudIconButton OnClick="@(() => OpenBook (context.Id))" Icon="@Icons.Material.Filled.ViewHeadline" Size="Size.Small" />
+                        <MudText Typo="Typo.inherit">@(context.Title)</MudText>
+                    </MudStack>
+                </MudTd>
+                <MudTd DataLabel="@(Book.Label[nameof(Book.Author)])">
+                    @{ var author = context.Author.Replace (' ', '\u2423'); }
+                    <MudTooltip Arrow Duration="1000">
+                        <ChildContent>
+                            <MudLink OnClick="@(async () => { await SetFilterText.InvokeAsync (author); await ChangeCurrentBookAsync (context); })" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Author)</MudLink>
+                        </ChildContent>
+                        <TooltipContent>
+                            <MudStack Spacing="0" Class="align-start">
+                                <MudText Typo="Typo.inherit">「@(author)」で絞り込み</MudText>
+                                @foreach (var book in items) {
+                                    if (book.Author == context.Author) {
+                                        <MudText Typo="Typo.inherit">『@(book.Title)』</MudText>
+                                    }
                                 }
-                            }
-                        </MudStack>
-                    </TooltipContent>
-                </MudTooltip>
-            </MudTd>
-            <MudTd DataLabel="@(Book.Label [nameof (Book.SeriesTitle)])">
-                @{ var series = context.SeriesTitle.Replace (' ', '\u2423'); }
-                <MudTooltip Arrow Duration="1000">
-                    <ChildContent>
-                        <MudLink OnClick="@(async () => { await SetFilterText.InvokeAsync (series); await ChangeCurrentBookAsync (context); })" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.SeriesTitle)</MudLink>
-                    </ChildContent>
-                    <TooltipContent>
-                        <MudStack Spacing="0" Class="align-start">
-                            <MudText Typo="Typo.inherit">「@(series)」で絞り込み</MudText>
-                            @foreach (var book in items) {
-                                if (book.SeriesTitle == context.SeriesTitle) {
-                                    <MudText Typo="Typo.inherit">『@(book.Title)』</MudText>
+                            </MudStack>
+                        </TooltipContent>
+                    </MudTooltip>
+                </MudTd>
+                <MudTd DataLabel="@(Book.Label [nameof (Book.SeriesTitle)])">
+                    @{ var series = context.SeriesTitle.Replace (' ', '\u2423'); }
+                    <MudTooltip Arrow Duration="1000">
+                        <ChildContent>
+                            <MudLink OnClick="@(async () => { await SetFilterText.InvokeAsync (series); await ChangeCurrentBookAsync (context); })" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.SeriesTitle)</MudLink>
+                        </ChildContent>
+                        <TooltipContent>
+                            <MudStack Spacing="0" Class="align-start">
+                                <MudText Typo="Typo.inherit">「@(series)」で絞り込み</MudText>
+                                @foreach (var book in items) {
+                                    if (book.SeriesTitle == context.SeriesTitle) {
+                                        <MudText Typo="Typo.inherit">『@(book.Title)』</MudText>
+                                    }
                                 }
-                            }
-                        </MudStack>
-                    </TooltipContent>
-                </MudTooltip>
-            </MudTd>
-            <MudTd DataLabel="@(Book.Label[nameof(Book.Site)])" Class="align-middle text-nowrap">
-                <MudTooltip Text="@($"{Book.Label[nameof(Book.Site)]}を開く")" Arrow Duration="1000">
-                    <MudLink OnClick="@(async () => { await JSRuntime.OpenUrl (context.Url); await ChangeCurrentBookAsync (context); })" Target="_blank" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Site)</MudLink>
-                </MudTooltip>
-            </MudTd>
-            <MudTd DataLabel="@(Book.Label[nameof(Book.Status)])" Class="align-middle text-nowrap">
-                <MudChip T="string" Label="true" Size="Size.Small" Variant="Variant.Outlined" Color="@(context.StatusBgColor)" Style="width: 6em">@(context.Status.ToJString ())</MudChip>
-            </MudTd>
-            <MudTd DataLabel="@(Book.Label[nameof(Book.NumberOfSheets)])" Class="align-middle text-nowrap">
-                <MudTooltip Arrow Duration="1000">
-                    <ChildContent>
-                        <MudStack Row Spacing="0">
-                            <MudText Typo="Typo.inherit" Color="@(isErrorForNumberOfSheets ? Color.Error : isUpdatable ? Color.Warning : Color.Inherit)">
-                                @(context.NumberOfRelatedSheets)
-                            </MudText>
-                            <MudText Typo="Typo.inherit">
-                                /@(context.NumberOfSheets)
-                            </MudText>
-                        </MudStack>
-                    </ChildContent>
-                    <TooltipContent>
-                        <MudStack Spacing="0" Class="align-start">
-                            <MudText Typo="Typo.inherit">発行数量: @(context.NumberOfPublished ?? 0)</MudText>
-                            <MudText Typo="Typo.inherit">取得数量: @(context.NumberOfRelatedSheets)</MudText>
-                            <MudText Typo="Typo.inherit">書誌数量: @(context.NumberOfSheets)</MudText>
-                            <MudText Typo="Typo.inherit">発行日時: @(context.PublishedAt)</MudText>
-                            <MudText Typo="Typo.inherit">更新日時: @(context.LastUpdate)</MudText>
-                        </MudStack>
-                    </TooltipContent>
-                </MudTooltip>
-            </MudTd>
-            <MudTd DataLabel="@(Book.Label[nameof(Book.Remarks)])">@context.Remarks</MudTd>
-        </RowTemplate>
-        <PagerContent>
-            @if (AllowPaging) {
-                <MudTablePager PageSizeOptions="_pageSizeOptions" InfoFormat="{first_item}-{last_item} / {all_items}" RowsPerPageString="行/頁:" />
-            }
-        </PagerContent>
-    </MudTable>
-    <MudToolBar Dense Class="mb-5">
-        @*hidden spacer*@
-    </MudToolBar>
+                            </MudStack>
+                        </TooltipContent>
+                    </MudTooltip>
+                </MudTd>
+                <MudTd DataLabel="@(Book.Label[nameof(Book.Site)])" Class="align-middle text-nowrap">
+                    <MudTooltip Text="@($"{Book.Label[nameof(Book.Site)]}を開く")" Arrow Duration="1000">
+                        <MudLink OnClick="@(async () => { await JSRuntime.OpenUrl (context.Url); await ChangeCurrentBookAsync (context); })" Target="_blank" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Site)</MudLink>
+                    </MudTooltip>
+                </MudTd>
+                <MudTd DataLabel="@(Book.Label[nameof(Book.Status)])" Class="align-middle text-nowrap">
+                    <MudChip T="string" Label="true" Size="Size.Small" Variant="Variant.Outlined" Color="@(context.StatusBgColor)" Style="width: 6em">@(context.Status.ToJString ())</MudChip>
+                </MudTd>
+                <MudTd DataLabel="@(Book.Label[nameof(Book.NumberOfSheets)])" Class="align-middle text-nowrap">
+                    <MudTooltip Arrow Duration="1000">
+                        <ChildContent>
+                            <MudStack Row Spacing="0">
+                                <MudText Typo="Typo.inherit" Color="@(isErrorForNumberOfSheets ? Color.Error : isUpdatable ? Color.Warning : Color.Inherit)">
+                                    @(context.NumberOfRelatedSheets)
+                                </MudText>
+                                <MudText Typo="Typo.inherit">
+                                    /@(context.NumberOfSheets)
+                                </MudText>
+                            </MudStack>
+                        </ChildContent>
+                        <TooltipContent>
+                            <MudStack Spacing="0" Class="align-start">
+                                <MudText Typo="Typo.inherit">発行数量: @(context.NumberOfPublished ?? 0)</MudText>
+                                <MudText Typo="Typo.inherit">取得数量: @(context.NumberOfRelatedSheets)</MudText>
+                                <MudText Typo="Typo.inherit">書誌数量: @(context.NumberOfSheets)</MudText>
+                                <MudText Typo="Typo.inherit">発行日時: @(context.PublishedAt)</MudText>
+                                <MudText Typo="Typo.inherit">更新日時: @(context.LastUpdate)</MudText>
+                            </MudStack>
+                        </TooltipContent>
+                    </MudTooltip>
+                </MudTd>
+                <MudTd DataLabel="@(Book.Label[nameof(Book.Remarks)])">@context.Remarks</MudTd>
+            </RowTemplate>
+            <PagerContent>
+                @if (AllowPaging) {
+                    <MudTablePager PageSizeOptions="_pageSizeOptions" InfoFormat="{first_item}-{last_item} / {all_items}" RowsPerPageString="行/頁:" />
+                }
+            </PagerContent>
+        </MudTable>
+        <MudToolBar Dense Class="mb-5">
+            @*hidden spacer*@
+        </MudToolBar>
+    } else {
+        <MudText>No items found.</MudText>
+    }
     <MudAppBar Class="backdrop-blur pb-2" Color="Color.Transparent" Dense Bottom="true" Fixed="true">
         <MudSpacer />
         <MudTooltip Arrow="true" Text="@($"{Book.TableLabel}を追加")">
             <MudFab OnClick="AddBook" StartIcon="@Icons.Material.Outlined.Add" Size="Size.Small" />
         </MudTooltip>
     </MudAppBar>
-} else {
-    <MudText>No items found.</MudText>
 }
 <MudOverlay @bind-Visible="IsOverlayed" DarkBackground="true" ZIndex="9999">
     <MudProgressCircular Indeterminate="true" />
