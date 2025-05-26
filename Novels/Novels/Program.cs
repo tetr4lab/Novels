@@ -44,6 +44,9 @@ await builder.Services.AddAuthorizationAsync (
     }
 );
 
+// プリレンダリングの判定用
+builder.Services.AddHttpContextAccessor ();
+
 #if NET8_0_OR_GREATER
 // ページにカスケーディングパラメータ`Task<AuthenticationState>`を提供
 builder.Services.AddCascadingAuthenticationState ();

@@ -23,6 +23,7 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
     [Inject] protected IDialogService DialogService { get; set; } = null!;
     [Inject] protected ISnackbar Snackbar { get; set; } = null!;
     [Inject] protected IAuthorizationService AuthorizationService { get; set; } = null!;
+    [Inject] protected IHttpContextAccessor HttpContextAccessor { get; set; } = null!;
 
     /// <summary>検索文字列</summary>
     [CascadingParameter (Name = "Filter")] protected string FilterText { get; set; } = string.Empty;
@@ -83,12 +84,15 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
             // パラメータによって着目書籍が変更されたら、レイアウトとナビに渡す
             await SetCurrentBookId.InvokeAsync ((currentBookId, SheetIndex ?? CurrentSheetIndex));
         }
-        var reload = DataSet.SetCurrentBookIdAsync (currentBookId);
         await base.OnInitializedAsync ();
-        // リロード完了待機
-        await reload;
-        // 着目書籍オブジェクトを取得
-        Book = DataSet.Books.Find (s => s.Id == currentBookId);
+        // プリレンダリングでないことを判定
+        if (HttpContextAccessor.HttpContext?.Response.StatusCode != 200) {
+            // DB初期化
+            await DataSet.InitializeAsync ();
+            await DataSet.SetCurrentBookIdAsync (currentBookId);
+            // 着目書籍オブジェクトを取得
+            Book = DataSet.Books.Find (s => s.Id == currentBookId);
+        }
     }
 
     /// <summary>破棄</summary>
@@ -114,11 +118,6 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
             // デフォルト項目数の設定
             _inited = true;
             InitRowsPerPage ();
-        }
-        if (firstRender) {
-            // 遅延初期化
-            await DataSet.InitializeAsync ();
-            StateHasChanged ();
         }
     }
     protected bool _inited;

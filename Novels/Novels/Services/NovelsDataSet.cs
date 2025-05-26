@@ -22,12 +22,14 @@ public sealed class NovelsDataSet : BasicDataSet {
     public async Task SetCurrentBookIdAsync (long id) {
         if (id != CurrentBookId) {
             CurrentBookId = id;
-            await ReLoadAsync ();
+            if (CurrentBookId > 0) {
+                await ReLoadSheetsAsync ();
+            }
         }
     }
 
     /// <summary>再読み込み</summary>
-    public async Task ReLoadAsync () {
+    public async Task ReLoadSheetsAsync () {
         if (isLoading) {
             while (isLoading) {
                 await Task.Delay (WaitInterval);
@@ -35,7 +37,7 @@ public sealed class NovelsDataSet : BasicDataSet {
         }
         isLoading = true;
         for (var i = 0; i < MaxRetryCount; i++) {
-            if ((await GetListSetAsync ()).IsSuccess) {
+            if ((await GetSheetsAsync ()).IsSuccess) {
                 isLoading = false;
                 return;
             }
@@ -85,40 +87,56 @@ public sealed class NovelsDataSet : BasicDataSet {
         && ListSet.ContainsKey (typeof (Setting)) && ListSet [typeof (Setting)] is List<Setting>
         ;
 
-    /// <summary>一覧セットをアトミックに取得</summary>
-    public override async Task<Result<bool>> GetListSetAsync () {
-        var result = await ProcessAndCommitAsync<bool> (async () => {
-            var books = await database.FetchAsync<Book> (Book.BaseSelectSql);
-            var sheets = await database.FetchAsync<Sheet> (Sheet.BaseSelectSql, new { BookId = CurrentBookId, });
-            var settings = await database.FetchAsync<Setting> (Setting.BaseSelectSql);
-            if (settings.Count <= 0) {
-                // 新規設定を用意
-                var setting = new Setting ();
-                if ((await AddAsync (setting)).IsSuccess) {
-                    settings.Add (setting);
-                }
-            }
-            if (books is not null && sheets is not null && settings is not null) {
-                ListSet [typeof (Book)] = books;
-                ListSet [typeof (Sheet)] = sheets;
-                ListSet [typeof (Setting)] = settings;
-                _id2Book = books.ToDictionary (book => book.Id, book => book);
-                if (sheets.Count > 0) {
-                    sheets.ForEach (sheet => sheet.Book = GetItemById<Book> (sheet.BookId));
-                    _id2Sheet = sheets.ToDictionary (sheet => sheet.Id, sheet => sheet);
-                    CurrentBook.Sheets = sheets;
-                }
-                return true;
-            }
-            ListSet.Remove (typeof (Book));
-            ListSet.Remove (typeof (Sheet));
-            ListSet.Remove (typeof (Setting));
-            return false;
-        });
+    /// <summary>シートだけをアトミックに取得</summary>
+    public async Task<Result<bool>> GetSheetsAsync () {
+        var result = await ProcessAndCommitAsync<bool> (async () => await FetchListSetAsync (onlySheets: true));
         if (result.IsSuccess && !result.Value) {
             result.Status = Status.Unknown;
         }
         return result;
+    }
+
+    /// <summary>一覧セットをアトミックに取得</summary>
+    public override async Task<Result<bool>> GetListSetAsync () {
+        var result = await ProcessAndCommitAsync<bool> (async () => await FetchListSetAsync ());
+        if (result.IsSuccess && !result.Value) {
+            result.Status = Status.Unknown;
+        }
+        return result;
+    }
+
+    /// <summary>リストセットを読み込む</summary>
+    private async Task<bool> FetchListSetAsync (bool onlySheets = false) {
+        var settings = onlySheets ? new () : await database.FetchAsync<Setting> (Setting.BaseSelectSql);
+        var books = onlySheets ? new () : await database.FetchAsync<Book> (Book.BaseSelectSql);
+        var sheets = CurrentBookId > 0 ? await database.FetchAsync<Sheet> (Sheet.BaseSelectSql, new { BookId = CurrentBookId, }) : new ();
+        if (!onlySheets && settings.Count <= 0) {
+            // 新規設定を用意
+            var setting = new Setting ();
+            if ((await AddAsync (setting)).IsSuccess) {
+                settings.Add (setting);
+            }
+        }
+        if (books is not null && sheets is not null && settings is not null) {
+            if (!onlySheets) {
+                ListSet [typeof (Setting)] = settings;
+                ListSet [typeof (Book)] = books;
+                _id2Book = books.ToDictionary (book => book.Id, book => book);
+            }
+            ListSet [typeof (Sheet)] = sheets;
+            if (sheets.Count > 0) {
+                sheets.ForEach (sheet => sheet.Book = GetItemById<Book> (sheet.BookId));
+                _id2Sheet = sheets.ToDictionary (sheet => sheet.Id, sheet => sheet);
+                CurrentBook.Sheets = sheets;
+            }
+            return true;
+        }
+        if (!onlySheets) {
+            ListSet.Remove (typeof (Setting));
+            ListSet.Remove (typeof (Book));
+        }
+        ListSet.Remove (typeof (Sheet));
+        return false;
     }
 
     /// <summary>書籍の更新</summary>
