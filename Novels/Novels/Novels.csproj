@@ -27,7 +27,7 @@
     <PackageReference Include="QuickEPUB" Version="1.2.0" />
     <PackageReference Include="Tetr4lab" Version="1.0.9" />
     <PackageReference Include="Tetr4labAuth" Version="1.0.8" />
-    <PackageReference Include="Tetr4labDatabase" Version="1.0.32" />
+    <PackageReference Include="Tetr4labDatabase" Version="1.0.33" />
     <PackageReference Include="Tetr4labRazor" Version="1.0.22" />
     <PackageReference Include="Tetr4labServer" Version="1.0.3" />
   </ItemGroup>
