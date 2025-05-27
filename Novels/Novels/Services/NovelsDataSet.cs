@@ -20,6 +20,11 @@ public sealed class NovelsDataSet : BasicDataSet {
 
     /// <summary>着目書籍の設定</summary>
     public async Task SetCurrentBookIdAsync (long id) {
+        if (isLoading) {
+            while (isLoading) {
+                await Task.Delay (WaitInterval);
+            }
+        }
         if (id != CurrentBookId) {
             CurrentBookId = id;
             if (CurrentBookId > 0) {
@@ -29,12 +34,7 @@ public sealed class NovelsDataSet : BasicDataSet {
     }
 
     /// <summary>再読み込み</summary>
-    public async Task ReLoadSheetsAsync () {
-        if (isLoading) {
-            while (isLoading) {
-                await Task.Delay (WaitInterval);
-            }
-        }
+    private async Task ReLoadSheetsAsync () {
         isLoading = true;
         for (var i = 0; i < MaxRetryCount; i++) {
             if ((await GetSheetsAsync ()).IsSuccess) {
