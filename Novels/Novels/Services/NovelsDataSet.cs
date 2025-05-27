@@ -13,7 +13,12 @@ namespace Novels.Services;
 public sealed class NovelsDataSet : BasicDataSet {
 
     /// <summary>コンストラクタ</summary>
-    public NovelsDataSet (Database database) : base (database) { }
+    public NovelsDataSet (Database database) : base (database) { GetFirstBookId (); }
+
+    /// <summary>最初の書籍Idを得る</summary>
+    private async void GetFirstBookId () {
+        CurrentBookId = await database.FirstOrDefaultAsync<long> ("select `id` from `books` limit 1;");
+    }
 
     /// <summary>着目中の書籍</summary>
     public long CurrentBookId { get; private set; } = long.MinValue;

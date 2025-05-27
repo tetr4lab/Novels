@@ -83,10 +83,13 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
             // DB初期化
             await DataSet.InitializeAsync ();
             // Uriパラメータを優先して着目書籍を特定する
-            var currentBookId = BookId ?? CurrentBookId;
-            if (currentBookId <= 0 && DataSet.Books.Count > 0) {
-                currentBookId = DataSet.Books [0].Id;
+            if (BookId is not null && !DataSet.Books.Exists (book => BookId == book.Id)) {
+                BookId = null; // そのような書籍はない
             }
+            if (CurrentBookId <= 0) {
+                await SetCurrentBookId.InvokeAsync ((DataSet.CurrentBookId, SheetIndex ?? CurrentSheetIndex));
+            }
+            var currentBookId = BookId ?? CurrentBookId;
             // 着目書籍オブジェクトを取得
             Book = DataSet.Books.Find (s => s.Id == currentBookId);
             if (Book is not null && Book is T item) {
