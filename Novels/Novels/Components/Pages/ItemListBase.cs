@@ -111,17 +111,6 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
         await TaskEx.DelayOneFrame;
     }
 
-    /// <summary>描画後処理</summary>
-    protected override async Task OnAfterRenderAsync (bool firstRender) {
-        await base.OnAfterRenderAsync (firstRender);
-        if (_table != null && !_inited) {
-            // デフォルト項目数の設定
-            _inited = true;
-            InitRowsPerPage ();
-        }
-    }
-    protected bool _inited;
-
     //// <summary>着目書籍の変更</summary>
     protected async Task ChangeCurrentBookAsync (Book book) {
         if (book is T item) {
@@ -147,6 +136,9 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
 
     /// <summary>項目数の選択肢</summary>
     protected virtual int [] _pageSizeOptions { get; } = { 10, 20, 30, 50, 100, 200, MaxListingNumber, };
+
+    /// <summary>初期の項目数</summary>
+    protected virtual int DefaultRowsPerPage => AllowPaging ? _pageSizeOptions [_initialPageSizeIndex] : int.MaxValue;
 
     /// <summary>バックアップ</summary>
     protected virtual T backupedItem { get; set; }  = new ();

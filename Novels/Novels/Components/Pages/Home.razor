@@ -28,6 +28,7 @@
         FooterClass="mud-background-gray"
         Hover="true"
         OnRowClick="EventCallback.Factory.Create<TableRowClickEventArgs<Book>> (this, OnRowClick)"
+        RowsPerPage="DefaultRowsPerPage"
         Striped="true"
         ReadOnly="false">
             <HeaderContent>
@@ -280,13 +281,13 @@
     /// <summary>遅延初期化</summary>
     protected override async Task OnAfterRenderAsync (bool firstRender) {
         await base.OnAfterRenderAsync (firstRender);
-        if (_inited && !_inited2 && items?.Count > 0) {
-            _inited2 = true;
+        if (!_inited && items?.Count > 0) {
+            _inited = true;
             if (Book is not null) {
                 selectedItem = Book;
             }
             TurnSelectedItemsPage ();
         }
     }
-    protected bool _inited2 = false;
+    protected bool _inited = false;
 }
