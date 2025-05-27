@@ -43,7 +43,11 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>@(Sheet.Label [nameof (Sheet.Errata)])</td>
+                        <td>
+                            <MudTooltip Text="@($"この{Sheet.TableLabel}にのみ作用")" Arrow="true">
+                                @(Sheet.Label [nameof (Sheet.Errata)])
+                            </MudTooltip>
+                        </td>
                         <td><MudTextField T="string" Placeholder="@($"error1{Sheet.Separator}correct1{Sheet.Terminator}error2{Sheet.Separator}correct2{Sheet.Terminator}  :")" @bind-Value="Sheet.Errata" Lines="10" /></td>
                     </tr>
                     <tr>
