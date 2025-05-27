@@ -77,21 +77,27 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
         // 認証・認可
         Identity = await AuthState.GetIdentityAsync ();
         newItem = NewEditItem;
-        // Uriパラメータを優先して着目書籍を特定する
-        var currentBookId = BookId ?? CurrentBookId;
-        if (currentBookId < 0) { currentBookId = 0; }
-        if (currentBookId != CurrentBookId || SheetIndex is not null && SheetIndex != CurrentSheetIndex) {
-            // パラメータによって着目書籍が変更されたら、レイアウトとナビに渡す
-            await SetCurrentBookId.InvokeAsync ((currentBookId, SheetIndex ?? CurrentSheetIndex));
-        }
         await base.OnInitializedAsync ();
         // プリレンダリングでないことを判定
         if (HttpContextAccessor.HttpContext?.Response.StatusCode != 200) {
             // DB初期化
             await DataSet.InitializeAsync ();
-            await DataSet.SetCurrentBookIdAsync (currentBookId);
+            // Uriパラメータを優先して着目書籍を特定する
+            var currentBookId = BookId ?? CurrentBookId;
+            if (currentBookId <= 0 && DataSet.Books.Count > 0) {
+                currentBookId = DataSet.Books [0].Id;
+            }
             // 着目書籍オブジェクトを取得
             Book = DataSet.Books.Find (s => s.Id == currentBookId);
+            if (Book is not null && Book is T item) {
+                selectedItem = item;
+            }
+            // パラメータによって着目書籍が変更されたら、レイアウトとナビに渡す
+            if (currentBookId != CurrentBookId || SheetIndex is not null && SheetIndex != CurrentSheetIndex) {
+                await SetCurrentBookId.InvokeAsync ((currentBookId, SheetIndex ?? CurrentSheetIndex));
+            }
+            // DBの着目書籍を設定してロードを促す
+            await DataSet.SetCurrentBookIdAsync (currentBookId);
         }
     }
 

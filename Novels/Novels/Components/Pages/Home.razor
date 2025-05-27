@@ -268,24 +268,11 @@
         }
     }
 
-    /// <summary>初期化</summary>
-    protected async override Task OnInitializedAsync() {
-        await base.OnInitializedAsync();
-        if (Book is null && DataSet.Books.Count > 0) {
-            // 新規セッション または書籍が見つからない場合
-            selectedItem = DataSet.Books [0];
-            await SetCurrentBookId.InvokeAsync ((selectedItem.Id, CurrentSheetIndex));
-        }
-    }
-
     /// <summary>遅延初期化</summary>
     protected override async Task OnAfterRenderAsync (bool firstRender) {
         await base.OnAfterRenderAsync (firstRender);
         if (!_inited && items?.Count > 0) {
             _inited = true;
-            if (Book is not null) {
-                selectedItem = Book;
-            }
             TurnSelectedItemsPage ();
         }
     }

@@ -331,15 +331,12 @@ public partial class Publish : ItemListBase<Book> {
     protected override async Task OnInitializedAsync () {
         // 基底クラスで着目書籍オブジェクトを取得
         await base.OnInitializedAsync ();
-        if (!_inited2 && items?.Count > 0) {
-            _inited2 = true;
-            if (Book is not null) {
-                selectedItem = Book;
-                await SetSectionTitle.InvokeAsync (Book is null ? "Publish" : $"<span style=\"font-size:80%;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</span>");
-                StartEdit ();
-            }
+        if (!_inited && Book is not null) {
+            _inited = true;
+            await SetSectionTitle.InvokeAsync (Book is null ? "Publish" : $"<span style=\"font-size:80%;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</span>");
+            StartEdit ();
         }
     }
-    protected bool _inited2 = false;
+    protected bool _inited = false;
 
 }
