@@ -664,6 +664,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
 
     /// <summary>文字校正</summary>
     public string? Correct (string? text) {
+        text = text?.Replace ("<br>", "<br/>");
         if (string.IsNullOrEmpty (text) || string.IsNullOrEmpty (Errata)) {
             return text;
         }
