@@ -7,40 +7,20 @@
 </MudItem>
 @if (!IsHomePage) {
     <MudItem>
-        <MudNavLink Href="./" Match="NavLinkMatch.All">
-            <MudText Class="d-flex align-center gap-1" Typo="Typo.h6">
-                <MudIcon Icon="@Icons.Material.Filled.LibraryBooks" />Books
-            </MudText>
-        </MudNavLink>
+        <MudButton Disabled="@(AppMode == AppMode.Books)" OnClick="@(async () => await SetAppMode.InvokeAsync (AppMode.Books))" StartIcon="@Icons.Material.Filled.LibraryBooks" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Books</MudText></MudButton>
     </MudItem>
 }
 <MudItem>
-    <MudNavLink Href="@($"book/{CurrentBookId}")">
-        <MudText Class="d-flex align-center gap-1" Typo="Typo.h6">
-            <MudIcon Icon="@Icons.Material.Filled.Sync" />Publish
-        </MudText>
-    </MudNavLink>
+    <MudButton Disabled="@(AppMode == AppMode.Publish)" OnClick="@(async () => await SetAppMode.InvokeAsync (AppMode.Publish))" StartIcon="@Icons.Material.Filled.Sync" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Publish</MudText></MudButton>
 </MudItem>
 <MudItem>
-    <MudNavLink Href="@($"sheets/{CurrentBookId}/{CurrentSheetIndex}")">
-        <MudText Class="d-flex align-center gap-1" Typo="Typo.h6">
-            <MudIcon Icon="@Icons.Material.Filled.ViewHeadline" />Contents
-        </MudText>
-    </MudNavLink>
+    <MudButton Disabled="@(AppMode == AppMode.Contents)" OnClick="@(async () => await SetAppMode.InvokeAsync (AppMode.Contents))" StartIcon="@Icons.Material.Filled.ViewHeadline" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Contents</MudText></MudButton>
 </MudItem>
 <MudItem>
-    <MudNavLink Href="@($"sheet/{CurrentBookId}/{CurrentSheetIndex}")">
-        <MudText Class="d-flex align-center gap-1" Typo="Typo.h6">
-            <MudIcon Icon="@Icons.Material.Filled.MenuBook" />Read
-        </MudText>
-    </MudNavLink>
+    <MudButton Disabled="@(AppMode == AppMode.Read)" OnClick="@(async () => await SetAppMode.InvokeAsync (AppMode.Read))" StartIcon="@Icons.Material.Filled.MenuBook" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Read</MudText></MudButton>
 </MudItem>
 <MudItem>
-    <MudNavLink Href="settings">
-        <MudText Class="d-flex align-center gap-1" Typo="Typo.h6">
-            <MudIcon Icon="@Icons.Material.Filled.Settings" />Settings
-        </MudText>
-    </MudNavLink>
+    <MudButton Disabled="@(AppMode == AppMode.Settings)" OnClick="@(async () => await SetAppMode.InvokeAsync (AppMode.Settings))" StartIcon="@Icons.Material.Filled.Settings" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Settings</MudText></MudButton>
 </MudItem>
 @if (!IsHomePage) {
     <MudSpacer />
@@ -109,6 +89,10 @@
     [CascadingParameter (Name = "CurrentBookId")] protected long CurrentBookId { get; set; } = 0;
     /// <summary>着目中のシート</summary>
     [CascadingParameter (Name = "CurrentSheetIndex")] protected int CurrentSheetIndex { get; set; } = 0;
+    /// <summary>アプリモード</summary>
+    [CascadingParameter (Name = "AppMode")] protected AppMode AppMode { get; set; } = AppMode.Boot;
+    /// <summary>アプリモード設定</summary>
+    [CascadingParameter (Name = "SetAppMode")] protected EventCallback<AppMode> SetAppMode { get; set; }
 
     /// <summary>検索文字列</summary>
     private string _filterText = string.Empty;

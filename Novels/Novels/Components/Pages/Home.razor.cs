@@ -7,6 +7,16 @@ using Tetr4lab;
 
 namespace Novels.Components.Pages;
 
+/// <summary>アプリのモード</summary>
+public enum AppMode {
+    Boot = 0,
+    Books,
+    Publish,
+    Contents,
+    Read,
+    Settings,
+}
+
 public partial class Home {
     [Inject] protected NovelsDataSet DataSet { get; set; } = null!;
     [Inject] protected IHttpContextAccessor HttpContextAccessor { get; set; } = null!;
@@ -34,6 +44,12 @@ public partial class Home {
 
     /// <summary>認証状況を得る</summary>
     [CascadingParameter] protected Task<AuthenticationState> AuthState { get; set; } = default!;
+
+    /// <summary>アプリモード</summary>
+    [CascadingParameter (Name = "AppMode")] protected AppMode AppMode { get; set; } = AppMode.Boot;
+
+    /// <summary>アプリモード設定</summary>
+    [CascadingParameter (Name = "SetAppMode")] protected EventCallback<AppMode> SetAppMode { get; set; }
 
     /// <summary>指定された書籍</summary>
     [Parameter] public long? BookId { get; set; } = null;

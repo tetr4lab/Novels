@@ -1,3 +1,32 @@
 ﻿@page "/{BookId:long?}/{SheetIndex:int?}"
 
-<h1>New Home</h1>
+@switch (AppMode) {
+    case AppMode.Boot:
+        if (DataSet.IsReady) {
+            SetAppMode.InvokeAsync (AppMode.Books);
+        } else {
+            <div class="mud-overlay mud-overlay-dialog mud-skip-overlay-section mud-skip-overlay-positioning">
+                <div class="mud-overlay-scrim mud-overlay-dark d-flex justify-center align-center">
+                    <MudProgressCircular Indeterminate="true" Rounded Size="Size.Large" />
+                </div>
+            </div>
+        }
+        break;
+    case AppMode.Books:
+        <Books />
+        break;
+    case AppMode.Publish:
+        <Publish />
+        break;
+    case AppMode.Contents:
+        <Sheets />
+        break;
+    case AppMode.Read:
+        <Read />
+        break;
+    case AppMode.Settings:
+        <Settings />
+        break;
+    default:
+        break;
+}
