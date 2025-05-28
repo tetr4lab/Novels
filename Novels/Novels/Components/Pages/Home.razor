@@ -2,7 +2,7 @@
 
 @page "/{BookId:long?}/{SheetIndex:int?}"
 
-@inject IHttpClientFactory HttpClientFactory
+@inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 
@@ -178,10 +178,6 @@
 </MudOverlay>
 
 @code {
-    /// <summary>HttpClient</summary>
-    protected HttpClient HttpClient => _httpClient ??= HttpClientFactory.CreateClient ("Novels");
-    protected HttpClient? _httpClient = null;
-
     /// <summary>オーバーレイの表示</summary>
     protected bool IsOverlayed { get; set; } = false;
 
