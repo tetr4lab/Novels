@@ -49,11 +49,16 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
     /// <summary>認証状況を得る</summary>
     [CascadingParameter] protected Task<AuthenticationState> AuthState { get; set; } = default!;
 
-    /// <summary>指定された書籍</summary>
-    [Parameter] public long? BookId { get; set; } = null;
+    /// <summary>アプリモード</summary>
+    [CascadingParameter (Name = "AppMode")] protected AppMode AppMode { get; set; } = AppMode.Boot;
 
-    /// <summary>ページ</summary>
-    [Parameter] public int? SheetIndex { get; set; } = null;
+    /// <summary>アプリモード設定</summary>
+    [CascadingParameter (Name = "SetAppMode")] protected EventCallback<AppMode> _setAppMode { get; set; }
+
+    /// <summary>アプリモード要求</summary>
+    [CascadingParameter (Name = "RequestedAppMode")] protected AppMode RequestedAppMode { get; set; } = AppMode.None;
+    /// <summary>アプリモードの要求</summary>
+    [CascadingParameter (Name = "RequestAppMode")] public EventCallback<AppMode> RequestAppMode { get; set; }
 
     /// <summary>項目一覧</summary>
     protected List<T>? items => DataSet.IsReady ? DataSet.GetList<T> () : null;
@@ -62,45 +67,21 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
     protected T selectedItem { get; set; } = new ();
 
     /// <summary>認証済みID</summary>
-    protected AuthedIdentity? Identity { get; set; }
+    [Parameter] public AuthedIdentity? Identity { get; set; }
 
     /// <summary>ユーザ識別子</summary>
     protected string UserIdentifier => Identity?.Identifier ?? "unknown";
 
     /// <summary>着目中の書籍</summary>
-    protected virtual Book? Book { get; set; } = null;
+    [Parameter] public Book? Book { get; set; } = null;
 
-    /// <summary>初期化</summary>
+    /// <inheritdoc/>
     protected override async Task OnInitializedAsync () {
         await base.OnInitializedAsync ();
         await SetSectionTitle.InvokeAsync ($"{typeof (T).Name}s");
-        // 認証・認可
-        Identity = await AuthState.GetIdentityAsync ();
         newItem = NewEditItem;
-        await base.OnInitializedAsync ();
-        // プリレンダリングでないことを判定
-        if (HttpContextAccessor.HttpContext?.Response.StatusCode != 200) {
-            // DB初期化
-            await DataSet.InitializeAsync ();
-            // Uriパラメータを優先して着目書籍を特定する
-            if (BookId is not null && !DataSet.Books.Exists (book => BookId == book.Id)) {
-                BookId = null; // そのような書籍はない
-            }
-            if (CurrentBookId <= 0) {
-                await SetCurrentBookId.InvokeAsync ((DataSet.CurrentBookId, SheetIndex ?? CurrentSheetIndex));
-            }
-            var currentBookId = BookId ?? CurrentBookId;
-            // 着目書籍オブジェクトを取得
-            Book = DataSet.Books.Find (s => s.Id == currentBookId);
-            if (Book is not null && Book is T item) {
-                selectedItem = item;
-            }
-            // パラメータによって着目書籍が変更されたら、レイアウトとナビに渡す
-            if (currentBookId != CurrentBookId || SheetIndex is not null && SheetIndex != CurrentSheetIndex) {
-                await SetCurrentBookId.InvokeAsync ((currentBookId, SheetIndex ?? CurrentSheetIndex));
-            }
-            // DBの着目書籍を設定してロードを促す
-            await DataSet.SetCurrentBookIdAsync (currentBookId);
+        if (Book is not null && Book is T item) {
+            selectedItem = item;
         }
     }
 
@@ -127,6 +108,7 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
         }
         if (CurrentBookId != book.Id) {
             await SetCurrentBookId.InvokeAsync ((book.Id, 1));
+            await DataSet.SetCurrentBookIdAsync (book.Id);
         }
     }
 
@@ -311,15 +293,6 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
         }
     }
 
-    //// <summary>表示されている全アイテムで絞りこんで次のページを表示</summary>
-    protected async Task FilterAndNavigate (string mark, string uri) {
-        if (_table != null) {
-            var filter = string.Join ('|', _table.FilteredItems.ToList ().ConvertAll (context => $"{mark}{context.Id}."));
-            await SetFilterText.InvokeAsync (filter);
-            NavManager.NavigateTo (uri);
-        }
-    }
-
     /// <summary>編集開始</summary>
     protected virtual void StartEdit () {
         if (editingItem is null) {
@@ -328,10 +301,24 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
         }
     }
 
-    /// <summary>ページ遷移時の処理</summary>
-    protected virtual async Task OnLocationChangingAsync (LocationChangingContext context) {
-        if (context.IsNavigationIntercepted && !await ConfirmCancelEditAsync ()) {
-            context.PreventNavigation ();
+    /// <summary>アプリモード遷移の要求があった</summary>
+    protected override async Task OnParametersSetAsync () {
+        await base.OnParametersSetAsync ();
+        if (RequestedAppMode != AppMode.None && RequestedAppMode != AppMode) {
+            await SetAppMode (RequestedAppMode);
+            await RequestAppMode.InvokeAsync (AppMode.None);
+        }
+        if (_appMode != AppMode) {
+            _appMode = AppMode;
+        }
+    }
+    protected virtual AppMode _appMode { get; set; }  = AppMode.Boot;
+
+    /// <summary>アプリモード遷移時の処理</summary>
+    protected virtual async Task SetAppMode (AppMode appMode) {
+        if (AppMode != appMode && await ConfirmCancelEditAsync ()) {
+            await _setAppMode.InvokeAsync (appMode);
+            StateHasChanged ();
         }
     }
 

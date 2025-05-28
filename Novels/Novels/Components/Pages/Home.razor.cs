@@ -9,6 +9,7 @@ namespace Novels.Components.Pages;
 
 /// <summary>アプリのモード</summary>
 public enum AppMode {
+    None = -1,
     Boot = 0,
     Books,
     Publish,
@@ -51,12 +52,6 @@ public partial class Home {
     /// <summary>アプリモード設定</summary>
     [CascadingParameter (Name = "SetAppMode")] protected EventCallback<AppMode> SetAppMode { get; set; }
 
-    /// <summary>指定された書籍</summary>
-    [Parameter] public long? BookId { get; set; } = null;
-
-    /// <summary>ページ</summary>
-    [Parameter] public int? SheetIndex { get; set; } = null;
-
     /// <summary>認証済みID</summary>
     protected AuthedIdentity? Identity { get; set; }
 
@@ -66,32 +61,53 @@ public partial class Home {
     /// <summary>着目中の書籍</summary>
     protected virtual Book? Book { get; set; } = null;
 
-    /// <summary>初期化</summary>
+    /// CurrentBookIdが変更されたらBookを再取得してSheetsをロード
+    protected override async Task OnParametersSetAsync () {
+        await base.OnParametersSetAsync ();
+        if (_currentBookId != CurrentBookId) {
+            if (CurrentBookId > 0 && DataSet.IsInitialized) {
+                // 着目書籍オブジェクトを取得
+                Book = DataSet.Books.Find (s => s.Id == CurrentBookId);
+                // DBの着目書籍を設定してロードを促す
+                await DataSet.SetCurrentBookIdAsync (CurrentBookId);
+                //StateHasChanged ();
+            }
+            _currentBookId = CurrentBookId;
+        }
+        if (_appMode != AppMode) {
+            _appMode = AppMode;
+        }
+    }
+    protected long _currentBookId = long.MinValue;
+    protected AppMode _appMode = AppMode.Boot;
+
+    /// <inheritdoc/>
     protected override async Task OnInitializedAsync () {
         await base.OnInitializedAsync ();
         // 認証・認可
         Identity = await AuthState.GetIdentityAsync ();
-        await base.OnInitializedAsync ();
-        // プリレンダリングでないことを判定
-        if (HttpContextAccessor.HttpContext?.Response.StatusCode != 200) {
-            // DB初期化
-            await DataSet.InitializeAsync ();
-            // Uriパラメータを優先して着目書籍を特定する
-            if (BookId is not null && !DataSet.Books.Exists (book => BookId == book.Id)) {
-                BookId = null; // そのような書籍はない
+    }
+
+    /// <inheritdoc/>
+    protected override async Task OnAfterRenderAsync (bool firstRender) {
+        await base.OnAfterRenderAsync (firstRender);
+        if (firstRender && !DataSet.IsInitialized && !DataSet.IsInitializeStarted) {
+            try {
+                // DB初期化
+                await DataSet.InitializeAsync ();
+                if (CurrentBookId <= 0) {
+                    await SetCurrentBookId.InvokeAsync ((DataSet.CurrentBookId, CurrentSheetIndex));
+                    // この中まで行ったが戻ってこない
+                }
+                // ここには来ない
+                // 着目書籍オブジェクトを取得
+                //Book = DataSet.Books.Find (s => s.Id == CurrentBookId);
+                // DBの着目書籍を設定してロードを促す
+                //await DataSet.SetCurrentBookIdAsync (CurrentBookId);
             }
-            if (CurrentBookId <= 0) {
-                await SetCurrentBookId.InvokeAsync ((DataSet.CurrentBookId, SheetIndex ?? CurrentSheetIndex));
+            catch (Exception ex) {
+                System.Diagnostics.Debug.WriteLine (ex);
             }
-            var currentBookId = BookId ?? CurrentBookId;
-            // 着目書籍オブジェクトを取得
-            Book = DataSet.Books.Find (s => s.Id == currentBookId);
-            // パラメータによって着目書籍が変更されたら、レイアウトとナビに渡す
-            if (currentBookId != CurrentBookId || SheetIndex is not null && SheetIndex != CurrentSheetIndex) {
-                await SetCurrentBookId.InvokeAsync ((currentBookId, SheetIndex ?? CurrentSheetIndex));
-            }
-            // DBの着目書籍を設定してロードを促す
-            await DataSet.SetCurrentBookIdAsync (currentBookId);
         }
     }
 

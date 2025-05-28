@@ -7,20 +7,20 @@
 </MudItem>
 @if (!IsHomePage) {
     <MudItem>
-        <MudButton Disabled="@(AppMode == AppMode.Books)" OnClick="@(async () => await SetAppMode.InvokeAsync (AppMode.Books))" StartIcon="@Icons.Material.Filled.LibraryBooks" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Books</MudText></MudButton>
+        <MudButton Disabled="@(AppMode == AppMode.Books)" OnClick="@(async () => await RequestAppMode.InvokeAsync (AppMode.Books))" StartIcon="@Icons.Material.Filled.LibraryBooks" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Books</MudText></MudButton>
     </MudItem>
 }
 <MudItem>
-    <MudButton Disabled="@(AppMode == AppMode.Publish)" OnClick="@(async () => await SetAppMode.InvokeAsync (AppMode.Publish))" StartIcon="@Icons.Material.Filled.Sync" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Publish</MudText></MudButton>
+    <MudButton Disabled="@(AppMode == AppMode.Publish)" OnClick="@(async () => await RequestAppMode.InvokeAsync (AppMode.Publish))" StartIcon="@Icons.Material.Filled.Sync" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Publish</MudText></MudButton>
 </MudItem>
 <MudItem>
-    <MudButton Disabled="@(AppMode == AppMode.Contents)" OnClick="@(async () => await SetAppMode.InvokeAsync (AppMode.Contents))" StartIcon="@Icons.Material.Filled.ViewHeadline" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Contents</MudText></MudButton>
+    <MudButton Disabled="@(AppMode == AppMode.Contents)" OnClick="@(async () => await RequestAppMode.InvokeAsync (AppMode.Contents))" StartIcon="@Icons.Material.Filled.ViewHeadline" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Contents</MudText></MudButton>
 </MudItem>
 <MudItem>
-    <MudButton Disabled="@(AppMode == AppMode.Read)" OnClick="@(async () => await SetAppMode.InvokeAsync (AppMode.Read))" StartIcon="@Icons.Material.Filled.MenuBook" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Read</MudText></MudButton>
+    <MudButton Disabled="@(AppMode == AppMode.Read)" OnClick="@(async () => await RequestAppMode.InvokeAsync (AppMode.Read))" StartIcon="@Icons.Material.Filled.MenuBook" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Read</MudText></MudButton>
 </MudItem>
 <MudItem>
-    <MudButton Disabled="@(AppMode == AppMode.Settings)" OnClick="@(async () => await SetAppMode.InvokeAsync (AppMode.Settings))" StartIcon="@Icons.Material.Filled.Settings" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Settings</MudText></MudButton>
+    <MudButton Disabled="@(AppMode == AppMode.Settings)" OnClick="@(async () => await RequestAppMode.InvokeAsync (AppMode.Settings))" StartIcon="@Icons.Material.Filled.Settings" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Settings</MudText></MudButton>
 </MudItem>
 @if (!IsHomePage) {
     <MudSpacer />
@@ -84,15 +84,15 @@
     /// <summary>モード切替ボタンが押されたときの処理</summary>
     [Parameter] public EventCallback OnClickChangeModeButton { get; set; } = EventCallback.Empty;
     /// <summary>検索文字列</summary>
-    [CascadingParameter (Name = "Filter")] protected string FilterText { get; set; } = string.Empty;
-    /// <summary>着目中の書籍</summary>
-    [CascadingParameter (Name = "CurrentBookId")] protected long CurrentBookId { get; set; } = 0;
-    /// <summary>着目中のシート</summary>
-    [CascadingParameter (Name = "CurrentSheetIndex")] protected int CurrentSheetIndex { get; set; } = 0;
+    [Parameter] public string FilterText { get; set; } = string.Empty;
+    // /// <summary>着目中の書籍</summary>
+    // [Parameter] public long CurrentBookId { get; set; } = 0;
+    // /// <summary>着目中のシート</summary>
+    // [Parameter] public int CurrentSheetIndex { get; set; } = 0;
     /// <summary>アプリモード</summary>
-    [CascadingParameter (Name = "AppMode")] protected AppMode AppMode { get; set; } = AppMode.Boot;
-    /// <summary>アプリモード設定</summary>
-    [CascadingParameter (Name = "SetAppMode")] protected EventCallback<AppMode> SetAppMode { get; set; }
+    [Parameter] public AppMode AppMode { get; set; } = AppMode.Boot;
+    /// <summary>アプリモードの要求</summary>
+    [Parameter] public EventCallback<AppMode> RequestAppMode { get; set; }
 
     /// <summary>検索文字列</summary>
     private string _filterText = string.Empty;

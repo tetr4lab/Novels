@@ -13,30 +13,28 @@
                     <MudFab Class="fixed ma-2 z-100" Style="right: 0px;" Color="Color.Transparent" Ripple="false" StartIcon="@Icons.Material.Filled.Menu" Size="Size.Small" OnClick="@(() => _drawerOpen = true)" />
                     <MudDrawer Class="fixed" @bind-Open="@_drawerOpen" Anchor="Anchor.Top" Elevation="1" Variant="@DrawerVariant.Temporary">
                         <MudNavMenu Dense Color="Color.Dark" Class="px-4 my-2">
-                            <CascadingValue Value="@_filterText" Name="Filter">
-                                <CascadingValue Value="@_currentBookId" Name="CurrentBookId">
-                                    <CascadingValue Value="@_currentSheetIndex" Name="CurrentSheetIndex">
-                                        <NavBar OnClickSearchButton="SetFilterText" IsDarkMode="_isDarkMode" OnClickChangeModeButton="ChangeModeAsync" />
-                                    </CascadingValue>
-                                </CascadingValue>
-                            </CascadingValue>
+                            <NavBar
+                                OnClickSearchButton="@SetFilterText"
+                                IsDarkMode="@_isDarkMode"
+                                OnClickChangeModeButton="@ChangeModeAsync"
+                                FilterText="@_filterText"
+                                AppMode="@_appMode"
+                                RequestAppMode="@RequestAppMode"
+                                />
                         </MudNavMenu>
                     </MudDrawer>
                 </MudHidden>
                 <MudHidden Breakpoint="Breakpoint.Xs">
-                    <MudAppBar Color="Color.Transparent" Dense Fixed="true">
+                    <MudAppBar Color="Color.Transparent" Dense Fixed="true" Class="backdrop-blur">
                         <MudGrid Class="align-center flex-nowrap" Spacing="0">
-                            <CascadingValue Value="@_filterText" Name="Filter">
-                                <CascadingValue Value="@_currentBookId" Name="CurrentBookId">
-                                    <CascadingValue Value="@_currentSheetIndex" Name="CurrentSheetIndex">
-                                        <CascadingValue Value="@_appMode" Name="AppMode">
-                                            <CascadingValue Value="@(EventCallback.Factory.Create<AppMode> (this, SetAppMode))" Name="SetAppMode">
-                                                <NavBar OnClickSearchButton="SetFilterText" IsDarkMode="_isDarkMode" OnClickChangeModeButton="ChangeModeAsync" />
-                                            </CascadingValue>
-                                        </CascadingValue>
-                                    </CascadingValue>
-                                </CascadingValue>
-                            </CascadingValue>
+                            <NavBar
+                                OnClickSearchButton="@SetFilterText"
+                                IsDarkMode="@_isDarkMode"
+                                OnClickChangeModeButton="@ChangeModeAsync"
+                                FilterText="@_filterText"
+                                AppMode="@_appMode"
+                                RequestAppMode="@RequestAppMode"
+                                />
                         </MudGrid>
                     </MudAppBar>
                 </MudHidden>
@@ -60,7 +58,11 @@
                                         <CascadingValue Value="@_currentSheetIndex" Name="CurrentSheetIndex">
                                             <CascadingValue Value="@_appMode" Name="AppMode">
                                                 <CascadingValue Value="@(EventCallback.Factory.Create<AppMode> (this, SetAppMode))" Name="SetAppMode">
-                                                    @Body
+                                                    <CascadingValue Value="@_requestedAppMode" Name="RequestedAppMode">
+                                                        <CascadingValue Value="@(EventCallback.Factory.Create<AppMode> (this, RequestAppMode))" Name="RequestAppMode">
+                                                            @Body
+                                                        </CascadingValue>
+                                                    </CascadingValue>
                                                 </CascadingValue>
                                             </CascadingValue>
                                         </CascadingValue>
@@ -156,5 +158,13 @@
     /// <summary>アプリモードを変更</summary>
     protected void SetAppMode (AppMode appMode) {
         _appMode = appMode;
+    }
+
+    /// <summary>リクエストされたアプリモード (カスケーディングパラメータ)</summary>
+    protected AppMode _requestedAppMode { get; set; } = AppMode.None;
+
+    /// <summary>アプリモードをリクエスト</summary>
+    protected void RequestAppMode (AppMode appMode) {
+        _requestedAppMode = appMode;
     }
 }

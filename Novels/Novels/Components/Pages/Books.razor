@@ -1,12 +1,7 @@
 ﻿@inherits ItemListBase<Book>
 
-@* @page "/{BookId:long?}/{SheetIndex:int?}" *@
-
 @inject HttpClient HttpClient
-@inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
-
-<PageTitle>Novels Home</PageTitle>
 
 @if (DataSet.IsUnavailable) {
     <MudAlert Severity="Severity.Error" Elevation="3">Unable to connect to any of the specified database management hosts.</MudAlert>
@@ -80,8 +75,8 @@
                 </MudTd>
                 <MudTd DataLabel="@(Book.Label[nameof(Book.Title)])">
                     <MudStack Row Spacing="0" Class="align-center">
-                        <MudIconButton OnClick="@(() => PublishBook (context.Id))" Icon="@(context.IsEmpty ? Icons.Material.Filled.Download : isUpdatable && !isErrorForNumberOfSheets ? Icons.Material.Filled.Refresh : context.Released && !isPublishable ? Icons.Material.Filled.Sync : Icons.Material.Filled.Publish)" Size="Size.Small" />
-                        <MudIconButton OnClick="@(() => OpenBook (context.Id))" Icon="@Icons.Material.Filled.ViewHeadline" Size="Size.Small" />
+                        <MudIconButton OnClick="@(async () => await PublishBook (context))" Icon="@(context.IsEmpty ? Icons.Material.Filled.Download : isUpdatable && !isErrorForNumberOfSheets ? Icons.Material.Filled.Refresh : context.Released && !isPublishable ? Icons.Material.Filled.Sync : Icons.Material.Filled.Publish)" Size="Size.Small" />
+                        <MudIconButton OnClick="@(async () => await OpenBook (context))" Icon="@Icons.Material.Filled.ViewHeadline" Size="Size.Small" />
                         <MudText Typo="Typo.inherit">@(context.Title)</MudText>
                     </MudStack>
                 </MudTd>
@@ -195,13 +190,17 @@
     }
 
     /// <summary>書籍を発行</summary>
-    protected void PublishBook (long bookId) {
-        NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}book/{bookId}");
+    protected async Task PublishBook (Book book) {
+        await ChangeCurrentBookAsync (book);
+        await SetAppMode (AppMode.Publish);
+        _ = RequestedAppMode;
     }
 
     /// <summary>書籍を開く</summary>
-    protected void OpenBook (long bookId) {
-        NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}sheets/{bookId}/{(bookId != CurrentBookId ? 1 : CurrentSheetIndex)}");
+    protected async Task OpenBook (Book book) {
+        await ChangeCurrentBookAsync (book);
+        await SetAppMode (AppMode.Contents);
+        _ = RequestedAppMode;
     }
 
     /// <summary>書籍を追加する</summary>
@@ -238,7 +237,7 @@
                     lastCreatedId = newBook.Id;
                     await ChangeCurrentBookAsync (newBook);
                     // Publishページへ移動する
-                    PublishBook (newBook.Id);
+                    await PublishBook (newBook);
                 } else {
                     Snackbar.Add ($"追加に失敗: {(items is null ? "null, " : "")}{lastCreatedId}\n{newItem}", Severity.Error);
                 }

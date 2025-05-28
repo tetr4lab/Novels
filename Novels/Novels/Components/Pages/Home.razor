@@ -1,4 +1,6 @@
-﻿@page "/{BookId:long?}/{SheetIndex:int?}"
+﻿@page "/"
+
+<PageTitle>Novels</PageTitle>
 
 @switch (AppMode) {
     case AppMode.Boot:
@@ -13,19 +15,19 @@
         }
         break;
     case AppMode.Books:
-        <Books />
+        <Books Identity="Identity" Book="Book" />
         break;
     case AppMode.Publish:
-        <Publish />
+        <Publish Identity="Identity" Book="Book" />
         break;
     case AppMode.Contents:
-        <Sheets />
+        <Sheets Identity="Identity" Book="Book" />
         break;
     case AppMode.Read:
-        <Read />
+        <Read Identity="Identity" Book="Book" />
         break;
     case AppMode.Settings:
-        <Settings />
+        <Settings Identity="Identity" Book="Book" />
         break;
     default:
         break;

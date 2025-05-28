@@ -1,25 +1,18 @@
 ﻿@inherits ItemListBase<Sheet>
 
-@page "/sheet/{BookId:long?}/{SheetIndex:int?}"
-
-@inject NavigationManager NavigationManager
 @inject IJSRuntime JsRuntime
-
-<PageTitle>Sheet</PageTitle>
-<NavigationLock OnBeforeInternalNavigation="OnLocationChangingAsync" />
 
 @if (DataSet.IsUnavailable) {
     <MudAlert Severity="Severity.Error" Elevation="3">Unable to connect to any of the specified database management hosts.</MudAlert>
 } else if (DataSet.IsReady && Book is null) {
     <MudText>No book selected or found.</MudText>
-    <MudButton Class="ma-3" OnClick="@(() => NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}"))" StartIcon="@Icons.Material.Filled.LibraryBooks" Variant="Variant.Filled">go home</MudButton>
+    <MudButton Class="ma-3" OnClick="@(async () => await SetAppMode (AppMode.Books))" StartIcon="@Icons.Material.Filled.LibraryBooks" Variant="Variant.Filled">go home</MudButton>
 } else if (items is null || Book is null) {
     <MudProgressCircular Indeterminate="true" />
 } else if (items.Count > 0) {
     if (Book is not null) {
-        SheetIndex ??= 1;
         if (Sheet is not null) {
-            <NumberNavigationBar Number="@(SheetIndex.Value)" Min="1" Max="@(items.Count)" OnChangeNumber="OnChageSheetAsync" />
+            <NumberNavigationBar Number="@(CurrentSheetIndex)" Min="1" Max="@(items.Count)" OnChangeNumber="OnChageSheetAsync" />
             @if (!string.IsNullOrEmpty (Sheet.Preface)) {
                 <MudPaper Class="ma-4 pa-2" Elevation="1">
                     <MudText Typo="Typo.caption">@((MarkupString) Sheet.Preface)</MudText>
@@ -64,7 +57,7 @@
                     <MudIconButton Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" Disabled="!IsDirty" OnClick="async () => { if (editingItem is not null) { await Commit (editingItem); StartEdit (); } }" />
                 </MudTooltip>
             </MudStack>
-            <NumberNavigationBar Number="@(SheetIndex.Value)" Min="1" Max="@(items.Count)" OnChangeNumber="OnChageSheetAsync" />
+            <NumberNavigationBar Number="@(CurrentSheetIndex)" Min="1" Max="@(items.Count)" OnChangeNumber="OnChageSheetAsync" />
             <MudScrollToTop TopOffset="1000">
                 <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowCircleUp" />
             </MudScrollToTop>
@@ -92,7 +85,7 @@
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
     protected override async Task OnInitializedAsync() {
         await base.OnInitializedAsync ();
-        await SetSheetAsync (SheetIndex ?? CurrentSheetIndex);
+        await SetSheetAsync (CurrentSheetIndex);
     }
 
     /// <summary>シート番号に依存した設定</summary>
@@ -109,11 +102,6 @@
                 await SetSectionTitle.InvokeAsync ($"<span style=\"font-size:80%;\"><a href=\"{Sheet.Url}\" target=\"_blank\" style=\"text-decoration: none;\">『{Book.Title}』 {Book.Author}</a></span>\n{Sheet.OriginalChapterTitle} {Sheet.ChapterSubTitle}");
                 StartEdit ();
             }
-            if (BookId != Book.Id || SheetIndex != index) {
-                // ルート(`@page`)が一致するため、アドレスバーが書き換わり、パラメータ`SheetIndex`に`index`が代入される
-                // パラメータに相違があればページの遷移は生じない (全て同一だと再初期化が生じる)
-                NavigationManager.NavigateTo ($"{NavigationManager.BaseUri}sheet/{Book.Id}/{index}");
-            }
         } else {
             await SetSectionTitle.InvokeAsync ("Read");
         }
@@ -121,7 +109,7 @@
 
     /// <summary>シート変更</summary>
     protected async Task OnChageSheetAsync (int index) {
-        if (SheetIndex != index && await ConfirmCancelEditAsync ()) {
+        if (CurrentSheetIndex != index && await ConfirmCancelEditAsync ()) {
             await SetSheetAsync (index);
             // ページトップへスクロール
             await JsRuntime.ScrollToTop ();

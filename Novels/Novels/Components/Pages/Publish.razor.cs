@@ -52,7 +52,7 @@ public partial class Publish : ItemListBase<Book> {
                         }
                         StateHasChanged ();
                         Snackbar.Add ($"{target}‚ğíœ‚µ‚Ü‚µ‚½B", Severity.Normal);
-                        NavigationManager.NavigateTo (NavigationManager.BaseUri);
+                        await SetAppMode (AppMode.Books);
                     } else {
                         Snackbar.Add ($"{target}‚Ìíœ‚É¸”s‚µ‚Ü‚µ‚½B", Severity.Error);
                     }

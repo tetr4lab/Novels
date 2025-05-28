@@ -19,7 +19,12 @@ public sealed class NovelsDataSet : BasicDataSet {
     /// <remarks>最初の書籍Idを得る</remarks>
     public override async Task InitializeAsync () {
         if (!IsInitialized && !IsInitializeStarted) {
-            CurrentBookId = await database.FirstOrDefaultAsync<long> ("select `id` from `books` limit 1;");
+            try {
+                CurrentBookId = await database.FirstOrDefaultAsync<long> ("select `id` from `books` limit 1;");
+            }
+            catch (Exception e) {
+                System.Diagnostics.Debug.WriteLine ($"Exception: {e.Message}\n{e.StackTrace}");
+            }
         }
         await base.InitializeAsync ();
     }
