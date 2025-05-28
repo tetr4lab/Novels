@@ -304,22 +304,28 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
     /// <summary>アプリモード遷移の要求があった</summary>
     protected override async Task OnParametersSetAsync () {
         await base.OnParametersSetAsync ();
-        if (RequestedAppMode != AppMode.None && RequestedAppMode != AppMode) {
-            await SetAppMode (RequestedAppMode);
-            await RequestAppMode.InvokeAsync (AppMode.None);
+        if (_lastRequestedAppMode != RequestedAppMode) {
+            _lastRequestedAppMode = RequestedAppMode;
+            if (RequestedAppMode != AppMode.None) {
+                if (RequestedAppMode != AppMode) {
+                    await SetAppMode (RequestedAppMode);
+                }
+                await RequestAppMode.InvokeAsync (AppMode.None);
+            }
         }
-        if (_appMode != AppMode) {
-            _appMode = AppMode;
+        if (_last_AppMode != AppMode) {
+            _last_AppMode = AppMode;
         }
     }
-    protected virtual AppMode _appMode { get; set; }  = AppMode.Boot;
+    protected AppMode _lastRequestedAppMode = AppMode.None;
+    protected AppMode _last_AppMode = AppMode.Boot;
 
     /// <summary>アプリモード遷移時の処理</summary>
     protected virtual async Task SetAppMode (AppMode appMode) {
         if (AppMode != appMode && await ConfirmCancelEditAsync ()) {
             await _setAppMode.InvokeAsync (appMode);
-            StateHasChanged ();
         }
+        StateHasChanged ();
     }
 
     /// <summary>編集内容破棄の確認</summary>
