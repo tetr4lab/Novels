@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Novels.Components.Pages;
+using Novels.Components.Parts;
 using Novels.Data;
 
 namespace Novels.Services;
