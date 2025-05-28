@@ -170,21 +170,22 @@ public sealed class NovelsDataSet : BasicDataSet {
                 var lastTime = DateTime.Now;
                 using (var message = await client.GetWithCookiesAsync (book.Url, Setting.DefaultCookies)) {
                     if (message.IsSuccessStatusCode && message.StatusCode == System.Net.HttpStatusCode.OK) {
-                        var html = new List<string> { await message.Content.ReadAsStringAsync (), };
+                        var htmls = new List<string> { await message.Content.ReadAsStringAsync (), };
+                        book.Html = htmls [0]; // LastPageを算出
                         for (var i = 2; i <= book.LastPage; i++) {
                             await Task.Delay (Setting.AccessIntervalTime);
                             // 追加ページの絶対URLを取得する
                             var additionalUrl = $"{book.Url}{(book.Url.EndsWith ('/') ? "" : "/")}?p={i}";
                             using (var message2 = await client.GetWithCookiesAsync (additionalUrl, Setting.DefaultCookies)) {
                                 if (message2.IsSuccessStatusCode && message2.StatusCode == System.Net.HttpStatusCode.OK) {
-                                    html.Add (await message2.Content.ReadAsStringAsync ());
+                                    htmls.Add (await message2.Content.ReadAsStringAsync ());
                                 } else {
                                     issues.Add ($"Failed to get: {additionalUrl} {message.StatusCode} {message.ReasonPhrase}");
                                     throw new Exception ("aborted");
                                 }
                             }
                         }
-                        book.Html = string.Join ('\n', html);
+                        book.Html = string.Join ('\n', htmls);
                         if (book.Id == 0) {
                             var result = await AddAsync (book);
                             if (result.IsSuccess) {
