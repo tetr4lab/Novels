@@ -193,14 +193,12 @@
     protected async Task PublishBook (Book book) {
         await ChangeCurrentBookAsync (book);
         await SetAppMode (AppMode.Publish);
-        _ = RequestedAppMode;
     }
 
     /// <summary>書籍を開く</summary>
     protected async Task OpenBook (Book book) {
         await ChangeCurrentBookAsync (book);
         await SetAppMode (AppMode.Contents);
-        _ = RequestedAppMode;
     }
 
     /// <summary>書籍を追加する</summary>
