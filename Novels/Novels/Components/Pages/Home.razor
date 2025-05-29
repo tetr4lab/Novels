@@ -1,11 +1,13 @@
-﻿@page "/"
+﻿@inherits NovelsPageBase
+
+@page "/"
 
 <PageTitle>Novels</PageTitle>
 
 @switch (AppMode) {
     case AppMode.Boot:
         if (DataSet.IsReady) {
-            SetAppMode.InvokeAsync (AppMode.Books);
+            SetAppMode (AppMode.Books);
         } else {
             <div class="mud-overlay mud-overlay-dialog mud-skip-overlay-section mud-skip-overlay-positioning">
                 <div class="mud-overlay-scrim mud-overlay-dark d-flex justify-center align-center">

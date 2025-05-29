@@ -10,7 +10,7 @@ using Tetr4lab;
 
 namespace Novels.Components.Pages;
 
-public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseModel<T>, INovelsBaseModel, new() {
+public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseModel<T>, INovelsBaseModel, new() {
 
     /// <summary>ページング機能の有効性</summary>
     protected const bool AllowPaging = true;
@@ -19,41 +19,10 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
     protected const int MaxListingNumber = int.MaxValue;
 
     [Inject] protected NavigationManager NavManager { get; set; } = null!;
-    [Inject] protected NovelsDataSet DataSet { get; set; } = null!;
     [Inject] protected IDialogService DialogService { get; set; } = null!;
     [Inject] protected ISnackbar Snackbar { get; set; } = null!;
     [Inject] protected IAuthorizationService AuthorizationService { get; set; } = null!;
     [Inject] protected IHttpContextAccessor HttpContextAccessor { get; set; } = null!;
-
-    /// <summary>検索文字列</summary>
-    [CascadingParameter (Name = "Filter")] protected string FilterText { get; set; } = string.Empty;
-
-    /// <summary>着目中の書籍</summary>
-    [CascadingParameter (Name = "CurrentBookId")] protected long CurrentBookId { get; set; } = 0;
-
-    /// <summary>着目中のシート</summary>
-    [CascadingParameter (Name = "CurrentSheetIndex")] protected int CurrentSheetIndex { get; set; } = 0;
-
-    /// <summary>着目中の書籍設定</summary>
-    [CascadingParameter (Name = "SetCurrentBookId")] protected EventCallback<(long bookId, int sheetIndex)> SetCurrentBookId { get; set; }
-
-    /// <summary>検索文字列設定</summary>
-    [CascadingParameter (Name = "SetFilter")] protected EventCallback<string> SetFilterText { get; set; }
-
-    /// <summary>セクションラベル設定</summary>
-    [CascadingParameter (Name = "Section")] protected EventCallback<string> SetSectionTitle { get; set; }
-
-    /// <summary>セッション数の更新</summary>
-    [CascadingParameter (Name = "Session")] protected EventCallback<int> UpdateSessionCount { get; set; }
-
-    /// <summary>認証状況を得る</summary>
-    [CascadingParameter] protected Task<AuthenticationState> AuthState { get; set; } = default!;
-
-    /// <summary>アプリモード</summary>
-    [CascadingParameter (Name = "AppMode")] protected AppMode AppMode { get; set; } = AppMode.Boot;
-
-    /// <summary>アプリモード設定</summary>
-    [CascadingParameter (Name = "SetAppMode")] protected EventCallback<AppMode> _setAppMode { get; set; }
 
     /// <summary>アプリモード要求</summary>
     [CascadingParameter (Name = "RequestedAppMode")] protected AppMode RequestedAppMode { get; set; } = AppMode.None;
@@ -67,13 +36,10 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
     protected T selectedItem { get; set; } = new ();
 
     /// <summary>認証済みID</summary>
-    [Parameter] public AuthedIdentity? Identity { get; set; }
-
-    /// <summary>ユーザ識別子</summary>
-    protected string UserIdentifier => Identity?.Identifier ?? "unknown";
+    [Parameter] public override AuthedIdentity? Identity { get; set; }
 
     /// <summary>着目中の書籍</summary>
-    [Parameter] public Book? Book { get; set; } = null;
+    [Parameter] public override Book? Book { get; set; } = null;
 
     /// <inheritdoc/>
     protected override async Task OnInitializedAsync () {
@@ -92,9 +58,6 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
         }
     }
 
-    /// <summary>表示の更新</summary>
-    protected void Update () { }// `=> StateHasChanged();`の処理は、コールバックを受けた時点で内部的に呼ばれているため、明示的な呼び出しは不要
-
     /// <summary>表示の更新と反映待ち</summary>
     protected async Task StateHasChangedAsync () {
         StateHasChanged ();
@@ -110,13 +73,6 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
             await SetCurrentBookId.InvokeAsync ((book.Id, 1));
             // 反映を待機(セットが完了しても子孫要素に伝播するのに間がある)
             await TaskEx.DelayUntil (() => CurrentBookId == book.Id);
-        }
-    }
-
-    /// <summary>ページ辺りの行数を初期化</summary>
-    protected void InitRowsPerPage () {
-        if (_table != null) {
-            _table.SetRowsPerPage (AllowPaging ? _pageSizeOptions [_initialPageSizeIndex] : int.MaxValue);
         }
     }
 
@@ -315,13 +271,8 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
                 await RequestAppMode.InvokeAsync (AppMode.None);
             }
         }
-        if (_last_AppMode != AppMode) {
-            // アプリモードが変更された
-            _last_AppMode = AppMode;
-        }
     }
     protected AppMode _lastRequestedAppMode = AppMode.None;
-    protected AppMode _last_AppMode = AppMode.Boot;
 
     /// <summary>アプリモード遷移実施</summary>
     protected virtual async Task SetAppMode (AppMode appMode) {
