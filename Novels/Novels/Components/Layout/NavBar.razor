@@ -5,6 +5,11 @@
         <MudText Class="pb-2" Typo="Typo.h4">Contents</MudText>
     }
 </MudItem>
+<style>
+    nav button[disabled] { background-color: var(--mud-palette-background-gray); }
+    nav button[disabled] .mud-icon-root { color: var(--mud-palette-primary); }
+    nav button[disabled] .mud-typography { color: var(--mud-palette-primary); }
+</style>
 @if (!IsHomePage) {
     <MudItem>
         <MudButton Disabled="@(AppMode == AppMode.Books)" OnClick="@(async () => await RequestAppMode.InvokeAsync (AppMode.Books))" StartIcon="@Icons.Material.Filled.LibraryBooks" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Books</MudText></MudButton>
