@@ -178,15 +178,4 @@
 } else {
     <MudText>No items found.</MudText>
 }
-<MudOverlay @bind-Visible="IsOverlayed" DarkBackground="true" ZIndex="9999">
-    @if (OverlayValue < 0) {
-        <MudProgressCircular Color="Color.Tertiary" Rounded Size="Size.Large" Indeterminate />
-    } else {
-        <MudPaper Elevation="0" Class="pa-4" Style="background-color: var(--mud-palette-background-gray);">
-            <MudStack>
-                <MudProgressCircular Color="Color.Tertiary" Rounded Size="Size.Large" Value="OverlayValue" Min="0" Max="OverlayMax" />
-                <MudText Align="Align.Center">@(OverlayValue) / @(OverlayMax)</MudText>
-            </MudStack>
-        </MudPaper> 
-    }
-</MudOverlay>
+<NovelsOverlay IsOverlayed="IsOverlayed" OverlayValue="OverlayValue" OverlayMin="0" OverlayMax="OverlayMax" />

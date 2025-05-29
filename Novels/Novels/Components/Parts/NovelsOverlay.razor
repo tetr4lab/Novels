@@ -1,0 +1,25 @@
+﻿<MudOverlay @bind-Visible="IsOverlayed" DarkBackground="true" ZIndex="9999">
+    @if (OverlayValue < 0) {
+        <MudStack>
+            <MudProgressCircular Indeterminate Rounded Size="Size.Large" Color="Color.Surface" Class="align-self-center" />
+            @if (!string.IsNullOrEmpty (Label)) {
+                <MudText Align="Align.Center">@(Label)</MudText>
+            }
+        </MudStack>
+    } else {
+        <MudPaper Elevation="0" Class="pa-4" Style="background-color: var(--mud-palette-background-gray);">
+            <MudStack>
+                <MudProgressCircular Value="OverlayValue" Min="OverlayMin" Max="OverlayMax" Color="Color.Surface" Rounded Size="Size.Large" Class="align-self-center" />
+                <MudText Align="Align.Center">@(OverlayValue) / @(OverlayMax)</MudText>
+            </MudStack>
+        </MudPaper>
+    }
+</MudOverlay>
+
+@code {
+    [Parameter] public bool IsOverlayed { get; set; } = true;
+    [Parameter] public int OverlayValue { get; set; } = -1;
+    [Parameter] public int OverlayMin { get; set; } = 0;
+    [Parameter] public int OverlayMax { get; set; } = 0;
+    [Parameter] public string? Label { get; set; } = null;
+}

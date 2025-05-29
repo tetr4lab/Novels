@@ -168,9 +168,7 @@
         </MudTooltip>
     </MudAppBar>
 }
-<MudOverlay @bind-Visible="IsOverlayed" DarkBackground="true" ZIndex="9999">
-    <MudProgressCircular Indeterminate="true" />
-</MudOverlay>
+<NovelsOverlay IsOverlayed="IsOverlayed" />
 
 @code {
     /// <summary>オーバーレイの表示</summary>
