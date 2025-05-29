@@ -26,6 +26,16 @@ public partial class Home : NovelsPageBase {
     }
     protected long _currentBookId = long.MinValue;
 
+    /// <summary>再読み込み</summary>
+    protected async Task ReLoadAsync () {
+        // リロード完了待機
+        await DataSet.LoadAsync ();
+        if (CurrentBookId > 0 && DataSet.IsInitialized) {
+            // 着目書籍オブジェクトを取得
+            Book = DataSet.Books.Find (s => s.Id == CurrentBookId);
+        }
+    }
+
     /// <inheritdoc/>
     protected override async Task OnInitializedAsync () {
         await base.OnInitializedAsync ();

@@ -41,6 +41,9 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     /// <summary>着目中の書籍</summary>
     [Parameter] public override Book? Book { get; set; } = null;
 
+    /// <summary>DataSetの再読み込み</summary>
+    [Parameter] public EventCallback ReLoadAsync { get; set; }
+
     /// <inheritdoc/>
     protected override async Task OnInitializedAsync () {
         await base.OnInitializedAsync ();

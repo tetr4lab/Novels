@@ -40,7 +40,7 @@ public partial class Publish : ItemListBase<Book> {
             var dialogResult = await DialogService.Confirmation ([
                 $"以下の{target}を完全に削除します。",
                 Book.ToString (),
-            ], title: $"{(complete ? Book.TableLabel : Sheet.TableLabel)}削除", position: DialogPosition.BottomCenter, acceptionLabel: complete ? "完全削除" : "シートのみ削除", acceptionColor: complete ? Color.Error : Color.Secondary, acceptionIcon: Icons.Material.Filled.Delete);
+            ], title: $"{target}削除", position: DialogPosition.BottomCenter, acceptionLabel: complete ? "完全削除" : "シートのみ削除", acceptionColor: complete ? Color.Error : Color.Secondary, acceptionIcon: Icons.Material.Filled.Delete);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 IsOverlayed = true;
                 StateHasChanged ();
@@ -70,7 +70,7 @@ public partial class Publish : ItemListBase<Book> {
                                 StateHasChanged ();
                             }
                         }
-                        await ReLoadAsync (Book.Id);
+                        await ReLoadAsync ();
                         if (success == sheets.Count) {
                             Snackbar.Add ($"{target}を削除しました。", Severity.Normal);
                         } else {
@@ -101,7 +101,7 @@ public partial class Publish : ItemListBase<Book> {
                 IsOverlayed = true;
                 Snackbar.Add ($"{target}の{operation}を開始しました。", Severity.Normal);
                 StateHasChanged ();
-                if (await UpdateBookFromSiteAsync (Book, withSheets)) {
+                if (await UpdateBookFromSiteAsync (withSheets)) {
                     Snackbar.Add ($"{target}を{operation}しました。", Severity.Normal);
                 } else {
                     Snackbar.Add ($"{target}の{operation}に失敗しました。", Severity.Error);
@@ -164,16 +164,16 @@ public partial class Publish : ItemListBase<Book> {
     }
 
     /// <summary>取得・更新</summary>
-    protected async Task<bool> UpdateBookFromSiteAsync (Book book, bool withSheets) {
-        if (book is not null) {
-            var result = await DataSet.UpdateBookFromSiteAsync (HttpClient, book.Url, UserIdentifier, withSheets, (value, max) => { OverlayValue = value; OverlayMax = max; StateHasChanged (); });
+    protected async Task<bool> UpdateBookFromSiteAsync (bool withSheets) {
+        if (Book is not null) {
+            var result = await DataSet.UpdateBookFromSiteAsync (HttpClient, Book.Url, UserIdentifier, withSheets, (value, max) => { OverlayValue = value; OverlayMax = max; StateHasChanged (); });
             foreach (var issue in result.Value.issues) {
                 Snackbar.Add (issue, Severity.Error);
             }
             OverlayValue = -1;
             if (result.IsSuccess) {
-                var updatedBook = result.Value.book;
-                await ReLoadAsync (updatedBook.Id);
+                if (Book.Id != result.Value.book.Id) { throw new InvalidOperationException ($"id mismatch {Book.Id} -> {result.Value.book.Id}"); }
+                await ReLoadAsync ();
                 if (Book is not null) {
                     await ChangeCurrentBookAsync (Book);
                 }
@@ -313,11 +313,10 @@ public partial class Publish : ItemListBase<Book> {
     }
 
     /// <summary>再読み込み</summary>
-    protected async Task ReLoadAsync (long bookId) {
-        // リロード完了待機
-        await DataSet.LoadAsync ();
-        // 着目書籍オブジェクトを取得
-        Book = DataSet.Books.Find (s => s.Id == bookId);
+    protected new async Task ReLoadAsync () {
+        var oldBook = Book;
+        await base.ReLoadAsync.InvokeAsync ();
+        await TaskEx.DelayUntil (() => oldBook != Book);
         if (Book is not null) {
             selectedItem = Book;
         }
