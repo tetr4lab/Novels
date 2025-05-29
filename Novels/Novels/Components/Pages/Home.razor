@@ -9,7 +9,10 @@
         } else {
             <div class="mud-overlay mud-overlay-dialog mud-skip-overlay-section mud-skip-overlay-positioning">
                 <div class="mud-overlay-scrim mud-overlay-dark d-flex justify-center align-center">
-                    <MudProgressCircular Indeterminate="true" Rounded Size="Size.Large" />
+                    <MudStack>
+                        <MudProgressCircular Indeterminate="true" Rounded Size="Size.Large" Class="align-self-center" />
+                        <MudText>Loading...</MudText>
+                    </MudStack>
                 </div>
             </div>
         }
