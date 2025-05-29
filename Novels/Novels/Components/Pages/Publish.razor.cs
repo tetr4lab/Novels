@@ -40,7 +40,7 @@ public partial class Publish : ItemListBase<Book> {
             var dialogResult = await DialogService.Confirmation ([
                 $"以下の{target}を完全に削除します。",
                 Book.ToString (),
-            ], title: $"{Book.TableLabel}削除", position: DialogPosition.BottomCenter, acceptionLabel: complete ? "完全削除" : "シートのみ削除", acceptionColor: complete ? Color.Error : Color.Secondary, acceptionIcon: Icons.Material.Filled.Delete);
+            ], title: $"{(complete ? Book.TableLabel : Sheet.TableLabel)}削除", position: DialogPosition.BottomCenter, acceptionLabel: complete ? "完全削除" : "シートのみ削除", acceptionColor: complete ? Color.Error : Color.Secondary, acceptionIcon: Icons.Material.Filled.Delete);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 IsOverlayed = true;
                 StateHasChanged ();
@@ -321,10 +321,16 @@ public partial class Publish : ItemListBase<Book> {
         if (Book is not null) {
             selectedItem = Book;
         }
+        await SetAndEditAsync ();
+    }
+
+    /// <summary>タイトルを設定して編集を開始</summary>
+    protected async Task SetAndEditAsync () {
         await SetSectionTitle.InvokeAsync (Book is null ? "Publish" : $"<span style=\"font-size:80%;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</span>");
-        // 再開
+        // 強制
         editingItem = null;
         StartEdit ();
+        StateHasChanged ();
     }
 
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
@@ -333,8 +339,7 @@ public partial class Publish : ItemListBase<Book> {
         await base.OnInitializedAsync ();
         if (!_inited && Book is not null) {
             _inited = true;
-            await SetSectionTitle.InvokeAsync (Book is null ? "Publish" : $"<span style=\"font-size:80%;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</span>");
-            StartEdit ();
+            await SetAndEditAsync ();
         }
     }
     protected bool _inited = false;
