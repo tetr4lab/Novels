@@ -61,25 +61,19 @@ public partial class Home {
     /// <summary>着目中の書籍</summary>
     protected virtual Book? Book { get; set; } = null;
 
-    /// CurrentBookIdが変更されたらBookを再取得してSheetsをロード
+    /// <summary>パラメータの更新があった</summary>
     protected override async Task OnParametersSetAsync () {
         await base.OnParametersSetAsync ();
         if (_currentBookId != CurrentBookId) {
+            // CurrentBookIdが変更された
             if (CurrentBookId > 0 && DataSet.IsInitialized) {
                 // 着目書籍オブジェクトを取得
                 Book = DataSet.Books.Find (s => s.Id == CurrentBookId);
-                // DBの着目書籍を設定してロードを促す
-                await DataSet.SetCurrentBookIdAsync (CurrentBookId);
-                //StateHasChanged ();
             }
             _currentBookId = CurrentBookId;
         }
-        if (_appMode != AppMode) {
-            _appMode = AppMode;
-        }
     }
     protected long _currentBookId = long.MinValue;
-    protected AppMode _appMode = AppMode.Boot;
 
     /// <inheritdoc/>
     protected override async Task OnInitializedAsync () {
@@ -96,14 +90,9 @@ public partial class Home {
                 // DB初期化
                 await DataSet.InitializeAsync ();
                 if (CurrentBookId <= 0) {
+                    // シートの読み込みを促す
                     await SetCurrentBookId.InvokeAsync ((DataSet.CurrentBookId, CurrentSheetIndex));
-                    // この中まで行ったが戻ってこない
                 }
-                // ここには来ない
-                // 着目書籍オブジェクトを取得
-                //Book = DataSet.Books.Find (s => s.Id == CurrentBookId);
-                // DBの着目書籍を設定してロードを促す
-                //await DataSet.SetCurrentBookIdAsync (CurrentBookId);
             }
             catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine (ex);

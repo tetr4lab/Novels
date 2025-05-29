@@ -108,7 +108,8 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
         }
         if (CurrentBookId != book.Id) {
             await SetCurrentBookId.InvokeAsync ((book.Id, 1));
-            await DataSet.SetCurrentBookIdAsync (book.Id);
+            // 反映を待機(セットが完了しても子孫要素に伝播するのに間がある)
+            await TaskEx.DelayUntil (() => CurrentBookId == book.Id);
         }
     }
 
@@ -301,10 +302,11 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
         }
     }
 
-    /// <summary>アプリモード遷移の要求があった</summary>
+    /// <summary>パラメータが設定された</summary>
     protected override async Task OnParametersSetAsync () {
         await base.OnParametersSetAsync ();
         if (_lastRequestedAppMode != RequestedAppMode) {
+            // アプリモード遷移の要求があった
             _lastRequestedAppMode = RequestedAppMode;
             if (RequestedAppMode != AppMode.None) {
                 if (RequestedAppMode != AppMode) {
@@ -314,15 +316,20 @@ public class ItemListBase<T> : ComponentBase, IDisposable where T : NovelsBaseMo
             }
         }
         if (_last_AppMode != AppMode) {
+            // アプリモードが変更された
             _last_AppMode = AppMode;
         }
     }
     protected AppMode _lastRequestedAppMode = AppMode.None;
     protected AppMode _last_AppMode = AppMode.Boot;
 
-    /// <summary>アプリモード遷移時の処理</summary>
+    /// <summary>アプリモード遷移実施</summary>
     protected virtual async Task SetAppMode (AppMode appMode) {
         if (AppMode != appMode && await ConfirmCancelEditAsync ()) {
+            if (DataSet.CurrentBookId != CurrentBookId) {
+                // 遅延読み込み
+                await DataSet.SetCurrentBookIdAsync (CurrentBookId);
+            }
             await _setAppMode.InvokeAsync (appMode);
         }
         StateHasChanged ();

@@ -5,7 +5,7 @@
 } else if (DataSet.IsReady && Book is null) {
     <MudText>No book selected or found.</MudText>
     <MudButton Class="ma-3" OnClick="@(async () => await SetAppMode (AppMode.Books))" StartIcon="@Icons.Material.Filled.LibraryBooks" Variant="Variant.Filled">go home</MudButton>
-} else if (items is null || Book is null) {
+} else if (items is null || Book is null || !DataSet.IsReady) {
     <MudProgressCircular Indeterminate="true" />
 } else {
     @if (!string.IsNullOrEmpty (Book.Explanation)) {
