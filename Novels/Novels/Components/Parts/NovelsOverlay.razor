@@ -7,7 +7,7 @@
             }
         </MudStack>
     } else {
-        <MudPaper Elevation="0" Class="pa-4" Style="background-color: var(--mud-palette-background-gray);">
+        <MudPaper Width="@($"{(OverlayMax.ToString ()).Length * 2 + 4}em")" Elevation="0" Class="pa-4" Style="background-color: var(--mud-palette-background-gray);">
             <MudStack>
                 <MudProgressCircular Value="OverlayValue" Min="OverlayMin" Max="OverlayMax" Color="Color.Surface" Rounded Size="Size.Large" Class="align-self-center" />
                 <MudText Align="Align.Center">@(OverlayValue) / @(OverlayMax)</MudText>
