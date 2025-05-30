@@ -115,7 +115,7 @@
         if (firstRender) {
             // テーマ
             var darkMode = await Storage.GetValueAsync<bool> (DarkModeStorageKey);
-            _isDarkMode = darkMode.Success ? darkMode.Value : await _mudThemeProvider.GetSystemPreference ();
+            _isDarkMode = darkMode.Success ? darkMode.Value : await _mudThemeProvider.GetSystemDarkModeAsync ();
             await Storage.SetValueAsync (DarkModeStorageKey, _isDarkMode);
             // 外税
             var taxExclueded = await Storage.GetValueAsync<bool> (TaxExcludedStorageKey);
