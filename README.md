@@ -6,12 +6,13 @@ tags: epub webscraping smtp-mail blazor
 # Web小説の取得と発行
 ## はじめに
 これは極めて個人的なプロジェクトです。
+実装がBlazor Serverになっていて、Blazor WASM+SQLiteのようなスタンドアロンアプリにしなかったのは、個人的な都合です。
 
 ### 目的
 Web小説を取得し、EPUBを生成して、Kindleパーソナルドキュメント向けに発行(Send To Kindle)します。
 
 #### 経緯
-元々、FileMakerで実現していたものです。
+元々、FileMakerとAozora Epub3で実現していたものをBlazorで置き換えました。
 
 ### 環境
 #### ビルド
