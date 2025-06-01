@@ -92,17 +92,11 @@
     /// <summary>テーマ ストレージキー</summary>
     protected const string DarkModeStorageKey = "IsDarkTheme";
 
-    /// <summary>テーマ ストレージキー</summary>
-    protected const string TaxExcludedStorageKey = "IsTaxExcluded";
-
     /// <summary>テーマプロバイダへの参照</summary>
     protected MudThemeProvider _mudThemeProvider = default!;
 
     /// <summary>ダークモード</summary>
     protected bool _isDarkMode;
-
-    /// <summary>外税モード</summary>
-    protected bool? _isTaxExcluded = null;
 
     /// <summary>テーマ切替ボタンが押された</summary>
     protected async Task ChangeModeAsync () {
@@ -117,10 +111,6 @@
             var darkMode = await Storage.GetValueAsync<bool> (DarkModeStorageKey);
             _isDarkMode = darkMode.Success ? darkMode.Value : await _mudThemeProvider.GetSystemDarkModeAsync ();
             await Storage.SetValueAsync (DarkModeStorageKey, _isDarkMode);
-            // 外税
-            var taxExclueded = await Storage.GetValueAsync<bool> (TaxExcludedStorageKey);
-            _isTaxExcluded = taxExclueded.Success ? taxExclueded.Value : false;
-            await Storage.SetValueAsync (TaxExcludedStorageKey, _isTaxExcluded.Value);
             StateHasChanged ();
         }
     }
