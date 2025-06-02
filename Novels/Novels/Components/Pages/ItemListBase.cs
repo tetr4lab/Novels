@@ -22,7 +22,6 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     [Inject] protected IDialogService DialogService { get; set; } = null!;
     [Inject] protected ISnackbar Snackbar { get; set; } = null!;
     [Inject] protected IAuthorizationService AuthorizationService { get; set; } = null!;
-    [Inject] protected IHttpContextAccessor HttpContextAccessor { get; set; } = null!;
 
     /// <summary>アプリモード要求</summary>
     [CascadingParameter (Name = "RequestedAppMode")] protected AppMode RequestedAppMode { get; set; } = AppMode.None;
