@@ -103,16 +103,16 @@
     /// <summary>パスワード欄のタイプ</summary>
     protected InputType PasswordInputType = InputType.Password;
     /// <summary>パスワード欄のアイコン</summary>
-    protected string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+    protected string PasswordInputIcon = Icons.Material.Filled.Visibility;
     /// <summary>パスワード欄のアイコンボタンが押された</summary>
     protected void ButtonTestclick () {
         if (PasswordIsShow) {
             PasswordIsShow = false;
-            PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+            PasswordInputIcon = Icons.Material.Filled.Visibility;
             PasswordInputType = InputType.Password;
         } else {
             PasswordIsShow = true;
-            PasswordInputIcon = Icons.Material.Filled.Visibility;
+            PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
             PasswordInputType = InputType.Text;
         }
     }
