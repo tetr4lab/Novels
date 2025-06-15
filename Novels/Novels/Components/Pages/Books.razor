@@ -52,11 +52,6 @@
                 <MudTh>@(Book.Label [nameof (Book.Remarks)])</MudTh>
             </HeaderContent>
             <RowTemplate>
-                @{
-                    var isErrorForNumberOfSheets = (context.NumberOfPublished ?? 0) > context.NumberOfRelatedSheets || context.NumberOfRelatedSheets > context.NumberOfSheets;
-                    var isUpdatable = context.NumberOfRelatedSheets < context.NumberOfSheets;
-                    var isPublishable = (context.NumberOfPublished ?? 0) < context.NumberOfRelatedSheets;
-                }
                 <MudTd DataLabel="@(Book.Label[nameof(Book.Id)])" Class="align-right text-nowrap">
                     <MudStack Row Spacing="0" Class="align-center">
                         @if (context.Id == CurrentBookId) {
@@ -75,7 +70,7 @@
                 </MudTd>
                 <MudTd DataLabel="@(Book.Label[nameof(Book.Title)])">
                     <MudStack Row Spacing="0" Class="align-center">
-                        <MudIconButton OnClick="@(async () => await PublishBook (context))" Icon="@(context.IsEmpty ? Icons.Material.Filled.Download : isUpdatable && !isErrorForNumberOfSheets ? Icons.Material.Filled.Refresh : context.Released && !isPublishable ? Icons.Material.Filled.Sync : Icons.Material.Filled.Publish)" Size="Size.Small" />
+                        <MudIconButton OnClick="@(async () => await PublishBook (context))" Icon="@(context.IsEmpty ? Icons.Material.Filled.Download : context.IsUpdatable && !context.IsErrorForNumberOfSheets ? Icons.Material.Filled.Refresh : context.Released && !context.IsPublishable ? Icons.Material.Filled.Sync : Icons.Material.Filled.Publish)" Size="Size.Small" />
                         <MudIconButton OnClick="@(async () => await OpenBook (context))" Icon="@Icons.Material.Filled.ViewHeadline" Size="Size.Small" />
                         <MudText Typo="Typo.inherit">@(context.Title)</MudText>
                     </MudStack>
@@ -128,7 +123,7 @@
                     <MudTooltip Arrow Duration="1000">
                         <ChildContent>
                             <MudStack Row Spacing="0">
-                                <MudText Typo="Typo.inherit" Color="@(isErrorForNumberOfSheets ? Color.Error : isUpdatable ? Color.Warning : Color.Inherit)">
+                                <MudText Typo="Typo.inherit" Color="@(context.IsErrorForNumberOfSheets ? Color.Error : context.IsUpdatable ? Color.Warning : Color.Inherit)">
                                     @(context.NumberOfRelatedSheets)
                                 </MudText>
                                 <MudText Typo="Typo.inherit">

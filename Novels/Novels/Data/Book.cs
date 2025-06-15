@@ -184,6 +184,15 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         NumberOfPublished is not null && NumberOfPublished >= NumberOfSheets
         && (PublishedAt is null || PublishedAt >= LastUpdate);
 
+    /// <summary>シート数にエラーがある</summary>
+    public bool IsErrorForNumberOfSheets => (NumberOfPublished ?? 0) > NumberOfRelatedSheets || NumberOfRelatedSheets > NumberOfSheets;
+
+    /// <summary>更新可能である</summary>
+    public bool IsUpdatable => NumberOfRelatedSheets < NumberOfSheets;
+
+    /// <summary>出版可能である</summary>
+    public bool IsPublishable => (NumberOfPublished ?? 0) < NumberOfRelatedSheets;
+
     /// <summary>シート(Url)数</summary>
     public int NumberOfSheets => SheetUrls.Count;
 
