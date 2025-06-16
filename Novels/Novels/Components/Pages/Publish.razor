@@ -9,7 +9,7 @@
     <MudAlert Severity="Severity.Error" Elevation="3">Unable to connect to any of the specified database management hosts.</MudAlert>
 } else if (DataSet.IsReady && Book is null) {
     <MudText>No book selected or found.</MudText>
-    <MudButton Class="ma-3" OnClick="@(async () => await SetAppMode (AppMode.Books))" StartIcon="@Icons.Material.Filled.LibraryBooks" Variant="Variant.Filled">go home</MudButton>
+    <MudButton Class="ma-3" Disabled="_busy" OnClick="@(async () => await SetAppMode (AppMode.Books))" StartIcon="@Icons.Material.Filled.LibraryBooks" Variant="Variant.Filled">go home</MudButton>
 } else if (items is null || Book is null) {
     <MudProgressCircular Indeterminate="true" />
 } else if (items.Count > 0) {
@@ -30,7 +30,7 @@
                         @if (Book.PublishedAt is not null) {
                             <MudChip T="string" Variant="Variant.Outlined">
                                 @(Book.Label [nameof (Book.PublishedAt)]): @(Book.PublishedAt.Value.ToString ("yyyy/MM/dd HH:mm"))
-                                <MudIconButton OnClick="@(async () => await ConfirmUnPublishBookAsync ())" Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
+                                <MudIconButton Disabled="_busy" OnClick="ConfirmUnPublishBookAsync" Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
                             </MudChip>
                         }
                         <MudSpacer />
@@ -71,7 +71,7 @@
                     <MudStack Row Spacing="1" Class="align-center">
                         @(Book.Label [nameof (Book.Url1)])
                         <MudSpacer />
-                        <MudIconButton Disabled="@(IsInvalidUri (Book.Url1))" OnClick="@(async () => await JSRuntime.OpenUrl (Book.Url1))" Icon="@Icons.Material.Filled.Link" />
+                        <MudIconButton Disabled="@(_busy || IsInvalidUri (Book.Url1))" OnClick="@(async () => await JSRuntime.OpenUrl (Book.Url1))" Icon="@Icons.Material.Filled.Link" />
                     </MudStack>
                 </td>
                 <td><MudTextField T="string" @bind-Value="Book.Url1" /></td>
@@ -81,7 +81,7 @@
                     <MudStack Row Spacing="1" Class="align-center">
                         @(Book.Label [nameof (Book.Url2)])
                         <MudSpacer />
-                        <MudIconButton Disabled="@(IsInvalidUri (Book.Url2))" OnClick="@(async () => await JSRuntime.OpenUrl (Book.Url2))" Icon="@Icons.Material.Filled.Link" />
+                        <MudIconButton Disabled="@(_busy || IsInvalidUri (Book.Url2))" OnClick="@(async () => await JSRuntime.OpenUrl (Book.Url2))" Icon="@Icons.Material.Filled.Link" />
                     </MudStack>
                 </td>
                 <td><MudTextField T="string" @bind-Value="Book.Url2" /></td>
@@ -141,7 +141,7 @@
                 <span style="writing-mode: vertical-rl;">で@(Sheet.TableLabel)を含めない）</span>
             </TooltipContent>
             <ChildContent>
-                <MudIconButton Disabled="@(IsDirty || Book.Status == BookStatus.Disappeared)" OnClick="async () => await ConfirmUpdateBookAsync ()" Color="Color.Primary" Icon="@(Book.IsEmpty ? Icons.Material.Filled.Download : Icons.Material.Filled.Refresh)" Variant="Variant.Outlined" Size="Size.Large" />
+                <MudIconButton Disabled="@(_busy || IsDirty || Book.Status == BookStatus.Disappeared)" OnClick="ConfirmUpdateBookAsync" Color="Color.Primary" Icon="@(Book.IsEmpty? Icons.Material.Filled.Download : Icons.Material.Filled.Refresh)" Variant="Variant.Outlined" Size="Size.Large" />
             </ChildContent>
         </MudTooltip>
         <MudTooltip Arrow="true">
@@ -152,15 +152,15 @@
                 <span style="writing-mode: vertical-rl;">で生成のみ）</span>
             </TooltipContent>
             <ChildContent>
-                <MudIconButton Disabled="Book.IsEmpty || Book.Released || IsDirty" OnClick="ConfirmPublishBookAsync" Color="Color.Tertiary" Icon="@Icons.Material.Filled.Publish" Variant="Variant.Outlined" Size="Size.Large" />
+                <MudIconButton Disabled="_busy || Book.IsEmpty || Book.Released || IsDirty" OnClick="ConfirmPublishBookAsync" Color="Color.Tertiary" Icon="@Icons.Material.Filled.Publish" Variant="Variant.Outlined" Size="Size.Large" />
             </ChildContent>
         </MudTooltip>
         <MudSpacer />
         <MudTooltip Arrow="true" Text="復旧">
-            <MudIconButton Disabled="!IsDirty" OnClick="async () => { if (await ConfirmCancelEditAsync ()) StartEdit (); }" Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" />
+            <MudIconButton Disabled="_busy || !IsDirty" OnClick="RevertAsync" Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
         <MudTooltip Arrow="true" Text="保存">
-            <MudIconButton Disabled="!IsDirty" OnClick="async () => { if (editingItem is not null) { await Commit (editingItem); StartEdit (); } }" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
+            <MudIconButton Disabled="_busy || !IsDirty" OnClick="SaveAsync" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
         <MudSpacer />
         <MudTooltip Arrow="true">
@@ -171,11 +171,11 @@
                 <span style="writing-mode: vertical-rl;">で@(Sheet.TableLabel)のみ）</span>
             </TooltipContent>
             <ChildContent>
-                <MudIconButton Disabled="IsDirty" OnClick="DeleteBook" Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Variant="Variant.Outlined" Size="Size.Large" />
+                <MudIconButton Disabled="_busy || IsDirty" OnClick="DeleteBook" Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Variant="Variant.Outlined" Size="Size.Large" />
             </ChildContent>
         </MudTooltip>
     </MudStack>
 } else {
     <MudText>No items found.</MudText>
 }
-<NovelsOverlay IsOverlayed="IsOverlayed" OverlayValue="OverlayValue" OverlayMin="0" OverlayMax="OverlayMax" />
+<NovelsOverlay IsOverlayed="_busy" OverlayValue="OverlayValue" OverlayMin="0" OverlayMax="OverlayMax" />

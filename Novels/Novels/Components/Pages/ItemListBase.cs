@@ -78,6 +78,28 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
         }
     }
 
+    /// <summary>オーバーレイの進行</summary>
+    protected int OverlayValue = -1;
+
+    /// <summary>オーバーレイの進行の最大値</summary>
+    protected int OverlayMax = 0;
+
+    /// <summary>排他制御兼オーバーレイの表示</summary>
+    protected bool _busy { get; set; }
+
+    /// <summary>状態の変化</summary>
+    protected async Task SetBusy () {
+        _busy = true;
+        await StateHasChangedAsync ();
+    }
+
+    /// <summary>状態の変化</summary>
+    protected async Task SetIdle () {
+        _busy = false;
+        OverlayValue = -1;
+        await StateHasChangedAsync ();
+    }
+
     /// <summary>テーブル</summary>
     protected MudTable<T>? _table;
 
@@ -279,11 +301,14 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     /// <summary>アプリモード遷移実施</summary>
     protected virtual async Task SetAppMode (AppMode appMode) {
         if (AppMode != appMode && await ConfirmCancelEditAsync ()) {
+            await SetBusy ();
             if (DataSet.CurrentBookId != CurrentBookId) {
                 // 遅延読み込み
                 await DataSet.SetCurrentBookIdAsync (CurrentBookId);
             }
             await _setAppMode.InvokeAsync (appMode);
+            await TaskEx.DelayUntil (() => AppMode == RequestedAppMode);
+            await SetIdle ();
         }
         StateHasChanged ();
     }
@@ -304,5 +329,22 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
 
     /// <summary>編集されている</summary>
     protected bool IsDirty => editingItem is not null && backupedItem is not null && !editingItem.Equals (backupedItem);
+
+    /// <summary>復旧</summary>
+    protected async Task RevertAsync () {
+        if (await ConfirmCancelEditAsync ()) {
+            StartEdit ();
+        }
+    }
+
+    /// <summary>保存</summary>
+    protected async Task SaveAsync () {
+        if (editingItem is not null) {
+            await SetBusy ();
+            await Commit (editingItem);
+            StartEdit ();
+            await SetIdle ();
+        }
+    }
 
 }

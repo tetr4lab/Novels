@@ -13,15 +13,6 @@ namespace Novels.Components.Pages;
 
 public partial class Publish : ItemListBase<Book> {
 
-    /// <summary>オーバーレイの表示</summary>
-    protected bool IsOverlayed { get; set; } = false;
-
-    /// <summary>オーバーレイの進行</summary>
-    protected int OverlayValue = -1;
-
-    /// <summary>オーバーレイの進行の最大値</summary>
-    protected int OverlayMax = 0;
-
     /// <inheritdoc/>
     protected override int _initialPageSizeIndex => 1;
 
@@ -42,8 +33,7 @@ public partial class Publish : ItemListBase<Book> {
                 Book.ToString (),
             ], title: $"{target}削除", position: DialogPosition.BottomCenter, acceptionLabel: complete ? "完全削除" : "シートのみ削除", acceptionColor: complete ? Color.Error : Color.Secondary, acceptionIcon: Icons.Material.Filled.Delete);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
-                IsOverlayed = true;
-                StateHasChanged ();
+                await SetBusy ();
                 if (complete) {
                     var result = await DataSet.RemoveAsync (Book);
                     if (result.IsSuccess) {
@@ -76,15 +66,13 @@ public partial class Publish : ItemListBase<Book> {
                         } else {
                             Snackbar.Add ($"{target}の一部({success}/{sheets.Count})を削除しました。", Severity.Error);
                         }
-                        StateHasChanged ();
                     }
                     catch (Exception e) {
                         System.Diagnostics.Debug.WriteLine ($"Exception: {e.Message}\n{e.StackTrace}");
                         Snackbar.Add ($"Exception: {e.Message}", Severity.Error);
                     }
                 }
-                IsOverlayed = false;
-                OverlayValue = -1;
+                await SetIdle ();
             }
         }
     }
@@ -98,17 +86,14 @@ public partial class Publish : ItemListBase<Book> {
             var dialogResult = await DialogService.Confirmation ([$"『{Book.Title}』の{target}を{Book.Site}から{operation}します。", withSheets ? $"{Book.TableLabel}と{Sheet.TableLabel}全てを更新します。" : $"{Book.TableLabel}のみを更新し、{Sheet.TableLabel}は更新しません。"], title: $"{target}の{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: withSheets ? Color.Success : Color.Primary, acceptionIcon: Icons.Material.Filled.Download);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 // オーバーレイ
-                IsOverlayed = true;
+                await SetBusy ();
                 Snackbar.Add ($"{target}の{operation}を開始しました。", Severity.Normal);
-                StateHasChanged ();
                 if (await UpdateBookFromSiteAsync (withSheets)) {
                     Snackbar.Add ($"{target}を{operation}しました。", Severity.Normal);
                 } else {
                     Snackbar.Add ($"{target}の{operation}に失敗しました。", Severity.Error);
                 }
-                OverlayValue = -1;
-                IsOverlayed = false;
-                StateHasChanged ();
+                await SetIdle ();
             } else {
                 return false;
             }
@@ -132,12 +117,9 @@ public partial class Publish : ItemListBase<Book> {
                 $"『{Book.MainTitle}.epub』を{(publish ? $"<{DataSet.Setting.SmtpMailto}>へ発行": "生成してダウンロード")}します。",
             ], title: $"『{Book.MainTitle}.epub』{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: publish ? Color.Success : Color.Primary, acceptionIcon: publish ? Icons.Material.Filled.Publish : Icons.Material.Filled.FileDownload);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
-                // オーバーレイ
-                IsOverlayed = true;
-                StateHasChanged ();
+                await SetBusy ();
                 await PublishBookAsync (Book, publish);
-                IsOverlayed = false;
-                StateHasChanged ();
+                await SetIdle ();
             } else {
                 return false;
             }
@@ -150,8 +132,10 @@ public partial class Publish : ItemListBase<Book> {
         if (Book is not null && Book.Released && !IsDirty) {
             var dialogResult = await DialogService.Confirmation ([$"{Book.TableLabel}の発行記録を抹消します。",], title: $"発行抹消", position: DialogPosition.BottomCenter, acceptionLabel: "抹消", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
+                await SetBusy ();
                 Book.NumberOfPublished = null;
                 Book.PublishedAt = null;
+                await SetIdle ();
                 Snackbar.Add ($"{Book.TableLabel}の発行記録を抹消しました。", Severity.Normal);
                 if ((await UpdateBookAsync (Book)).IsFailure) {
                     Snackbar.Add ($"{Book.TableLabel}の保存に失敗しました。", Severity.Normal);

@@ -4,7 +4,7 @@
     <MudAlert Severity="Severity.Error" Elevation="3">Unable to connect to any of the specified database management hosts.</MudAlert>
 } else if (DataSet.IsReady && Book is null) {
     <MudText>No book selected or found.</MudText>
-    <MudButton Class="ma-3" OnClick="@(async () => await SetAppMode (AppMode.Books))" StartIcon="@Icons.Material.Filled.LibraryBooks" Variant="Variant.Filled">go home</MudButton>
+    <MudButton Class="ma-3" Disabled="_busy" OnClick="@(async () => await SetAppMode (AppMode.Books))" StartIcon="@Icons.Material.Filled.LibraryBooks" Variant="Variant.Filled">go home</MudButton>
 } else if (items is null || Book is null || !DataSet.IsReady) {
     <MudProgressCircular Indeterminate="true" />
 } else {
@@ -34,7 +34,7 @@
             <HeaderContent>
                 <MudTh Class="align-middle">
                     <MudTooltip Text="@($"{Book.Label [nameof (Data.Book.Bookmark)]}へ着目")" Arrow Duration="1000">
-                        <MudIconButton OnClick="ChangeMarkedPageAsync" Icon="@Icons.Material.Filled.BookmarkAdded" Size="Size.Small" />
+                        <MudIconButton Disabled="_busy" OnClick="ChangeMarkedPageAsync" Icon="@Icons.Material.Filled.BookmarkAdded" Size="Size.Small" />
                     </MudTooltip>
                 </MudTh>
                 <MudTh>@(Sheet.Label [nameof (Sheet.NovelNumber)])</MudTh>
@@ -56,7 +56,7 @@
                     @{
                         var marked = Book.Bookmark == context.Id;
                     }
-                    <MudIconButton OnClick="@(async () => await ChangeBookmarkAsync (context.Id))" Icon="@(marked ? Icons.Material.Filled.Bookmark : Icons.Material.Filled.BookmarkBorder)" Size="Size.Small" />
+                    <MudIconButton Disabled="_busy" OnClick="@(async () => await ChangeBookmarkAsync (context.Id))" Icon="@(marked ? Icons.Material.Filled.Bookmark : Icons.Material.Filled.BookmarkBorder)" Size="Size.Small" />
                 </MudTd>
                 <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.NovelNumber)])" Class="align-right text-nowrap" Style="padding-inline-end: 0.8em !important;">
                     <MudStack Row Spacing="0" Class="align-center">
@@ -77,7 +77,7 @@
                 }
                 <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.SheetTitle)])">
                     <MudStack Row Spacing="0" Class="align-center">
-                        <MudIconButton OnClick="@(async () => await ReadSheetAsync (context))" Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" />
+                        <MudIconButton Disabled="_busy" OnClick="@(async () => await ReadSheetAsync (context))" Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" />
                         <MudText Typo="Typo.inherit">@(context.SheetTitle)</MudText>
                     </MudStack>
                 </MudTd>

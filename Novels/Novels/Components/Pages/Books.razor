@@ -30,9 +30,9 @@
                 <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.Id)">@(Book.Label [nameof (Book.Id)])</MudTableSortLabel></MudTh>
                 <MudTh Class="align-middle text-nowrap">
                     <MudTooltip Text="クリックで絞り込み" Duration="1000">
-                        <MudLink OnClick="@(async () => await SetFilterText.InvokeAsync (FilterText == "_is_released_" ? "_not_released_" : FilterText == "_not_released_" ? "" : "_is_released_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Released)])</MudLink>
-                        <MudLink OnClick="@(async () => await SetFilterText.InvokeAsync (FilterText == "_is_readed_" ? "_not_readed_" : FilterText == "_not_readed_" ? "" : "_is_readed_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Readed)])</MudLink>
-                        <MudLink OnClick="@(async () => await SetFilterText.InvokeAsync (FilterText == "_is_wished_" ? "_not_wished_" : FilterText == "_not_wished_" ? "" : "_is_wished_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Wish)])</MudLink>
+                        <MudLink Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_released_", "_not_released_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Released)])</MudLink>
+                        <MudLink Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_readed_", "_not_readed_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Readed)])</MudLink>
+                        <MudLink Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_wished_", "_not_wished_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Wish)])</MudLink>
                     </MudTooltip>
                 </MudTh>
                 <MudTh>
@@ -70,8 +70,8 @@
                 </MudTd>
                 <MudTd DataLabel="@(Book.Label[nameof(Book.Title)])">
                     <MudStack Row Spacing="0" Class="align-center">
-                        <MudIconButton OnClick="@(async () => await PublishBook (context))" Icon="@(context.IsEmpty ? Icons.Material.Filled.Download : context.IsUpdatable && !context.IsErrorForNumberOfSheets ? Icons.Material.Filled.Refresh : context.Released && !context.IsPublishable ? Icons.Material.Filled.Sync : Icons.Material.Filled.Publish)" Size="Size.Small" />
-                        <MudIconButton OnClick="@(async () => await OpenBook (context))" Icon="@Icons.Material.Filled.ViewHeadline" Size="Size.Small" />
+                        <MudIconButton Disabled="_busy" OnClick="@(async () => await PublishBook (context))" Icon="@(context.IsEmpty ? Icons.Material.Filled.Download : context.IsUpdatable && !context.IsErrorForNumberOfSheets ? Icons.Material.Filled.Refresh : context.Released && !context.IsPublishable ? Icons.Material.Filled.Sync : Icons.Material.Filled.Publish)" Size="Size.Small" />
+                        <MudIconButton Disabled="_busy" OnClick="@(async () => await OpenBook (context))" Icon="@Icons.Material.Filled.ViewHeadline" Size="Size.Small" />
                         <MudText Typo="Typo.inherit">@(context.Title)</MudText>
                     </MudStack>
                 </MudTd>
@@ -79,7 +79,7 @@
                     @{ var author = context.Author.Replace (' ', '\u2423'); }
                     <MudTooltip Arrow Duration="1000">
                         <ChildContent>
-                            <MudLink OnClick="@(async () => { await SetFilterText.InvokeAsync (author); await ChangeCurrentBookAsync (context); })" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Author)</MudLink>
+                            <MudLink Disabled="_busy" OnClick="@(async () => await ChangeFilter (author, context))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Author)</MudLink>
                         </ChildContent>
                         <TooltipContent>
                             <MudStack Spacing="0" Class="align-start">
@@ -97,7 +97,7 @@
                     @{ var series = context.SeriesTitle.Replace (' ', '\u2423'); }
                     <MudTooltip Arrow Duration="1000">
                         <ChildContent>
-                            <MudLink OnClick="@(async () => { await SetFilterText.InvokeAsync (series); await ChangeCurrentBookAsync (context); })" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.SeriesTitle)</MudLink>
+                            <MudLink Disabled="_busy" OnClick="@(async () => await ChangeFilter (series, context))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.SeriesTitle)</MudLink>
                         </ChildContent>
                         <TooltipContent>
                             <MudStack Spacing="0" Class="align-start">
@@ -113,7 +113,7 @@
                 </MudTd>
                 <MudTd DataLabel="@(Book.Label[nameof(Book.Site)])" Class="align-middle text-nowrap">
                     <MudTooltip Text="@($"{Book.Label[nameof(Book.Site)]}を開く")" Arrow Duration="1000">
-                        <MudLink OnClick="@(async () => { await JSRuntime.OpenUrl (context.Url); await ChangeCurrentBookAsync (context); })" Target="_blank" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Site)</MudLink>
+                        <MudLink Disabled="_busy" OnClick="@(async () => await OpenUrl (context))" Target="_blank" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Site)</MudLink>
                     </MudTooltip>
                 </MudTd>
                 <MudTd DataLabel="@(Book.Label[nameof(Book.Status)])" Class="align-middle text-nowrap">
@@ -159,16 +159,13 @@
     <MudAppBar Class="backdrop-blur pb-2" Color="Color.Transparent" Dense Bottom="true" Fixed="true">
         <MudSpacer />
         <MudTooltip Arrow="true" Text="@($"{Book.TableLabel}を追加")">
-            <MudFab OnClick="AddBook" StartIcon="@Icons.Material.Outlined.Add" Size="Size.Small" />
+            <MudFab Disabled="_busy" OnClick="AddBook" StartIcon="@Icons.Material.Outlined.Add" Size="Size.Small" />
         </MudTooltip>
     </MudAppBar>
 }
-<NovelsOverlay IsOverlayed="IsOverlayed" />
+<NovelsOverlay IsOverlayed="_busy" OverlayValue="OverlayValue" OverlayMin="0" OverlayMax="OverlayMax" />
 
 @code {
-    /// <summary>オーバーレイの表示</summary>
-    protected bool IsOverlayed { get; set; } = false;
-
     /// <inheritdoc/>
     protected override int _initialPageSizeIndex => 1;
 
@@ -182,16 +179,52 @@
         }
     }
 
+    /// <summary>フィルター切り替え (トライステート)</summary>
+    protected async Task ChangeFilter (string on, string off) {
+        var newText = FilterText == on ? off : FilterText == off ? "" : on;
+        await SetFilter (newText);
+    }
+
+    /// <summary>フィルター切り替え</summary>
+    protected async Task ChangeFilter (string filter, Book book) {
+        var newText = FilterText == filter ? "" : filter;
+        await ChangeCurrentBookAsync (book);
+        await SetFilter (newText);
+    }
+
+    /// <summary>フィルター設定</summary>
+    protected async Task SetFilter (string filter) {
+        await SetBusy ();
+        await SetFilterText.InvokeAsync (filter);
+        await TaskEx.DelayUntil (() => FilterText == filter);
+        if (filter == string.Empty) {
+            TurnSelectedItemsPage ();
+        }
+        await SetIdle ();
+    }
+
+    /// <summary>Urlを開く</summary>
+    protected async Task OpenUrl (Book book) {
+        await SetBusy ();
+        await JSRuntime.OpenUrl (book.Url);
+        await ChangeCurrentBookAsync (book);
+        await SetIdle ();
+    }
+
     /// <summary>書籍を発行</summary>
     protected async Task PublishBook (Book book) {
+        await SetBusy ();
         await ChangeCurrentBookAsync (book);
         await SetAppMode (AppMode.Publish);
+        await SetIdle ();
     }
 
     /// <summary>書籍を開く</summary>
     protected async Task OpenBook (Book book) {
+        await SetBusy ();
         await ChangeCurrentBookAsync (book);
         await SetAppMode (AppMode.Contents);
+        await SetIdle ();
     }
 
     /// <summary>書籍を追加する</summary>
@@ -216,7 +249,7 @@
                     return;
                 }
                 // オーバーレイ
-                IsOverlayed = true;
+                await SetBusy ();
                 StateHasChanged ();
                 // 入力されたurlからあたらしいBookに情報を取得、DBへ追加・選択する
                 var result = await DataSet.UpdateBookFromSiteAsync (HttpClient, newUrl, UserIdentifier);
@@ -238,7 +271,7 @@
             Snackbar.Add ($"Exception: {ex.Message}", Severity.Error);
         }
         finally {
-            IsOverlayed = false;
+            await SetIdle ();
         }
     }
 
