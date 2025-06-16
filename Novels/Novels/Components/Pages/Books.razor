@@ -113,7 +113,7 @@
                 </MudTd>
                 <MudTd DataLabel="@(Book.Label[nameof(Book.Site)])" Class="align-middle text-nowrap">
                     <MudTooltip Text="@($"{Book.Label[nameof(Book.Site)]}を開く")" Arrow Duration="1000">
-                        <MudLink Disabled="_busy" OnClick="@(async () => await OpenUrl (context))" Target="_blank" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Site)</MudLink>
+                        <MudChip Disabled="_busy" OnClick="@(async () => await OpenUrl (context))" Target="_blank" T="string" Text="@(context.Site.ToString ())" Color="Color.Default" Label="true" Variant="Variant.Outlined" Size="Size.Small" />
                     </MudTooltip>
                 </MudTd>
                 <MudTd DataLabel="@(Book.Label[nameof(Book.Status)])" Class="align-middle text-nowrap">
