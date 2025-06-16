@@ -28,13 +28,7 @@
         ReadOnly="false">
             <HeaderContent>
                 <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.Id)">@(Book.Label [nameof (Book.Id)])</MudTableSortLabel></MudTh>
-                <MudTh Class="align-middle text-nowrap">
-                    <MudTooltip Text="クリックで絞り込み" Duration="1000">
-                        <MudLink Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_released_", "_not_released_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Released)])</MudLink>
-                        <MudLink Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_readed_", "_not_readed_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Readed)])</MudLink>
-                        <MudLink Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_wished_", "_not_wished_"))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(Book.Label [nameof (Book.Wish)])</MudLink>
-                    </MudTooltip>
-                </MudTh>
+                <MudTh Class="align-middle text-nowrap"><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.StatusPriority)">@(Book.Label [nameof (Book.Status)])</MudTableSortLabel></MudTh>
                 <MudTh>
                     <MudTableSortLabel SortBy="new Func<Book, string?>(x=>x.Title)">
                         <MudStack Row Spacing="0" Class="align-center">
@@ -47,7 +41,6 @@
                 <MudTh><MudTableSortLabel SortBy="new Func<Book, string?>(x=>x.Author)">@(Book.Label [nameof (Book.Author)])</MudTableSortLabel></MudTh>
                 <MudTh><MudTableSortLabel SortBy="new Func<Book, string?>(x=>x.SeriesTitle)">@(Book.Label [nameof (Book.SeriesTitle)])</MudTableSortLabel></MudTh>
                 <MudTh Class="align-middle text-nowrap"><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.Site)">@(Book.Label [nameof (Book.Site)])</MudTableSortLabel></MudTh>
-                <MudTh Class="align-middle text-nowrap"><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.StatusPriority)">@(Book.Label [nameof (Book.Status)])</MudTableSortLabel></MudTh>
                 <MudTh Class="align-middle text-nowrap"><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.NumberOfSheets)">@(Book.Label [nameof (Book.NumberOfSheets)])</MudTableSortLabel></MudTh>
                 <MudTh>@(Book.Label [nameof (Book.Remarks)])</MudTh>
             </HeaderContent>
@@ -63,10 +56,10 @@
                         @(context.Id)
                     </MudStack>
                 </MudTd>
-                <MudTd DataLabel="@($"{Book.Label[nameof(Book.Released)]} {Book.Label[nameof(Book.Readed)]} {Book.Label[nameof(Book.Wish)]}")" Class="align-middle text-nowrap">
-                    <MudIcon Icon="@(context.Released ? Icons.Material.Outlined.CheckBox : Icons.Material.Outlined.CheckBoxOutlineBlank)" />
-                    <MudIcon Icon="@(context.Readed ? Icons.Material.Outlined.CheckBox : Icons.Material.Outlined.CheckBoxOutlineBlank)" />
-                    <MudIcon Icon="@(context.Wish ? Icons.Material.Outlined.CheckBox : Icons.Material.Outlined.CheckBoxOutlineBlank)" />
+                <MudTd DataLabel="@(Book.Label[nameof(Book.Status)])" Class="align-middle text-nowrap">
+                    <MudTooltip Text="@($"{(context.Readed ? "既読" : (context.Released || context.NumberOfPublished > 0 || context.PublishedAt is not null) ? "未読" : "未発行")}{(context.Wish ? "、好評" : "")}")" Arrow Duration="1000">
+                        <MudChip T="string" Color="@(context.StatusBgColor)" Class="mr-0" Style="width: 6em" Label="true" Size="Size.Small" Variant="Variant.Outlined">@(context.Status.ToJString ())</MudChip>
+                    </MudTooltip>
                 </MudTd>
                 <MudTd DataLabel="@(Book.Label[nameof(Book.Title)])">
                     <MudStack Row Spacing="0" Class="align-center">
@@ -113,11 +106,8 @@
                 </MudTd>
                 <MudTd DataLabel="@(Book.Label[nameof(Book.Site)])" Class="align-middle text-nowrap">
                     <MudTooltip Text="@($"{Book.Label[nameof(Book.Site)]}を開く")" Arrow Duration="1000">
-                        <MudChip Disabled="_busy" OnClick="@(async () => await OpenUrl (context))" Target="_blank" T="string" Text="@(context.Site.ToString ())" Color="Color.Default" Label="true" Variant="Variant.Outlined" Size="Size.Small" />
+                        <MudChip Disabled="_busy" OnClick="@(async () => await OpenUrl (context))" Target="_blank" T="string" Text="@(context.Site.ToString ())" Class="mx-0" Color="Color.Default" Label="true" Variant="Variant.Outlined" Size="Size.Small" />
                     </MudTooltip>
-                </MudTd>
-                <MudTd DataLabel="@(Book.Label[nameof(Book.Status)])" Class="align-middle text-nowrap">
-                    <MudChip T="string" Label="true" Size="Size.Small" Variant="Variant.Outlined" Color="@(context.StatusBgColor)" Style="width: 6em">@(context.Status.ToJString ())</MudChip>
                 </MudTd>
                 <MudTd DataLabel="@(Book.Label[nameof(Book.NumberOfSheets)])" Class="align-middle text-nowrap">
                     <MudTooltip Arrow Duration="1000">
@@ -157,6 +147,18 @@
         <MudText>No items found.</MudText>
     }
     <MudAppBar Class="backdrop-blur pb-2" Color="Color.Transparent" Dense Bottom="true" Fixed="true">
+        <MudTooltip Text="発行済み/未発行を絞り込み" Duration="1000">
+            <MudFab Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_released_", "_not_released_"))" StartIcon="@Icons.Material.Outlined.PublishedWithChanges" Size="Size.Small" Class="mr-2" />
+        </MudTooltip>
+        <MudTooltip Text="既読/未読を絞り込み" Duration="1000">
+            <MudFab Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_readed_", "_not_readed_"))" StartIcon="@Icons.Material.Outlined.Visibility" Size="Size.Small" Class="mr-2" />
+        </MudTooltip>
+        <MudTooltip Text="お気に入りを絞り込み" Duration="1000">
+            <MudFab Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_wished_", "_not_wished_"))" StartIcon="@Icons.Material.Outlined.StarRate" Size="Size.Small" Class="mr-2" />
+        </MudTooltip>
+        <MudTooltip Text="未着手を絞り込み" Duration="1000">
+            <MudFab Disabled="_busy" OnClick="@(async () => await ChangeFilter ("=_not_readed_ =%0."))" StartIcon="@Icons.Material.Outlined.FiberNew" Size="Size.Small" Class="mr-2" />
+        </MudTooltip>
         <MudSpacer />
         <MudTooltip Arrow="true" Text="@($"{Book.TableLabel}を追加")">
             <MudFab Disabled="_busy" OnClick="AddBook" StartIcon="@Icons.Material.Outlined.Add" Size="Size.Small" />
@@ -184,12 +186,16 @@
         var newText = FilterText == on ? off : FilterText == off ? "" : on;
         await SetFilter (newText);
     }
+    /// <summary>フィルター切り替え</summary>
+    protected async Task ChangeFilter (string filter) {
+        var newText = FilterText == filter ? "" : filter;
+        await SetFilter (newText);
+    }
 
     /// <summary>フィルター切り替え</summary>
     protected async Task ChangeFilter (string filter, Book book) {
-        var newText = FilterText == filter ? "" : filter;
         await ChangeCurrentBookAsync (book);
-        await SetFilter (newText);
+        await ChangeFilter (filter);
     }
 
     /// <summary>フィルター設定</summary>

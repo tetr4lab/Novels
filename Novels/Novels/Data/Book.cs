@@ -37,7 +37,7 @@ public enum Site {
 
 /// <summary>書籍の刊行状態</summary>
 public enum BookStatus {
-    NotSet = 100, // 未設定
+    NotSet = 1000, // 未設定
     Completed = 0, // 完結
     PartlyCompleted = 1, // 一応完結
     NoUpdates = 2, // 更新途絶
@@ -99,7 +99,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (Status), "状態" },
         { nameof (HtmlBackup), "原稿待避" },
         { nameof (Errata), "正誤" },
-        { nameof (Wish), "希望" },
+        { nameof (Wish), "好評" },
         { nameof (SeriesTitle), "叢書" },
         { nameof (Remarks), "備考" },
         { nameof (LastUpdate), "最終更新" },
@@ -156,14 +156,15 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <summary>状態に応じた背景色</summary>
     public Color StatusBgColor {
         get {
-            var priority = StatusPriority;
-            return ((Color [])[Color.Success, Color.Tertiary, Color.Info, Color.Warning, Color.Surface, Color.Dark, Color.Error])
-                [priority >= 100 ? 6 : priority >= 10 ? 5 : priority];
+            if (Status == BookStatus.NotSet) { return Color.Error; }
+            if (Readed) { return Color.Dark; }
+            if (Released) { return Color.Primary; }
+            return ((Color [])[Color.Success, Color.Tertiary, Color.Info, Color.Warning, Color.Surface,]) [(int) Status];
         }
     }
 
     /// <summary>状態に応じた順位</summary>
-    public int StatusPriority => ((int) Status) + (Readed ? 10 : 0);
+    public int StatusPriority => ((int) Status) + (Readed ? 100 : 0) + (Released ? 10 : 0);
 
     /// <summary>書誌、または、シートから得られる最終更新日時</summary>
     public DateTime LastUpdate {

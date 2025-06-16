@@ -58,19 +58,13 @@
                         <p>'|'で区切られた部分はいずれか一つで適合します。</p>
                         <p>'#~.'@(Book.TableLabel)@(Book.Label [nameof (Book.Id)])</p>
                         <p>':~.'@(Book.Label [nameof (Book.Site)])</p>
+                        <p>'%~.'@(Book.Label [nameof (Book.NumberOfRelatedSheets)])</p>
                         <p>'_is_released_'/'_not_released_'@(Book.Label [nameof (Book.Released)])</p>
                         <p>'_is_readed_'/'_not_readed_'@(Book.Label [nameof (Book.Readed)])</p>
                         <p>'_is_wished_'/'_not_wished_'@(Book.Label [nameof (Book.Wish)])</p>
                         <p>'_<i>status</i>_'@(Book.Label [nameof (Book.Status)])</p>
                     </MudText>
                 </TooltipContent>
-            </MudTooltip>
-            <MudTooltip Text="未着手" Arrow Duration="1000">
-                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.FiberNew" OnClick="@(() => {
-                    var newText = $"=_not_readed_ =%0. =_not_direct_";
-                    _filterText = _filterText == newText ? "" : newText;
-                    OnClick ();
-                })" />
             </MudTooltip>
             @if (!OnClickChangeModeButton.Equals (EventCallback.Empty)) {
                 <MudTooltip Text="テーマ" Arrow Duration="1000">
