@@ -29,15 +29,7 @@
             <HeaderContent>
                 <MudTh><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.Id)">@(Book.Label [nameof (Book.Id)])</MudTableSortLabel></MudTh>
                 <MudTh Class="align-middle text-nowrap"><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.StatusPriority)">@(Book.Label [nameof (Book.Status)])</MudTableSortLabel></MudTh>
-                <MudTh>
-                    <MudTableSortLabel SortBy="new Func<Book, string?>(x=>x.Title)">
-                        <MudStack Row Spacing="0" Class="align-center">
-                            <MudIcon Icon="" />
-                            <MudIcon Icon="" />
-                            <MudText Typo="Typo.inherit">@(Book.Label [nameof (Book.Title)])</MudText>
-                        </MudStack>
-                    </MudTableSortLabel>
-                </MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<Book, string?>(x=>x.Title)">@(Book.Label [nameof (Book.Title)])</MudTableSortLabel></MudTh>
                 <MudTh><MudTableSortLabel SortBy="new Func<Book, string?>(x=>x.Author)">@(Book.Label [nameof (Book.Author)])</MudTableSortLabel></MudTh>
                 <MudTh><MudTableSortLabel SortBy="new Func<Book, string?>(x=>x.SeriesTitle)">@(Book.Label [nameof (Book.SeriesTitle)])</MudTableSortLabel></MudTh>
                 <MudTh Class="align-middle text-nowrap"><MudTableSortLabel SortBy="new Func<Book, object>(x=>x.Site)">@(Book.Label [nameof (Book.Site)])</MudTableSortLabel></MudTh>
@@ -53,21 +45,17 @@
                             </MudTooltip>
                         }
                         <MudSpacer />
-                        @(context.Id)
+                        <MudText Typo="Typo.inherit">@(context.Id)</MudText>
+                        <MudIconButton Style="margin-left: 2px;" Disabled="_busy" OnClick="@(async () => await PublishBook (context))" Icon="@(context.IsEmpty ? Icons.Material.Filled.Download : context.IsUpdatable && !context.IsErrorForNumberOfSheets ? Icons.Material.Filled.Refresh : context.Released && !context.IsPublishable ? Icons.Material.Filled.Sync : Icons.Material.Filled.Publish)" Size="Size.Small" />
+                        <MudIconButton Style="margin-right: -6px;;" Disabled="_busy" OnClick="@(async () => await OpenBook (context))" Icon="@Icons.Material.Filled.ViewHeadline" Size="Size.Small" />
                     </MudStack>
                 </MudTd>
                 <MudTd DataLabel="@(Book.Label[nameof(Book.Status)])" Class="align-middle text-nowrap">
                     <MudTooltip Text="@($"{(context.Readed ? "既読" : (context.Released || context.NumberOfPublished > 0 || context.PublishedAt is not null) ? "未読" : "未発行")}{(context.Wish ? "、好評" : "")}")" Arrow Duration="1000">
-                        <MudChip T="string" Color="@(context.StatusBgColor)" Class="mr-0" Style="width: 6em" Label="true" Size="Size.Small" Variant="Variant.Outlined">@(context.Status.ToJString ())</MudChip>
+                        <MudChip T="string" Color="@(context.StatusBgColor)" Style="width: 6em" Label="true" Size="Size.Small" Variant="Variant.Outlined">@(context.Status.ToJString ())</MudChip>
                     </MudTooltip>
                 </MudTd>
-                <MudTd DataLabel="@(Book.Label[nameof(Book.Title)])">
-                    <MudStack Row Spacing="0" Class="align-center">
-                        <MudIconButton Disabled="_busy" OnClick="@(async () => await PublishBook (context))" Icon="@(context.IsEmpty ? Icons.Material.Filled.Download : context.IsUpdatable && !context.IsErrorForNumberOfSheets ? Icons.Material.Filled.Refresh : context.Released && !context.IsPublishable ? Icons.Material.Filled.Sync : Icons.Material.Filled.Publish)" Size="Size.Small" />
-                        <MudIconButton Disabled="_busy" OnClick="@(async () => await OpenBook (context))" Icon="@Icons.Material.Filled.ViewHeadline" Size="Size.Small" />
-                        <MudText Typo="Typo.inherit">@(context.Title)</MudText>
-                    </MudStack>
-                </MudTd>
+                <MudTd DataLabel="@(Book.Label[nameof(Book.Title)])">@(context.Title)</MudTd>
                 <MudTd DataLabel="@(Book.Label[nameof(Book.Author)])">
                     @{ var author = context.Author.Replace (' ', '\u2423'); }
                     <MudTooltip Arrow Duration="1000">
