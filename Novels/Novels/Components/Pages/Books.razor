@@ -135,6 +135,10 @@
         <MudText>No items found.</MudText>
     }
     <MudAppBar Class="backdrop-blur pb-2" Color="Color.Transparent" Dense Bottom="true" Fixed="true">
+        <MudTooltip Text="設定" Duration="1000">
+            <MudFab Disabled="_busy" OnClick="Settings" StartIcon="@Icons.Material.Outlined.Settings" Size="Size.Small" Class="mr-2" />
+        </MudTooltip>
+        <MudSpacer />
         <MudTooltip Text="発行済み/未発行を絞り込み" Duration="1000">
             <MudFab Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_released_", "_not_released_"))" StartIcon="@Icons.Material.Outlined.PublishedWithChanges" Size="Size.Small" Class="mr-2" />
         </MudTooltip>
@@ -202,6 +206,12 @@
         await SetBusy ();
         await JSRuntime.OpenUrl (book.Url);
         await ChangeCurrentBookAsync (book);
+        await SetIdle ();
+    }
+
+    protected async Task Settings () {
+        await SetBusy ();
+        await SetAppMode (AppMode.Settings);
         await SetIdle ();
     }
 
