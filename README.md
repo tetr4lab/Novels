@@ -22,8 +22,12 @@ Web小説を取得し、EPUBを生成して、Kindleパーソナルドキュメ�
 - MudBlazor 8.6.0
 - PetaPoco 6.0.683
 - MySqlConnector 2.4.0
-- AngleSharp 1.3.0
-- MailKit 4.12.1
+- [AngleSharp](https://github.com/AngleSharp/AngleSharp) 1.3.0
+  - The ultimate angle brackets parser library parsing HTML5, MathML, SVG and CSS to construct a DOM based on the official W3C specifications.
+- [MailKit](https://github.com/jstedfast/MailKit) 4.12.1
+  - A cross-platform .NET library for IMAP, POP3, and SMTP.
+- [QuickEPUB](https://github.com/tetr4lab/QuickEPUB/tree/feature/spine-page-progression)
+  - Feat: Implement page-progression-direction attribute for spine. Users can now define the reading direction (LTR or RTL) within the spine element of the EPUB.
 - [Tetr4labNugetPackages](https://github.com/tetr4lab/Tetr4labNugetPackages)
 
 #### サーバ
