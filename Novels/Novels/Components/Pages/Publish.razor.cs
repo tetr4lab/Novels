@@ -1,6 +1,7 @@
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using MimeKit;
 using MimeKit.Text;
@@ -20,9 +21,9 @@ public partial class Publish : ItemListBase<Book> {
     protected bool IsInvalidUri (string? url) => !Uri.IsWellFormedUriString (url, UriKind.Absolute);
 
     /// <summary>書籍の削除 (ホームへ遷移)</summary>
-    protected async Task DeleteBook () {
+    protected async Task DeleteBook (MouseEventArgs eventArgs) {
         if (Book is not null) {
-            var complete = !(await JSRuntime.InvokeAsync<ModifierKeys> ("getModifierKeys")).Ctrl;
+            var complete = !eventArgs.CtrlKey;
             if (!complete && Book.IsEmpty) {
                 Snackbar.Add ($"削除すべきシートがありません。", Severity.Warning);
                 return;
@@ -31,7 +32,7 @@ public partial class Publish : ItemListBase<Book> {
             var dialogResult = await DialogService.Confirmation ([
                 $"以下の{target}を完全に削除します。",
                 Book.ToString (),
-            ], title: $"{target}削除", position: DialogPosition.BottomCenter, acceptionLabel: complete ? "完全削除" : "シートのみ削除", acceptionColor: complete ? Color.Error : Color.Secondary, acceptionIcon: Icons.Material.Filled.Delete);
+            ], title: $"{target}の削除", position: DialogPosition.BottomCenter, acceptionLabel: complete ? "完全削除" : "シートのみ削除", acceptionColor: complete ? Color.Error : Color.Secondary, acceptionIcon: Icons.Material.Filled.Delete);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 await SetBusy ();
                 if (complete) {
@@ -78,11 +79,11 @@ public partial class Publish : ItemListBase<Book> {
     }
 
     /// <summary>取得と更新の確認</summary>
-    protected async Task<bool> ConfirmUpdateBookAsync () {
+    protected async Task<bool> ConfirmUpdateBookAsync (MouseEventArgs eventArgs) {
         if (Book is not null && !IsDirty) {
-            var withSheets = !(await JSRuntime.InvokeAsync<ModifierKeys> ("getModifierKeys")).Ctrl;
-            var operation =  $"{(withSheets ? "" : $"{Book.TableLabel}のみ")}{(Book.IsEmpty ? "取得" : "更新")}";
-            var target = $"{Book.TableLabel}{(withSheets ? $"と{Sheet.TableLabel}" : "")}";
+            var withSheets = !eventArgs.CtrlKey;
+            var operation =  Book.IsEmpty ? "取得" : "更新";
+            var target = $"{Book.TableLabel}{(withSheets ? $"と{Sheet.TableLabel}" : "のみ")}";
             var dialogResult = await DialogService.Confirmation ([$"『{Book.Title}』の{target}を{Book.Site}から{operation}します。", withSheets ? $"{Book.TableLabel}と{Sheet.TableLabel}全てを更新します。" : $"{Book.TableLabel}のみを更新し、{Sheet.TableLabel}は更新しません。"], title: $"{target}の{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: withSheets ? Color.Success : Color.Primary, acceptionIcon: Icons.Material.Filled.Download);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 // オーバーレイ
@@ -101,17 +102,10 @@ public partial class Publish : ItemListBase<Book> {
         return true;
     }
 
-    /// <summary>モディファイアキー</summary>
-    public class ModifierKeys {
-        public bool Ctrl { get; set; }
-        public bool Alt { get; set; }
-        public bool Shift { get; set; }
-    }
-
     /// <summary>発行の確認</summary>
-    protected async Task<bool> ConfirmPublishBookAsync () {
+    protected async Task<bool> ConfirmPublishBookAsync (MouseEventArgs eventArgs) {
         if (Book is not null && !IsDirty) {
-            var publish = !(await JSRuntime.InvokeAsync<ModifierKeys> ("getModifierKeys")).Ctrl;
+            var publish = !eventArgs.CtrlKey;
             var operation = publish ? "発行" : "生成";
             var dialogResult = await DialogService.Confirmation ([
                 $"『{Book.MainTitle}.epub』を{(publish ? $"<{DataSet.Setting.SmtpMailto}>へ発行": "生成してダウンロード")}します。",
