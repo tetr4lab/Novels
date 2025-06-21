@@ -10,6 +10,7 @@ namespace Novels.Components.Pages;
 /// <summary>ページの基底</summary>
 public abstract class NovelsComponentBase : ComponentBase, IDisposable {
     [Inject] protected IAppLockState UiState { get; set; } = null!;
+    [Inject] protected IAppLockState AppLockState { get; set; } = null!;
     [Inject] protected NovelsAppModeService AppModeService { get; set; } = null!;
 
     /// <summary>認証状況を得る</summary>
@@ -28,9 +29,22 @@ public abstract class NovelsComponentBase : ComponentBase, IDisposable {
     protected Action<string> SetFilterText => AppModeService.SetFilterText;
 
     /// <summary>アプリモードが変化した</summary>
-    protected virtual void OnAppModeChanged (object? sender, PropertyChangedEventArgs e) {
+    protected virtual async void OnAppModeChanged (object? sender, PropertyChangedEventArgs e) {
+        await OnAppModeChangedAsync (sender, e);
+    }
+
+    /// <summary>アプリモード変化時の画面更新</summary>
+    protected async Task OnAppModeChangedAsync (object? sender, PropertyChangedEventArgs e) {
         if (e.PropertyName != "RequestedMode") {
-            InvokeAsync (StateHasChanged);
+            await InvokeAsync (StateHasChanged);
+        }
+    }
+
+    /// <summary>アプリモードが変化した</summary>
+    protected virtual async void OnAppLockChanged (object? sender, PropertyChangedEventArgs e) {
+        if (e.PropertyName == "IsLocked") {
+            // MainLayoutでも再描画されるが、こちらのボタンのDisabledに反映されない(こちらの再描画が起きない)場合があるため
+            await InvokeAsync (StateHasChanged);
         }
     }
 
@@ -38,6 +52,7 @@ public abstract class NovelsComponentBase : ComponentBase, IDisposable {
     protected override async Task OnInitializedAsync () {
         await base.OnInitializedAsync ();
         // 購読開始
+        AppLockState.PropertyChanged += OnAppLockChanged;
         AppModeService.PropertyChanged += OnAppModeChanged;
         // 認証・認可
         Identity = await AuthState.GetIdentityAsync ();
@@ -45,6 +60,7 @@ public abstract class NovelsComponentBase : ComponentBase, IDisposable {
 
     /// <summary>購読終了</summary>
     public virtual void Dispose () {
+        AppLockState.PropertyChanged -= OnAppLockChanged;
         AppModeService.PropertyChanged -= OnAppModeChanged;
     }
 

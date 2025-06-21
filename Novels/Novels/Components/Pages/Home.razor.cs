@@ -11,15 +11,15 @@ namespace Novels.Components.Pages;
 public partial class Home : NovelsPageBase {
 
     /// <summary>アプリモードの更新があった</summary>
-    protected override void OnAppModeChanged (object? sender, PropertyChangedEventArgs e) {
-        if (e.PropertyName == "CurrentBookId") {
+    protected override async void OnAppModeChanged (object? sender, PropertyChangedEventArgs e) {
+        if (e.PropertyName == "CurrentBookId" && sender is NovelsAppModeService service) {
             // CurrentBookIdが変更された
-            if (CurrentBookId > 0 && DataSet.IsInitialized) {
+            if (service.CurrentBookId > 0 && DataSet.IsInitialized) {
                 // 着目書籍オブジェクトを取得
-                Book = DataSet.Books.Find (s => s.Id == CurrentBookId);
+                Book = DataSet.Books.Find (s => s.Id == service.CurrentBookId);
             }
         }
-        base.OnAppModeChanged (sender, e);
+        await OnAppModeChangedAsync (sender, e);
     }
 
     /// <summary>再読み込み</summary>

@@ -276,15 +276,16 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
 
     /// <summary>アプリモードが変化した</summary>
     protected override async void OnAppModeChanged (object? sender, PropertyChangedEventArgs e) {
-        if (e.PropertyName == "RequestedMode") {
+        if (e.PropertyName == "RequestedMode" && sender is NovelsAppModeService service) {
             // アプリモード遷移の要求があった
-            if (AppModeService.RequestedMode != AppMode.None) {
-                if (AppModeService.RequestedMode != AppModeService.CurrentMode) {
-                    await SetAppMode (AppModeService.RequestedMode);
+            if (service.RequestedMode != AppMode.None) {
+                if (service.RequestedMode != service.CurrentMode) {
+                    await SetAppMode (service.RequestedMode);
                 }
-                AppModeService.RequestMode (AppMode.None);
+                service.RequestMode (AppMode.None);
             }
         }
+        await OnAppModeChangedAsync (sender, e);
     }
 
     /// <summary>アプリモード遷移実施</summary>
@@ -296,7 +297,6 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
                 await DataSet.SetCurrentBookIdAsync (CurrentBookId);
             }
             AppModeService.SetMode (appMode);
-            SetIdle ();
         }
     }
 

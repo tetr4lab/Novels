@@ -104,30 +104,30 @@
     protected bool _drawerOpen = false;
 
     /// <summary>アプリモードが変化した</summary>
-    protected void OnAppModePropertyChanged (object? sender, PropertyChangedEventArgs e) {
+    protected async void OnAppModeChanged (object? sender, PropertyChangedEventArgs e) {
         if (e.PropertyName == "FilterText") { // 検索文字列
             _drawerOpen = false;
         }
         if (e.PropertyName == "SectionTitle") { // セクションタイトル
-            InvokeAsync (StateHasChanged);
+            await InvokeAsync (StateHasChanged);
         }
     }
 
     /// <summary>アプリロックが変化した</summary>
-    protected void OnAppLockPropertyChanged (object? sender, PropertyChangedEventArgs e) {
-        InvokeAsync (StateHasChanged);
+    protected async void OnAppLockChanged (object? sender, PropertyChangedEventArgs e) {
+        await InvokeAsync (StateHasChanged);
     }
 
     /// <summary>初期化 購読開始</summary>
     protected override void OnInitialized () {
         base.OnInitialized ();
-        AppLockState.PropertyChanged += OnAppLockPropertyChanged;
-        AppModeService.PropertyChanged += OnAppModePropertyChanged;
+        AppLockState.PropertyChanged += OnAppLockChanged;
+        AppModeService.PropertyChanged += OnAppModeChanged;
     }
 
     /// <summary>購読終了</summary>
     public void Dispose () {
-        AppLockState.PropertyChanged -= OnAppLockPropertyChanged;
-        AppModeService.PropertyChanged -= OnAppModePropertyChanged;
+        AppLockState.PropertyChanged -= OnAppLockChanged;
+        AppModeService.PropertyChanged -= OnAppModeChanged;
     }
 }
