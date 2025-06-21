@@ -7,6 +7,7 @@ using MimeKit;
 using MimeKit.Text;
 using MudBlazor;
 using Novels.Data;
+using Novels.Services;
 using QuickEPUB;
 using Tetr4lab;
 
@@ -39,7 +40,7 @@ public partial class Publish : ItemListBase<Book> {
                     var result = await DataSet.RemoveAsync (Book);
                     if (result.IsSuccess) {
                         if (CurrentBookId == Book.Id) {
-                            await SetCurrentBookId.InvokeAsync ((0, 1));
+                            SetCurrentBookId (0, 1);
                         }
                         StateHasChanged ();
                         Snackbar.Add ($"{target}を削除しました。", Severity.Normal);
@@ -304,12 +305,12 @@ public partial class Publish : ItemListBase<Book> {
         if (Book is not null) {
             selectedItem = Book;
         }
-        await SetAndEditAsync ();
+        SetAndEdit ();
     }
 
     /// <summary>タイトルを設定して編集を開始</summary>
-    protected async Task SetAndEditAsync () {
-        await SetSectionTitle.InvokeAsync (Book is null ? "Publish" : $"<span style=\"font-size:80%;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</span>");
+    protected void SetAndEdit () {
+        SetSectionTitle (Book is null ? "Publish" : $"<span style=\"font-size:80%;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</span>");
         // 強制
         editingItem = null;
         StartEdit ();
@@ -322,7 +323,7 @@ public partial class Publish : ItemListBase<Book> {
         await base.OnInitializedAsync ();
         if (!_inited && Book is not null) {
             _inited = true;
-            await SetAndEditAsync ();
+            SetAndEdit ();
         }
     }
     protected bool _inited = false;

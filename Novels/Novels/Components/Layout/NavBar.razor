@@ -1,22 +1,16 @@
 ﻿@inherits NovelsComponentBase
 
 <MudItem>
-    @if (!IsHomePage) {
-        <MudText Class="pr-8" Typo="Typo.h4">Novels</MudText>
-    } else {
-        <MudText Class="pb-2" Typo="Typo.h4">Contents</MudText>
-    }
+    <MudText Class="pr-8" Typo="Typo.h4">Novels</MudText>
 </MudItem>
 <style>
     nav button[disabled] { background-color: var(--mud-palette-background-gray); }
     nav button[disabled] .mud-icon-root { color: var(--mud-palette-primary); }
     nav button[disabled] .mud-typography { color: var(--mud-palette-primary); }
 </style>
-@if (!IsHomePage) {
-    <MudItem>
-        <MudButton Disabled="@(AppModeService.CurrentMode == AppMode.Books)" OnClick="@(() => RequestMode (AppMode.Books))" StartIcon="@Icons.Material.Filled.LibraryBooks" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Books</MudText></MudButton>
-    </MudItem>
-}
+<MudItem>
+    <MudButton Disabled="@(AppModeService.CurrentMode == AppMode.Books)" OnClick="@(() => RequestMode (AppMode.Books))" StartIcon="@Icons.Material.Filled.LibraryBooks" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Books</MudText></MudButton>
+</MudItem>
 <MudItem>
     <MudButton Disabled="@(AppModeService.CurrentMode == AppMode.Publish)" OnClick="@(() => RequestMode (AppMode.Publish))" StartIcon="@Icons.Material.Filled.Sync" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Publish</MudText></MudButton>
 </MudItem>
@@ -29,73 +23,60 @@
 <MudItem>
     <MudButton Disabled="@(AppModeService.CurrentMode == AppMode.Settings)" OnClick="@(() => RequestMode (AppMode.Settings))" StartIcon="@Icons.Material.Filled.Settings" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Settings</MudText></MudButton>
 </MudItem>
-@if (!IsHomePage) {
-    <MudSpacer />
-    @if (RevisionInfo.Valid) {
-        <MudItem Class="mr-4 align-self-end">
-            <MudText Style="font-size:var(--mud-typography-caption-size); color:var(--mud-palette-action-disabled);">
-                @($"revision: {RevisionInfo.Branch} - {RevisionInfo.Id}")
-            </MudText>
-        </MudItem>
-    }
-    <MudItem>
-        <MudStack Row Class="align-center">
-            <MudTooltip Arrow Duration="1000">
-                <ChildContent>
-                    <MudTextField @bind-Value="_filterText" @ref="searchField"
-                    OnKeyUp="OnKeyUpAsync"
-                    OnBlur="OnClickAsync"
-                    OnAdornmentClick="OnClickAsync" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
-                    OnClearButtonClick="OnClearAsync" Clearable 
-                    Label="Search" Margin="Margin.Dense" Variant="Variant.Outlined" Underline="false" />
-                </ChildContent>
-                <TooltipContent>
-                    <MudText Typo="Typo.inherit" Align="Align.Left">
-                        <p>検索文字列</p>
-                        <p>空白文字で区切られた部分が全て含まれると適合します。</p>
-                        <p>'␣'(U+2423)または'&nbsp;'(U+00A0)は区切られない空白文字として使えます。</p>
-                        <p>'='が先行する部分は一致すると適合します。</p>
-                        <p>'!'が先行する部分は一致すると適合しません。</p>
-                        <p>'^'が先行する部分は含まれると適合しません。</p>
-                        <p>'|'で区切られた部分はいずれか一つで適合します。</p>
-                        <p>'#~.'@(Book.TableLabel)@(Book.Label [nameof (Book.Id)])</p>
-                        <p>':~.'@(Book.Label [nameof (Book.Site)])</p>
-                        <p>'%~.'@(Book.Label [nameof (Book.NumberOfRelatedSheets)])</p>
-                        <p>'_is_released_'/'_not_released_'@(Book.Label [nameof (Book.Released)])</p>
-                        <p>'_is_readed_'/'_not_readed_'@(Book.Label [nameof (Book.Readed)])</p>
-                        <p>'_is_wished_'/'_not_wished_'@(Book.Label [nameof (Book.Wish)])</p>
-                        <p>'_<i>status</i>_'@(Book.Label [nameof (Book.Status)])</p>
-                    </MudText>
-                </TooltipContent>
-            </MudTooltip>
-            @if (!OnClickChangeModeButton.Equals (EventCallback.Empty)) {
-                <MudTooltip Text="テーマ" Arrow Duration="1000">
-                    <MudIconButton Size="Size.Small" Icon="@(IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" OnClick="(async () => await OnClickChangeModeButton.InvokeAsync ())" />
-                </MudTooltip>
-            }
-        </MudStack>
+<MudSpacer />
+@if (RevisionInfo.Valid) {
+    <MudItem Class="mr-4 align-self-end">
+        <MudText Style="font-size:var(--mud-typography-caption-size); color:var(--mud-palette-action-disabled);">
+            @($"revision: {RevisionInfo.Branch} - {RevisionInfo.Id}")
+        </MudText>
     </MudItem>
 }
+<MudItem>
+    <MudStack Row Class="align-center">
+        <MudTooltip Arrow Duration="1000">
+            <ChildContent>
+                <MudTextField @bind-Value="_filterText" @ref="searchField"
+                OnKeyUp="OnKeyUpAsync"
+                OnBlur="OnClickAsync"
+                OnAdornmentClick="OnClickAsync" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
+                OnClearButtonClick="OnClearAsync" Clearable 
+                Label="Search" Margin="Margin.Dense" Variant="Variant.Outlined" Underline="false" />
+            </ChildContent>
+            <TooltipContent>
+                <MudText Typo="Typo.inherit" Align="Align.Left">
+                    <p>検索文字列</p>
+                    <p>空白文字で区切られた部分が全て含まれると適合します。</p>
+                    <p>'␣'(U+2423)または'&nbsp;'(U+00A0)は区切られない空白文字として使えます。</p>
+                    <p>'='が先行する部分は一致すると適合します。</p>
+                    <p>'!'が先行する部分は一致すると適合しません。</p>
+                    <p>'^'が先行する部分は含まれると適合しません。</p>
+                    <p>'|'で区切られた部分はいずれか一つで適合します。</p>
+                    <p>'#~.'@(Book.TableLabel)@(Book.Label [nameof (Book.Id)])</p>
+                    <p>':~.'@(Book.Label [nameof (Book.Site)])</p>
+                    <p>'%~.'@(Book.Label [nameof (Book.NumberOfRelatedSheets)])</p>
+                    <p>'_is_released_'/'_not_released_'@(Book.Label [nameof (Book.Released)])</p>
+                    <p>'_is_readed_'/'_not_readed_'@(Book.Label [nameof (Book.Readed)])</p>
+                    <p>'_is_wished_'/'_not_wished_'@(Book.Label [nameof (Book.Wish)])</p>
+                    <p>'_<i>status</i>_'@(Book.Label [nameof (Book.Status)])</p>
+                </MudText>
+            </TooltipContent>
+        </MudTooltip>
+        @if (!OnClickChangeModeButton.Equals (EventCallback.Empty)) {
+            <MudTooltip Text="テーマ" Arrow Duration="1000">
+                <MudIconButton Size="Size.Small" Icon="@(IsDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" OnClick="(async () => await OnClickChangeModeButton.InvokeAsync ())" />
+            </MudTooltip>
+        }
+    </MudStack>
+</MudItem>
 
 @code {
     /// <summary>ダークモード</summary>
     [CascadingParameter (Name = "IsDarkMode")] public bool IsDarkMode { get; set; }
     /// <summary>モード切替ボタンが押されたときの処理</summary>
     [CascadingParameter (Name = "ChangeModeAsync")] public EventCallback OnClickChangeModeButton { get; set; } = EventCallback.Empty;
-    /// <summary>検索文字列</summary>
-    [CascadingParameter (Name = "Filter")] public string FilterText { get; set; } = string.Empty;
-    /// <summary>サーチボタンが押されたときの処理</summary>
-    [CascadingParameter (Name = "SetFilter")] public EventCallback<string?> OnClickSearchButton { get; set; } = EventCallback<string?>.Empty;
 
     /// <summary>検索文字列</summary>
     private string _filterText = string.Empty;
-
-    /// <summary>
-    /// ホームページの判定
-    /// サーチボタンのアクションが指定されていればナビゲーションバー
-    /// 指定されなければホームページのコンテンツ
-    /// </summary>
-    private bool IsHomePage => OnClickSearchButton.Equals (EventCallback<string?>.Empty);
 
     /// <summary>検索フィールドへの参照</summary>
     private MudTextField<string> searchField { get; set; } = new MudTextField<string>();
@@ -133,7 +114,7 @@
         _isFilterLocked = true;
         UiState.Lock ();
         await searchField.BlurAsync ();
-        await OnClickSearchButton.InvokeAsync (filter);
+        SetFilterText (filter);
         await TaskEx.DelayUntil (() => FilterText == filter);
         UiState.Unlock ();
         _isFilterLocked = false;

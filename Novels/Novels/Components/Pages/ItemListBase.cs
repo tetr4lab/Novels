@@ -42,7 +42,7 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     /// <summary>初期化</summary>
     protected override async Task OnInitializedAsync () {
         await base.OnInitializedAsync ();
-        await SetSectionTitle.InvokeAsync ($"{typeof (T).Name}s");
+        SetSectionTitle ($"{typeof (T).Name}s");
         newItem = NewEditItem;
         if (Book is not null && Book is T item) {
             selectedItem = item;
@@ -86,7 +86,7 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
             selectedItem = item;
         }
         if (CurrentBookId != book.Id) {
-            await SetCurrentBookId.InvokeAsync ((book.Id, 1));
+            SetCurrentBookId (book.Id, 1);
             // 反映を待機(セットが完了しても子孫要素に伝播するのに間がある)
             await TaskEx.DelayUntil (() => CurrentBookId == book.Id);
         }

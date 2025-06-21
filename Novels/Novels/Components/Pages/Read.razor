@@ -85,34 +85,34 @@
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
     protected override async Task OnInitializedAsync() {
         await base.OnInitializedAsync ();
-        await SetSheetAsync (CurrentSheetIndex);
+        SetSheetAsync (CurrentSheetIndex);
     }
 
     /// <summary>シート番号に依存した設定</summary>
-    protected async Task SetSheetAsync (int index) {
+    protected void SetSheetAsync (int index) {
         if (Book is not null) {
             SetBusy ();
             index = Book.Sheets.Count > 0 ? Math.Clamp (index, 1, Book.Sheets.Count) : 1;
-            await SetCurrentBookId.InvokeAsync ((Book.Id, index));
+            SetCurrentBookId (Book.Id, index);
             if (editingItem is not null) {
                 Cancel (editingItem);
             }
             if (Book.Sheets.Count > 0) {
                 Sheet = Book.Sheets [index - 1];
                 selectedItem = Sheet;
-                await SetSectionTitle.InvokeAsync ($"<span style=\"font-size:80%;\"><a href=\"{Sheet.Url}\" target=\"_blank\" style=\"text-decoration: none;\">『{Book.Title}』 {Book.Author}</a></span>\n{Sheet.OriginalChapterTitle} {Sheet.ChapterSubTitle}");
+                SetSectionTitle ($"<span style=\"font-size:80%;\"><a href=\"{Sheet.Url}\" target=\"_blank\" style=\"text-decoration: none;\">『{Book.Title}』 {Book.Author}</a></span>\n{Sheet.OriginalChapterTitle} {Sheet.ChapterSubTitle}");
                 StartEdit ();
             }
             SetIdle ();
         } else {
-            await SetSectionTitle.InvokeAsync ("Read");
+            SetSectionTitle ("Read");
         }
     }
 
     /// <summary>シート変更</summary>
     protected async Task OnChageSheetAsync (int index) {
         if (CurrentSheetIndex != index && await ConfirmCancelEditAsync ()) {
-            await SetSheetAsync (index);
+            SetSheetAsync (index);
             // ページトップへスクロール
             await JsRuntime.ScrollToTop ();
         }

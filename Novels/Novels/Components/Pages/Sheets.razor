@@ -126,7 +126,7 @@
             selectedItem = sheet;
             var index = items.IndexOf (sheet) + 1;
             if (CurrentSheetIndex != index) {
-                await SetCurrentBookId.InvokeAsync ((CurrentBookId, index));
+                SetCurrentBookId (CurrentBookId, index);
                 await SetAppMode (AppMode.Contents);
             }
         }
@@ -136,7 +136,7 @@
     protected async Task ReadSheetAsync (Sheet context) {
         if (Book is not null && items is not null) {
             var index = items.IndexOf (context) + 1;
-            await SetCurrentBookId.InvokeAsync ((CurrentBookId, index));
+            SetCurrentBookId (CurrentBookId, index);
             await TaskEx.DelayUntil (() => CurrentSheetIndex == index);
             await SetAppMode (AppMode.Read);
         }
@@ -179,7 +179,7 @@
     protected override async Task OnInitializedAsync() {
         // 基底クラスで着目書籍オブジェクトを取得
         await base.OnInitializedAsync ();
-        await SetSectionTitle.InvokeAsync (Book is null ? "Contents" : $"<span style=\"font-size:80%;\"><a href=\"{Book?.Url}\" target=\"_blank\" style=\"text-decoration: none;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</a></span>");
+        SetSectionTitle (Book is null ? "Contents" : $"<span style=\"font-size:80%;\"><a href=\"{Book?.Url}\" target=\"_blank\" style=\"text-decoration: none;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</a></span>");
     }
 
     /// <summary>遅延初期化</summary>

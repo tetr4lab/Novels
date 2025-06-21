@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
@@ -9,19 +10,17 @@ namespace Novels.Components.Pages;
 
 public partial class Home : NovelsPageBase {
 
-    /// <summary>パラメータの更新があった</summary>
-    protected override async Task OnParametersSetAsync () {
-        await base.OnParametersSetAsync ();
-        if (_currentBookId != CurrentBookId) {
+    /// <summary>アプリモードの更新があった</summary>
+    protected override void OnAppModeChanged (object? sender, PropertyChangedEventArgs e) {
+        if (e.PropertyName == "CurrentBookId") {
             // CurrentBookIdが変更された
             if (CurrentBookId > 0 && DataSet.IsInitialized) {
                 // 着目書籍オブジェクトを取得
                 Book = DataSet.Books.Find (s => s.Id == CurrentBookId);
             }
-            _currentBookId = CurrentBookId;
         }
+        base.OnAppModeChanged (sender, e);
     }
-    protected long _currentBookId = long.MinValue;
 
     /// <summary>再読み込み</summary>
     protected async Task ReLoadAsync () {
@@ -41,8 +40,7 @@ public partial class Home : NovelsPageBase {
                 // DB初期化
                 await DataSet.InitializeAsync ();
                 if (CurrentBookId <= 0) {
-                    // シートの読み込みを促す
-                    await SetCurrentBookId.InvokeAsync ((DataSet.CurrentBookId, CurrentSheetIndex));
+                    SetCurrentBookId (DataSet.CurrentBookId, CurrentSheetIndex);
                 }
                 await TaskEx.DelayUntil (() => DataSet.IsReady);
                 AppModeService.SetMode (AppMode.Books);

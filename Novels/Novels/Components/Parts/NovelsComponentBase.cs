@@ -7,21 +7,10 @@ using Tetr4lab;
 
 namespace Novels.Components.Pages;
 
-/// <summary>アプリのモード</summary>
-public enum AppMode {
-    None = -1,
-    Boot = 0,
-    Books,
-    Publish,
-    Contents,
-    Read,
-    Settings,
-}
-
 /// <summary>ページの基底</summary>
 public abstract class NovelsComponentBase : ComponentBase, IDisposable {
     [Inject] protected IAppLockState UiState { get; set; } = null!;
-    [Inject] protected IAppModeService<AppMode> AppModeService { get; set; } = null!;
+    [Inject] protected NovelsAppModeService AppModeService { get; set; } = null!;
 
     /// <summary>認証状況を得る</summary>
     [CascadingParameter] protected Task<AuthenticationState> AuthState { get; set; } = default!;
@@ -32,9 +21,17 @@ public abstract class NovelsComponentBase : ComponentBase, IDisposable {
     /// <summary>ユーザ識別子</summary>
     protected virtual string UserIdentifier => Identity?.Identifier ?? "unknown";
 
+    /// <summary>検索文字列</summary>
+    protected string FilterText => AppModeService.FilterText;
+
+    /// <summary>検索文字列設定</summary>
+    protected Action<string> SetFilterText => AppModeService.SetFilterText;
+
     /// <summary>アプリモードが変化した</summary>
     protected virtual void OnAppModeChanged (object? sender, PropertyChangedEventArgs e) {
-        InvokeAsync (StateHasChanged);
+        if (e.PropertyName != "RequestedMode") {
+            InvokeAsync (StateHasChanged);
+        }
     }
 
     /// <inheritdoc/>
