@@ -1,7 +1,11 @@
 ﻿@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
-@inject ProtectedLocalStorage Storage
+@using System.ComponentModel;
 
 @inherits LayoutComponentBase
+
+@implements IDisposable
+@inject ProtectedLocalStorage Storage
+@inject IAppLockState AppLockState
 
 <PageTitle>Novels</PageTitle>
 
@@ -13,28 +17,30 @@
                     <MudFab Class="fixed ma-2 z-100" Style="right: 0px;" Color="Color.Transparent" Ripple="false" StartIcon="@Icons.Material.Filled.Menu" Size="Size.Small" OnClick="@(() => _drawerOpen = true)" />
                     <MudDrawer Class="fixed" @bind-Open="@_drawerOpen" Anchor="Anchor.Top" Elevation="1" Variant="@DrawerVariant.Temporary">
                         <MudNavMenu Dense Color="Color.Dark" Class="px-4 my-2">
-                            <NavBar
-                                OnClickSearchButton="@SetFilterText"
-                                IsDarkMode="@_isDarkMode"
-                                OnClickChangeModeButton="@ChangeModeAsync"
-                                FilterText="@_filterText"
-                                AppMode="@_appMode"
-                                RequestAppMode="@RequestAppMode"
-                                />
+                            <CascadingValue Value="@_filterText" Name="Filter">
+                            <CascadingValue Value="@(EventCallback.Factory.Create<string> (this, SetFilterText))" Name="SetFilter">
+                                <CascadingValue Value="@_isDarkMode" Name="IsDarkMode">
+                                <CascadingValue Value="@(EventCallback.Factory.Create (this, ChangeModeAsync))" Name="ChangeModeAsync">
+                                    <NavBar />
+                                </CascadingValue>
+                                </CascadingValue>
+                            </CascadingValue>
+                            </CascadingValue>
                         </MudNavMenu>
                     </MudDrawer>
                 </MudHidden>
                 <MudHidden Breakpoint="Breakpoint.Xs">
                     <MudAppBar Color="Color.Transparent" Dense Fixed="true" Class="backdrop-blur">
                         <MudGrid Class="align-center flex-nowrap" Spacing="0">
-                            <NavBar
-                                OnClickSearchButton="@SetFilterText"
-                                IsDarkMode="@_isDarkMode"
-                                OnClickChangeModeButton="@ChangeModeAsync"
-                                FilterText="@_filterText"
-                                AppMode="@_appMode"
-                                RequestAppMode="@RequestAppMode"
-                                />
+                            <CascadingValue Value="@_filterText" Name="Filter">
+                            <CascadingValue Value="@(EventCallback.Factory.Create<string> (this, SetFilterText))" Name="SetFilter">
+                                <CascadingValue Value="@_isDarkMode" Name="IsDarkMode">
+                                <CascadingValue Value="@(EventCallback.Factory.Create (this, ChangeModeAsync))" Name="ChangeModeAsync">
+                                    <NavBar />
+                                </CascadingValue>
+                                </CascadingValue>
+                            </CascadingValue>
+                            </CascadingValue>
                         </MudGrid>
                     </MudAppBar>
                 </MudHidden>
@@ -56,15 +62,7 @@
                                 <CascadingValue Value="@_currentBookId" Name="CurrentBookId">
                                     <CascadingValue Value="@(EventCallback.Factory.Create<(long, int)> (this, SetCurrentBookId))" Name="SetCurrentBookId">
                                         <CascadingValue Value="@_currentSheetIndex" Name="CurrentSheetIndex">
-                                            <CascadingValue Value="@_appMode" Name="AppMode">
-                                                <CascadingValue Value="@(EventCallback.Factory.Create<AppMode> (this, SetAppMode))" Name="SetAppMode">
-                                                    <CascadingValue Value="@_requestedAppMode" Name="RequestedAppMode">
-                                                        <CascadingValue Value="@(EventCallback.Factory.Create<AppMode> (this, RequestAppMode))" Name="RequestAppMode">
-                                                            @Body
-                                                        </CascadingValue>
-                                                    </CascadingValue>
-                                                </CascadingValue>
-                                            </CascadingValue>
+                                            @Body
                                         </CascadingValue>
                                     </CascadingValue>
                                 </CascadingValue>
@@ -83,6 +81,7 @@
         </NotAuthorized>
     </AuthorizeView>
 </div>
+<AppLockOverlay IsOverlayed="AppLockState.IsLocked" OverlayValue="AppLockState.CurrentProgressValue" OverlayMin="0" OverlayMax="AppLockState.TotalProgressValue" OverlayLabel="@AppLockState.Reason" />
 <MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
@@ -147,19 +146,19 @@
         (_currentBookId, _currentSheetIndex) = bookmark;
     }
 
-    /// <summary>アプリのモード (カスケーディングパラメータ)</summary>
-    protected AppMode _appMode { get; set; } = AppMode.Boot;
-
-    /// <summary>アプリモードを変更</summary>
-    protected void SetAppMode (AppMode appMode) {
-        _appMode = appMode;
+    /// <summary>アプリロックが変化した</summary>
+    protected void OnAppLockPropertyChanged (object? sender, PropertyChangedEventArgs e) {
+        InvokeAsync (StateHasChanged);
     }
 
-    /// <summary>リクエストされたアプリモード (カスケーディングパラメータ)</summary>
-    protected AppMode _requestedAppMode { get; set; } = AppMode.None;
+    /// <summary>初期化 購読開始</summary>
+    protected override void OnInitialized () {
+        base.OnInitialized ();
+        AppLockState.PropertyChanged += OnAppLockPropertyChanged;
+    }
 
-    /// <summary>アプリモードをリクエスト</summary>
-    protected void RequestAppMode (AppMode appMode) {
-        _requestedAppMode = appMode;
+    /// <summary>購読終了</summary>
+    public void Dispose () {
+        AppLockState.PropertyChanged -= OnAppLockPropertyChanged;
     }
 }

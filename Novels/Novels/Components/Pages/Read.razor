@@ -91,7 +91,7 @@
     /// <summary>シート番号に依存した設定</summary>
     protected async Task SetSheetAsync (int index) {
         if (Book is not null) {
-            await SetBusy ();
+            SetBusy ();
             index = Book.Sheets.Count > 0 ? Math.Clamp (index, 1, Book.Sheets.Count) : 1;
             await SetCurrentBookId.InvokeAsync ((Book.Id, index));
             if (editingItem is not null) {
@@ -103,7 +103,7 @@
                 await SetSectionTitle.InvokeAsync ($"<span style=\"font-size:80%;\"><a href=\"{Sheet.Url}\" target=\"_blank\" style=\"text-decoration: none;\">『{Book.Title}』 {Book.Author}</a></span>\n{Sheet.OriginalChapterTitle} {Sheet.ChapterSubTitle}");
                 StartEdit ();
             }
-            await SetIdle ();
+            SetIdle ();
         } else {
             await SetSectionTitle.InvokeAsync ("Read");
         }

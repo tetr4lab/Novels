@@ -4,19 +4,10 @@
 
 <PageTitle>Novels</PageTitle>
 
-@switch (AppMode) {
+@switch (AppModeService.CurrentMode) {
     case AppMode.Boot:
-        if (DataSet.IsReady) {
-            SetAppMode (AppMode.Books);
-        } else {
-            <div class="mud-overlay mud-overlay-dialog mud-skip-overlay-section mud-skip-overlay-positioning">
-                <div class="mud-overlay-scrim mud-overlay-dark d-flex justify-center align-center">
-                    <MudStack>
-                        <MudProgressCircular Indeterminate="true" Rounded Size="Size.Large" Class="align-self-center" />
-                        <MudText Align="Align.Center">Loading...</MudText>
-                    </MudStack>
-                </div>
-            </div>
+        if (!UiState.IsLocked) {
+            UiState.Lock ("Loading...");
         }
         break;
     case AppMode.Books:

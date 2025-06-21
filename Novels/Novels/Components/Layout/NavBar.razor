@@ -1,4 +1,6 @@
-﻿<MudItem>
+﻿@inherits NovelsComponentBase
+
+<MudItem>
     @if (!IsHomePage) {
         <MudText Class="pr-8" Typo="Typo.h4">Novels</MudText>
     } else {
@@ -12,20 +14,20 @@
 </style>
 @if (!IsHomePage) {
     <MudItem>
-        <MudButton Disabled="@(AppMode == AppMode.Books)" OnClick="@(async () => await RequestAppMode.InvokeAsync (AppMode.Books))" StartIcon="@Icons.Material.Filled.LibraryBooks" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Books</MudText></MudButton>
+        <MudButton Disabled="@(AppModeService.CurrentMode == AppMode.Books)" OnClick="@(() => RequestMode (AppMode.Books))" StartIcon="@Icons.Material.Filled.LibraryBooks" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Books</MudText></MudButton>
     </MudItem>
 }
 <MudItem>
-    <MudButton Disabled="@(AppMode == AppMode.Publish)" OnClick="@(async () => await RequestAppMode.InvokeAsync (AppMode.Publish))" StartIcon="@Icons.Material.Filled.Sync" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Publish</MudText></MudButton>
+    <MudButton Disabled="@(AppModeService.CurrentMode == AppMode.Publish)" OnClick="@(() => RequestMode (AppMode.Publish))" StartIcon="@Icons.Material.Filled.Sync" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Publish</MudText></MudButton>
 </MudItem>
 <MudItem>
-    <MudButton Disabled="@(AppMode == AppMode.Contents)" OnClick="@(async () => await RequestAppMode.InvokeAsync (AppMode.Contents))" StartIcon="@Icons.Material.Filled.ViewHeadline" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Contents</MudText></MudButton>
+    <MudButton Disabled="@(AppModeService.CurrentMode == AppMode.Contents)" OnClick="@(() => RequestMode (AppMode.Contents))" StartIcon="@Icons.Material.Filled.ViewHeadline" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Contents</MudText></MudButton>
 </MudItem>
 <MudItem>
-    <MudButton Disabled="@(AppMode == AppMode.Read)" OnClick="@(async () => await RequestAppMode.InvokeAsync (AppMode.Read))" StartIcon="@Icons.Material.Filled.MenuBook" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Read</MudText></MudButton>
+    <MudButton Disabled="@(AppModeService.CurrentMode == AppMode.Read)" OnClick="@(() => RequestMode (AppMode.Read))" StartIcon="@Icons.Material.Filled.MenuBook" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Read</MudText></MudButton>
 </MudItem>
 <MudItem>
-    <MudButton Disabled="@(AppMode == AppMode.Settings)" OnClick="@(async () => await RequestAppMode.InvokeAsync (AppMode.Settings))" StartIcon="@Icons.Material.Filled.Settings" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Settings</MudText></MudButton>
+    <MudButton Disabled="@(AppModeService.CurrentMode == AppMode.Settings)" OnClick="@(() => RequestMode (AppMode.Settings))" StartIcon="@Icons.Material.Filled.Settings" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Settings</MudText></MudButton>
 </MudItem>
 @if (!IsHomePage) {
     <MudSpacer />
@@ -41,10 +43,10 @@
             <MudTooltip Arrow Duration="1000">
                 <ChildContent>
                     <MudTextField @bind-Value="_filterText" @ref="searchField"
-                    OnKeyUp="OnKeyUp"
-                    OnBlur="OnClick"
-                    OnAdornmentClick="OnClick" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
-                    OnClearButtonClick="OnClick" Clearable 
+                    OnKeyUp="OnKeyUpAsync"
+                    OnBlur="OnClickAsync"
+                    OnAdornmentClick="OnClickAsync" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
+                    OnClearButtonClick="OnClearAsync" Clearable 
                     Label="Search" Margin="Margin.Dense" Variant="Variant.Outlined" Underline="false" />
                 </ChildContent>
                 <TooltipContent>
@@ -76,18 +78,14 @@
 }
 
 @code {
-    /// <summary>サーチボタンが押されたときの処理</summary>
-    [Parameter] public EventCallback<string?> OnClickSearchButton { get; set; } = EventCallback<string?>.Empty;
     /// <summary>ダークモード</summary>
-    [Parameter] public bool IsDarkMode { get; set; }
+    [CascadingParameter (Name = "IsDarkMode")] public bool IsDarkMode { get; set; }
     /// <summary>モード切替ボタンが押されたときの処理</summary>
-    [Parameter] public EventCallback OnClickChangeModeButton { get; set; } = EventCallback.Empty;
+    [CascadingParameter (Name = "ChangeModeAsync")] public EventCallback OnClickChangeModeButton { get; set; } = EventCallback.Empty;
     /// <summary>検索文字列</summary>
-    [Parameter] public string FilterText { get; set; } = string.Empty;
-    /// <summary>アプリモード</summary>
-    [Parameter] public AppMode AppMode { get; set; } = AppMode.Boot;
-    /// <summary>アプリモードの要求</summary>
-    [Parameter] public EventCallback<AppMode> RequestAppMode { get; set; }
+    [CascadingParameter (Name = "Filter")] public string FilterText { get; set; } = string.Empty;
+    /// <summary>サーチボタンが押されたときの処理</summary>
+    [CascadingParameter (Name = "SetFilter")] public EventCallback<string?> OnClickSearchButton { get; set; } = EventCallback<string?>.Empty;
 
     /// <summary>検索文字列</summary>
     private string _filterText = string.Empty;
@@ -103,26 +101,47 @@
     private MudTextField<string> searchField { get; set; } = new MudTextField<string>();
 
     /// <summary>検索フィールドでキーが押された</summary>
-    protected void OnKeyUp (KeyboardEventArgs eventArgs) {
+    protected async Task OnKeyUpAsync (KeyboardEventArgs eventArgs) {
         if (eventArgs.Key == "Enter") {
-            OnClick();
+            await OnClickAsync();
         }
     }
 
     /// <summary>パラメータが更新された</summary>
     protected override void OnParametersSet () {
         base.OnParametersSet ();
-        if (_filterText != FilterText) {
+        if (!_isFilterLocked && _filterText != FilterText) {
             _filterText = FilterText;
         }
     }
 
-    /// <summary>検索ボタン(またはフィールドクリアボタン)が押された</summary>
-    public void OnClick () {
+    /// <summary>フィールドクリアボタンが押された</summary>
+    public async Task OnClearAsync () {
+        await OnSearchAsync (string.Empty);
+    }
+
+    /// <summary>検索ボタンが押された</summary>
+    public async Task OnClickAsync () {
         if (FilterText != _filterText) {
-            OnClickSearchButton.InvokeAsync(_filterText);
-            searchField.BlurAsync();
+            await OnSearchAsync (_filterText);
         }
     }
 
+    /// <summary>検索文字列の変更を実施</summary>
+    public async Task OnSearchAsync (string filter) {
+        if (_isFilterLocked) { return; }
+        _isFilterLocked = true;
+        UiState.Lock ();
+        await searchField.BlurAsync ();
+        await OnClickSearchButton.InvokeAsync (filter);
+        await TaskEx.DelayUntil (() => FilterText == filter);
+        UiState.Unlock ();
+        _isFilterLocked = false;
+    }
+    protected bool _isFilterLocked;
+
+    /// <summary>モード変更要求</summary>
+    protected void RequestMode (AppMode mode) {
+        AppModeService.RequestMode (mode);
+    }
 }

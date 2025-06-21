@@ -34,7 +34,7 @@ public partial class Publish : ItemListBase<Book> {
                 Book.ToString (),
             ], title: $"{target}の削除", position: DialogPosition.BottomCenter, acceptionLabel: complete ? "完全削除" : "シートのみ削除", acceptionColor: complete ? Color.Error : Color.Secondary, acceptionIcon: Icons.Material.Filled.Delete);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
-                await SetBusy ();
+                SetBusy ();
                 if (complete) {
                     var result = await DataSet.RemoveAsync (Book);
                     if (result.IsSuccess) {
@@ -52,13 +52,12 @@ public partial class Publish : ItemListBase<Book> {
                         // 元リストは要素が削除されるので複製でループする
                         var sheets = new List<Sheet> (Book.Sheets);
                         var success = 0;
-                        OverlayMax = sheets.Count;
-                        OverlayValue = 0;
+                        var count = 0;
+                        UiState.Lock (sheets.Count);
                         foreach (var sheet in sheets) {
+                            UiState.UpdateProgress (++count);
                             if ((await DataSet.RemoveAsync (sheet)).IsSuccess) {
                                 success++;
-                                OverlayValue++;
-                                StateHasChanged ();
                             }
                         }
                         await ReLoadAsync ();
@@ -73,7 +72,7 @@ public partial class Publish : ItemListBase<Book> {
                         Snackbar.Add ($"Exception: {e.Message}", Severity.Error);
                     }
                 }
-                await SetIdle ();
+                SetIdle ();
             }
         }
     }
@@ -87,14 +86,14 @@ public partial class Publish : ItemListBase<Book> {
             var dialogResult = await DialogService.Confirmation ([$"『{Book.Title}』の{target}を{Book.Site}から{operation}します。", withSheets ? $"{Book.TableLabel}と{Sheet.TableLabel}全てを更新します。" : $"{Book.TableLabel}のみを更新し、{Sheet.TableLabel}は更新しません。"], title: $"{target}の{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: withSheets ? Color.Success : Color.Primary, acceptionIcon: Icons.Material.Filled.Download);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 // オーバーレイ
-                await SetBusy ();
+                SetBusy ();
                 Snackbar.Add ($"{target}の{operation}を開始しました。", Severity.Normal);
                 if (await UpdateBookFromSiteAsync (withSheets)) {
                     Snackbar.Add ($"{target}を{operation}しました。", Severity.Normal);
                 } else {
                     Snackbar.Add ($"{target}の{operation}に失敗しました。", Severity.Error);
                 }
-                await SetIdle ();
+                SetIdle ();
             } else {
                 return false;
             }
@@ -111,9 +110,9 @@ public partial class Publish : ItemListBase<Book> {
                 $"『{Book.MainTitle}.epub』を{(publish ? $"<{DataSet.Setting.SmtpMailto}>へ発行": "生成してダウンロード")}します。",
             ], title: $"『{Book.MainTitle}.epub』{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: publish ? Color.Success : Color.Primary, acceptionIcon: publish ? Icons.Material.Filled.Publish : Icons.Material.Filled.FileDownload);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
-                await SetBusy ();
+                SetBusy ();
                 await PublishBookAsync (Book, publish);
-                await SetIdle ();
+                SetIdle ();
             } else {
                 return false;
             }
@@ -126,10 +125,10 @@ public partial class Publish : ItemListBase<Book> {
         if (Book is not null && Book.Released && !IsDirty) {
             var dialogResult = await DialogService.Confirmation ([$"{Book.TableLabel}の発行記録を抹消します。",], title: $"発行抹消", position: DialogPosition.BottomCenter, acceptionLabel: "抹消", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
-                await SetBusy ();
+                SetBusy ();
                 Book.NumberOfPublished = null;
                 Book.PublishedAt = null;
-                await SetIdle ();
+                SetIdle ();
                 Snackbar.Add ($"{Book.TableLabel}の発行記録を抹消しました。", Severity.Normal);
                 if ((await UpdateBookAsync (Book)).IsFailure) {
                     Snackbar.Add ($"{Book.TableLabel}の保存に失敗しました。", Severity.Normal);
@@ -144,11 +143,18 @@ public partial class Publish : ItemListBase<Book> {
     /// <summary>取得・更新</summary>
     protected async Task<bool> UpdateBookFromSiteAsync (bool withSheets) {
         if (Book is not null) {
-            var result = await DataSet.UpdateBookFromSiteAsync (HttpClient, Book.Url, UserIdentifier, withSheets, (value, max) => { OverlayValue = value; OverlayMax = max; StateHasChanged (); });
+            var result = await DataSet.UpdateBookFromSiteAsync (HttpClient, Book.Url, UserIdentifier, withSheets, 
+                (value, max) => {
+                    if (value == 0) {
+                        UiState.Lock (max);
+                    } else {
+                        UiState.UpdateProgress (value);
+                    }
+                });
             foreach (var issue in result.Value.issues) {
                 Snackbar.Add (issue, Severity.Error);
             }
-            OverlayValue = -1;
+            UiState.Unlock ();
             if (result.IsSuccess) {
                 if (Book.Id != result.Value.book.Id) { throw new InvalidOperationException ($"id mismatch {Book.Id} -> {result.Value.book.Id}"); }
                 await ReLoadAsync ();

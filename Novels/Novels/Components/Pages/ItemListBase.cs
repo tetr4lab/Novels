@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.ComponentModel;
+using System.Net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -23,11 +24,6 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     [Inject] protected ISnackbar Snackbar { get; set; } = null!;
     [Inject] protected IAuthorizationService AuthorizationService { get; set; } = null!;
 
-    /// <summary>アプリモード要求</summary>
-    [CascadingParameter (Name = "RequestedAppMode")] protected AppMode RequestedAppMode { get; set; } = AppMode.None;
-    /// <summary>アプリモードの要求</summary>
-    [CascadingParameter (Name = "RequestAppMode")] public EventCallback<AppMode> RequestAppMode { get; set; }
-
     /// <summary>項目一覧</summary>
     protected List<T>? items => DataSet.IsReady ? DataSet.GetList<T> () : null;
 
@@ -43,7 +39,7 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     /// <summary>DataSetの再読み込み</summary>
     [Parameter] public EventCallback ReLoadAsync { get; set; }
 
-    /// <inheritdoc/>
+    /// <summary>初期化</summary>
     protected override async Task OnInitializedAsync () {
         await base.OnInitializedAsync ();
         await SetSectionTitle.InvokeAsync ($"{typeof (T).Name}s");
@@ -53,8 +49,26 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
         }
     }
 
+    /// <summary>遅延初期化</summary>
+    protected override async Task OnAfterRenderAsync (bool firstRender) {
+        await base.OnAfterRenderAsync (firstRender);
+        if (firstRender) {
+            _firstRendered = true;
+        }
+        if (_firstRendered) {
+            /// 初期アンロック
+            if (!_initialUnlocked && UiState.IsLocked && items?.Count > 0) {
+                _initialUnlocked = true;
+                UiState.Unlock ();
+            }
+        }
+    }
+    protected bool _firstRendered;
+    protected bool _initialUnlocked;
+
     /// <summary>破棄</summary>
-    public void Dispose () {
+    public override void Dispose () {
+        base.Dispose ();
         if (editingItem != null) {
             Cancel (editingItem);
         }
@@ -76,28 +90,6 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
             // 反映を待機(セットが完了しても子孫要素に伝播するのに間がある)
             await TaskEx.DelayUntil (() => CurrentBookId == book.Id);
         }
-    }
-
-    /// <summary>オーバーレイの進行</summary>
-    protected int OverlayValue = -1;
-
-    /// <summary>オーバーレイの進行の最大値</summary>
-    protected int OverlayMax = 0;
-
-    /// <summary>排他制御兼オーバーレイの表示</summary>
-    protected bool _busy { get; set; }
-
-    /// <summary>状態の変化</summary>
-    protected async Task SetBusy () {
-        _busy = true;
-        await StateHasChangedAsync ();
-    }
-
-    /// <summary>状態の変化</summary>
-    protected async Task SetIdle () {
-        _busy = false;
-        OverlayValue = -1;
-        await StateHasChangedAsync ();
     }
 
     /// <summary>テーブル</summary>
@@ -282,35 +274,30 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
         }
     }
 
-    /// <summary>パラメータが設定された</summary>
-    protected override async Task OnParametersSetAsync () {
-        await base.OnParametersSetAsync ();
-        if (_lastRequestedAppMode != RequestedAppMode) {
+    /// <summary>アプリモードが変化した</summary>
+    protected override async void OnAppModeChanged (object? sender, PropertyChangedEventArgs e) {
+        if (e.PropertyName == "RequestedMode") {
             // アプリモード遷移の要求があった
-            _lastRequestedAppMode = RequestedAppMode;
-            if (RequestedAppMode != AppMode.None) {
-                if (RequestedAppMode != AppMode) {
-                    await SetAppMode (RequestedAppMode);
+            if (AppModeService.RequestedMode != AppMode.None) {
+                if (AppModeService.RequestedMode != AppModeService.CurrentMode) {
+                    await SetAppMode (AppModeService.RequestedMode);
                 }
-                await RequestAppMode.InvokeAsync (AppMode.None);
+                AppModeService.RequestMode (AppMode.None);
             }
         }
     }
-    protected AppMode _lastRequestedAppMode = AppMode.None;
 
     /// <summary>アプリモード遷移実施</summary>
     protected virtual async Task SetAppMode (AppMode appMode) {
-        if (AppMode != appMode && await ConfirmCancelEditAsync ()) {
-            await SetBusy ();
+        if (AppModeService.CurrentMode != appMode && await ConfirmCancelEditAsync ()) {
+            SetBusy ();
             if (DataSet.CurrentBookId != CurrentBookId) {
                 // 遅延読み込み
                 await DataSet.SetCurrentBookIdAsync (CurrentBookId);
             }
-            await _setAppMode.InvokeAsync (appMode);
-            await TaskEx.DelayUntil (() => AppMode == RequestedAppMode);
-            await SetIdle ();
+            AppModeService.SetMode (appMode);
+            SetIdle ();
         }
-        StateHasChanged ();
     }
 
     /// <summary>編集内容破棄の確認</summary>
@@ -340,10 +327,10 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     /// <summary>保存</summary>
     protected async Task SaveAsync () {
         if (editingItem is not null) {
-            await SetBusy ();
+            SetBusy ();
             await Commit (editingItem);
             StartEdit ();
-            await SetIdle ();
+            SetIdle ();
         }
     }
 

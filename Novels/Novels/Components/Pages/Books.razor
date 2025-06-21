@@ -157,7 +157,6 @@
         </MudTooltip>
     </MudAppBar>
 }
-<NovelsOverlay IsOverlayed="_busy" OverlayValue="OverlayValue" OverlayMin="0" OverlayMax="OverlayMax" />
 
 @code {
     /// <inheritdoc/>
@@ -192,43 +191,43 @@
 
     /// <summary>フィルター設定</summary>
     protected async Task SetFilter (string filter) {
-        await SetBusy ();
+        SetBusy ();
         await SetFilterText.InvokeAsync (filter);
         await TaskEx.DelayUntil (() => FilterText == filter);
         if (filter == string.Empty) {
             TurnSelectedItemsPage ();
         }
-        await SetIdle ();
+        SetIdle ();
     }
 
     /// <summary>Urlを開く</summary>
     protected async Task OpenUrl (Book book) {
-        await SetBusy ();
+        SetBusy ();
         await JSRuntime.OpenUrl (book.Url);
         await ChangeCurrentBookAsync (book);
-        await SetIdle ();
+        SetIdle ();
     }
 
     protected async Task Settings () {
-        await SetBusy ();
+        SetBusy ();
         await SetAppMode (AppMode.Settings);
-        await SetIdle ();
+        SetIdle ();
     }
 
     /// <summary>書籍を発行</summary>
     protected async Task PublishBook (Book book) {
-        await SetBusy ();
+        SetBusy ();
         await ChangeCurrentBookAsync (book);
         await SetAppMode (AppMode.Publish);
-        await SetIdle ();
+        SetIdle ();
     }
 
     /// <summary>書籍を開く</summary>
     protected async Task OpenBook (Book book) {
-        await SetBusy ();
+        SetBusy ();
         await ChangeCurrentBookAsync (book);
         await SetAppMode (AppMode.Contents);
-        await SetIdle ();
+        SetIdle ();
     }
 
     /// <summary>書籍を追加する</summary>
@@ -253,8 +252,7 @@
                     return;
                 }
                 // オーバーレイ
-                await SetBusy ();
-                StateHasChanged ();
+                SetBusy ();
                 // 入力されたurlからあたらしいBookに情報を取得、DBへ追加・選択する
                 var result = await DataSet.UpdateBookFromSiteAsync (HttpClient, newUrl, UserIdentifier);
                 foreach (var issue in result.Value.issues) {
@@ -275,7 +273,7 @@
             Snackbar.Add ($"Exception: {ex.Message}", Severity.Error);
         }
         finally {
-            await SetIdle ();
+            SetIdle ();
         }
     }
 

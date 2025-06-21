@@ -4,6 +4,7 @@ using MudBlazor.Services;
 using PetaPoco;
 using Novels.Client.Pages;
 using Novels.Components;
+using Novels.Components.Pages;
 using Novels.Services;
 using Tetr4lab;
 using System.Globalization;
@@ -48,6 +49,12 @@ await builder.Services.AddAuthorizationAsync (
 // ページにカスケーディングパラメータ`Task<AuthenticationState>`を提供
 builder.Services.AddCascadingAuthenticationState ();
 #endif
+
+// UIロック状態
+builder.Services.AddScoped<IAppLockState, AppLockState> ();
+
+// アプリモード
+builder.Services.AddScoped<IAppModeService<AppMode>, AppModeService<AppMode>> ();
 
 // 回路の閉鎖を検出するCircuitHandlerをセッション毎に使う
 builder.Services.AddScoped<CircuitHandler, CircuitClosureDetector> ();

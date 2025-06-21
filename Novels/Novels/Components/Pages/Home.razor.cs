@@ -9,9 +9,6 @@ namespace Novels.Components.Pages;
 
 public partial class Home : NovelsPageBase {
 
-    /// <summary>アプリモードの変更</summary>
-    protected async void SetAppMode (AppMode appMode) => await _setAppMode.InvokeAsync (appMode);
-
     /// <summary>パラメータの更新があった</summary>
     protected override async Task OnParametersSetAsync () {
         await base.OnParametersSetAsync ();
@@ -37,13 +34,6 @@ public partial class Home : NovelsPageBase {
     }
 
     /// <inheritdoc/>
-    protected override async Task OnInitializedAsync () {
-        await base.OnInitializedAsync ();
-        // 認証・認可
-        Identity = await AuthState.GetIdentityAsync ();
-    }
-
-    /// <inheritdoc/>
     protected override async Task OnAfterRenderAsync (bool firstRender) {
         await base.OnAfterRenderAsync (firstRender);
         if (firstRender && !DataSet.IsInitialized && !DataSet.IsInitializeStarted) {
@@ -54,6 +44,8 @@ public partial class Home : NovelsPageBase {
                     // シートの読み込みを促す
                     await SetCurrentBookId.InvokeAsync ((DataSet.CurrentBookId, CurrentSheetIndex));
                 }
+                await TaskEx.DelayUntil (() => DataSet.IsReady);
+                AppModeService.SetMode (AppMode.Books);
             }
             catch (Exception ex) {
                 System.Diagnostics.Debug.WriteLine (ex);

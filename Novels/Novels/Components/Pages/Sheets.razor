@@ -137,6 +137,7 @@
         if (Book is not null && items is not null) {
             var index = items.IndexOf (context) + 1;
             await SetCurrentBookId.InvokeAsync ((CurrentBookId, index));
+            await TaskEx.DelayUntil (() => CurrentSheetIndex == index);
             await SetAppMode (AppMode.Read);
         }
     }
