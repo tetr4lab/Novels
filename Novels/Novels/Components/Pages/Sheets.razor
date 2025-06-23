@@ -8,113 +8,108 @@
 } else if (items is null || Book is null || !DataSet.IsReady) {
     <MudProgressCircular Indeterminate="true" />
 } else {
-    @if (!string.IsNullOrEmpty (Book.Explanation)) {
-        <MudPaper Class="ma-4 pa-2" Elevation="2">
+    if (!string.IsNullOrEmpty (Book.Explanation)) {
+        <MudPaper Class="ma-4 pa-2" Elevation="2" Style="max-height: 12em; overflow-y: auto;">
             <MudText Typo="Typo.caption">@((MarkupString) Book.Explanation)</MudText>
         </MudPaper>
     }
     if (items.Count > 0) {
-        <style>
-            th.mud-table-cell, td.mud-table-cell {
-                padding-inline: 0.1em !important;
-            }
-        </style>
-        <MudTable Items="items" Dense Breakpoint="Breakpoint.Xs" @ref="_table"
-        Filter="new Func<Sheet, bool> (FilterFunc)"
-        SortLabel="⇅"
-        AllowUnsorted="true"
-        @bind-SelectedItem="selectedItem"
-        @bind-CurrentPage="CurrentPage"
-        FooterClass="mud-background-gray"
-        Hover="true"
-        OnRowClick="EventCallback.Factory.Create<TableRowClickEventArgs<Sheet>> (this, OnRowClickAsync)"
-        RowsPerPage="DefaultRowsPerPage"
-        Striped="true"
-        ReadOnly="false">
-            <HeaderContent>
-                <MudTh Class="align-middle">
-                    <MudTooltip Text="@($"{Book.Label [nameof (Data.Book.Bookmark)]}へ着目")" Arrow Duration="1000">
-                        <MudIconButton Disabled="_busy" OnClick="ChangeMarkedPageAsync" Icon="@Icons.Material.Filled.BookmarkAdded" Size="Size.Small" />
-                    </MudTooltip>
-                </MudTh>
-                <MudTh>@(Sheet.Label [nameof (Sheet.NovelNumber)])</MudTh>
-                <MudTh>@(Sheet.Label [nameof (Sheet.ChapterTitle)])</MudTh>
+        var explanationSize = string.IsNullOrEmpty (Book.Explanation) ? 0 : Book.Explanation.Length - Book.Explanation.Replace ("<" , "").Length;
+        <MudDataGrid T="Sheet" Items="items" ReadOnly="false" Dense Hover Elevation="0" Breakpoint="Breakpoint.Xs" @ref="_dataGrid"
+            SortMode="SortMode.None" ColumnResizeMode="ResizeMode.Column" FixedHeader Virtualize
+            QuickFilter="FilterFunc" RowClick="OnRowClickAsync"
+            Height="calc(100vh - var(--mud-appbar-height) * 2 - 17em)"
+            Groupable GroupExpanded GroupClass="d-none"
+        >
+            <Columns>
+                <TemplateColumn HeaderClass="px-1" CellClass="py-1 pl-0 pr-1" HeaderStyle="width:1em;">
+                    <HeaderTemplate>
+                        <MudTooltip Text="@($"{Book.Label [nameof (Data.Book.Bookmark)]}へ着目")" Arrow Duration="1000">
+                            <MudIconButton OnClick="ScrollToMarkedAsync" Icon="@Icons.Material.Filled.BookmarkAdded" Size="Size.Small" />
+                        </MudTooltip>
+                    </HeaderTemplate>
+                    <CellTemplate>
+                        @{ var marked = Book.Bookmark == context.Item.Id; }
+                        <MudIconButton OnClick="@(async () => await ChangeBookmarkAsync (context.Item.Id))" Icon="@(marked ? Icons.Material.Filled.Bookmark : Icons.Material.Filled.BookmarkBorder)" Size="Size.Small" />
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn HeaderClass="px-1" CellClass="py-1 pl-0 pr-1" HeaderStyle="width:3.8em;" CellStyle="text-align:right;">
+                    <HeaderTemplate>
+                        <MudTooltip Text="@($"着目中の{Sheet.TableLabel}へ")" Arrow Duration="1000">
+                            <MudLink OnClick="ScrollToCurrent" Color="Color.Inherit" Underline="Underline.None">@(Sheet.Label [nameof (Sheet.NovelNumber)])</MudLink>
+                        </MudTooltip>
+                    </HeaderTemplate>
+                    <CellTemplate>
+                        <MudStack Row Spacing="0" Class="align-center">
+                            @if (items is not null && items.IndexOf (context.Item) + 1 == CurrentSheetIndex) {
+                                <MudTooltip Text="@($"着目中の{Sheet.TableLabel}")" Arrow Duration="1000">
+                                    <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" />
+                                </MudTooltip>
+                            }
+                            <MudSpacer />
+                            <MudLink Href="@context.Item.Url" Target="_blank" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">
+                                @(context.Item.NovelNumber)
+                            </MudLink>
+                        </MudStack>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1" HeaderStyle="max-width:10em;" CellStyle="min-width:10em;" Title="@(Sheet.Label [nameof (Sheet.ChapterTitle)])">
+                    <CellTemplate>@(context.Item.ChapterTitle)</CellTemplate>
+                </TemplateColumn>
                 @if (Book.HasChapterSubTitle) {
-                    <MudTh>@(Sheet.Label [nameof (Sheet.ChapterSubTitle)])</MudTh>
+                    <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1" HeaderStyle="max-width:10em;" CellStyle="min-width:10em;" Title="@(Sheet.Label [nameof (Sheet.ChapterSubTitle)])">
+                        <CellTemplate>@(context.Item.ChapterSubTitle)</CellTemplate>
+                    </TemplateColumn>
                 }
-                <MudTh>
-                    <MudStack Row Spacing="0" Class="align-center">
-                        <MudIcon Icon="" />
-                        <MudText Typo="Typo.inherit">@(Sheet.Label [nameof (Sheet.SheetTitle)])</MudText>
-                    </MudStack>
-                </MudTh>
-                <MudTh>@(Sheet.Label [nameof (Sheet.SheetUpdatedAt)])</MudTh>
-                <MudTh>@(Sheet.Label [nameof (Sheet.Remarks)])</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd DataLabel="@(Book.Label[nameof(Data.Book.Bookmark)])" Class="align-middle">
+                <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1" HeaderStyle="max-width: 10em;" CellStyle="min-width:10em;" Title="@(Sheet.Label[nameof(Sheet.SheetTitle)])">
+                    <CellTemplate>
+                        <MudStack Row Spacing="0" Class="align-center">
+                            <MudIconButton OnClick="@(async () => await ReadSheetAsync (context.Item))" Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" />
+                            <MudText Typo="Typo.inherit">@(context.Item.SheetTitle)</MudText>
+                        </MudStack>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 text-nowrap" HeaderStyle="width: 2em;" Title="@(Sheet.Label[nameof(Sheet.SheetUpdatedAt)])">
+                    <CellTemplate>
                     @{
-                        var marked = Book.Bookmark == context.Id;
-                    }
-                    <MudIconButton Disabled="_busy" OnClick="@(async () => await ChangeBookmarkAsync (context.Id))" Icon="@(marked ? Icons.Material.Filled.Bookmark : Icons.Material.Filled.BookmarkBorder)" Size="Size.Small" />
-                </MudTd>
-                <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.NovelNumber)])" Class="align-right text-nowrap" Style="padding-inline-end: 0.8em !important;">
-                    <MudStack Row Spacing="0" Class="align-center">
-                        @if (items is not null && items.IndexOf (context) + 1 == CurrentSheetIndex) {
-                            <MudTooltip Text="@($"着目中の{Sheet.TableLabel}")" Arrow Duration="1000">
-                                <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" />
-                            </MudTooltip>
-                        }
-                        <MudSpacer />
-                        <MudLink Href="@context.Url" Target="_blank" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">
-                            @(context.NovelNumber)
-                        </MudLink>
-                    </MudStack>
-                </MudTd>
-                <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.ChapterTitle)])">@(context.ChapterTitle)</MudTd>
-                @if (Book.HasChapterSubTitle) {
-                    <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.ChapterSubTitle)])">@(context.ChapterSubTitle)</MudTd>
-                }
-                <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.SheetTitle)])">
-                    <MudStack Row Spacing="0" Class="align-center">
-                        <MudIconButton Disabled="_busy" OnClick="@(async () => await ReadSheetAsync (context))" Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" />
-                        <MudText Typo="Typo.inherit">@(context.SheetTitle)</MudText>
-                    </MudStack>
-                </MudTd>
-                <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.SheetUpdatedAt)])">
-                    @{
-                        var index = items.IndexOf (context);
+                        var index = items.IndexOf (context.Item);
                         var dateTime = index >= 0 && Book.SheetUpdateDates.Count > 0 ? Book.SheetUpdateDates [index] : DateTime.MinValue;
                     }
-                    <MudText Typo="Typo.inherit" Color="@(dateTime > context.SheetUpdatedAt ? Color.Warning : Color.Inherit)">
+                    <MudText Typo="Typo.inherit" Color="@(dateTime > context.Item.SheetUpdatedAt ? Color.Warning : Color.Inherit)">
                         <MudTooltip Text="@(dateTime == DateTime.MinValue ? "" : $"最終更新: {dateTime.ToString ("yyyy/MM/dd HH:mm")}")" Duration="1000">
-                            @(context.SheetUpdatedAt?.ToString ("yyyy/MM/dd HH:mm"))
+                            @(context.Item.SheetUpdatedAt?.ToString ("yyyy/MM/dd HH:mm"))
                         </MudTooltip>
                     </MudText>
-                </MudTd>
-                <MudTd DataLabel="@(Sheet.Label[nameof(Sheet.Remarks)])">@context.Remarks</MudTd>
-            </RowTemplate>
-            <PagerContent>
-                @if (AllowPaging) {
-                    <MudTablePager PageSizeOptions="_pageSizeOptions" InfoFormat="{first_item}-{last_item} / {all_items}" RowsPerPageString="行/頁:" />
-                }
-            </PagerContent>
-        </MudTable>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn HeaderClass="pr-0" CellClass="py-1 pl-0 pr-4 overflow-hidden text-nowrap" HeaderStyle="width:2em;" CellStyle="max-width: 2em; text-overflow: ellipsis;" Title="@(Sheet.Label [nameof (Sheet.Remarks)])">
+                    <CellTemplate>
+                        <MudTooltip Text="@(context.Item.Remarks)" Placement="Placement.Left" Arrow Duration="1000" Delay="1000">
+                            @context.Item.Remarks
+                        </MudTooltip>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+        </MudDataGrid>
         <MudText Typo="Typo.caption">@(Book.Label [nameof (Book.LastUpdate)]): @(Book.LastUpdate.ToString ("yyyy/MM/dd HH:mm"))</MudText>
     } else {
         <MudText>No items found.</MudText>
     }
+    <MudAppBar Class="backdrop-blur pb-2" Color="Color.Transparent" Dense Bottom="true" Fixed="true">
+        <MudSpacer />
+        <MudTooltip Text="上端へ" Arrow Duration="1000">
+            <MudFab Disabled="_busy" OnClick="ScrollToTopAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.VerticalAlignTop" Class="mr-2" />
+        </MudTooltip>
+        <MudTooltip Text="下端へ" Arrow Duration="1000">
+            <MudFab Disabled="_busy" OnClick="ScrollToBottomAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.VerticalAlignBottom" Class="mr-2" />
+        </MudTooltip>
+        <MudSpacer />
+    </MudAppBar>
 }
 
 @code {
-    /// <inheritdoc/>
-    protected override int _initialPageSizeIndex => 1;
-
-    /// <summary>表示ページ</summary>
-    protected int CurrentPage { get; set; } = 0;
-
     /// <summary>行がクリックされた</summary>
-    protected async Task OnRowClickAsync (TableRowClickEventArgs<Sheet> context) {
+    protected async Task OnRowClickAsync (DataGridRowClickEventArgs<Sheet> context) {
         if (context.Item is Sheet sheet) {
             await ChangeCurrentSheetAsync (sheet);
         }
@@ -159,18 +154,13 @@
         }
     }
 
-    /// <summary>栞のページへ</summary>
-    protected async Task ChangeMarkedPageAsync () {
-        if (_table is not null && items is not null && Book?.Bookmark is not null && string.IsNullOrEmpty (FilterText)) {
+    /// <summary>栞へ</summary>
+    protected async Task ScrollToMarkedAsync () {
+        if (items is not null && Book?.Bookmark is not null && string.IsNullOrEmpty (FilterText)) {
             var markedItem = items.Find (s => s.Id == Book.Bookmark);
             if (markedItem is not null) {
-                var markedIndex = items.IndexOf (markedItem);
-                var currentPage = markedIndex / _table.RowsPerPage;
-                if (currentPage != CurrentPage) {
-                    CurrentPage = currentPage;
-                    StateHasChanged ();
-                }
                 await ChangeCurrentSheetAsync (markedItem);
+                await ScrollToCurrentAsync ();
             }
         }
     }
@@ -190,15 +180,7 @@
             if (CurrentSheetIndex >= 1 && CurrentSheetIndex <= items.Count) {
                 selectedItem = items [CurrentSheetIndex - 1];
             }
-            if (_table is not null && string.IsNullOrEmpty (FilterText)) {
-                // 絞り込みがなければ、選択されているシートがあるページへ
-                var currentIndex = items.IndexOf (selectedItem);
-                var currentPage = currentIndex / _table.RowsPerPage;
-                if (currentPage != CurrentPage) {
-                    CurrentPage = currentPage;
-                    StateHasChanged ();
-                }
-            }
+            await ScrollToCurrentAsync ();
         }
     }
     protected bool _inited = false;

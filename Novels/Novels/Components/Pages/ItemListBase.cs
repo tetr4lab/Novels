@@ -95,20 +95,8 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
         }
     }
 
-    /// <summary>テーブル</summary>
-    protected MudTable<T>? _table;
-
     /// <summary>データグリッド</summary>
     protected MudDataGrid<T>? _dataGrid;
-
-    /// <summary>初期項目数のインデックス</summary>
-    protected virtual int _initialPageSizeIndex => 6;
-
-    /// <summary>項目数の選択肢</summary>
-    protected virtual int [] _pageSizeOptions { get; } = { 10, 20, 30, 50, 100, 200, MaxListingNumber, };
-
-    /// <summary>初期の項目数</summary>
-    protected virtual int DefaultRowsPerPage => AllowPaging ? _pageSizeOptions [_initialPageSizeIndex] : int.MaxValue;
 
     /// <summary>バックアップ</summary>
     protected virtual T backupedItem { get; set; }  = new ();
@@ -190,21 +178,29 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
         //await ScrollManager.ScrollIntoViewAsync ($"a#{typeof (T).Name}-{focusedId}", ScrollBehavior.Auto);
         if (items is not null) {
             var index = 0;
-            var rowHeight = 0;
+            var rowHeight = 0.0;
+            var viewportHeightRatio = 0.0;
             if (typeof (T) == typeof (Book)) {
                 var list = string.IsNullOrEmpty (FilterText) || _dataGrid is null ? items : _dataGrid.FilteredItems.ToList ();
                 index = list.FindIndex (x => x.Id == focusedId);
                 rowHeight = 41; // 書誌の行高
+                viewportHeightRatio = 2.5; // 表の中程と画面高さの比率
             } else if (typeof (T) == typeof (Sheet)) {
-                index = CurrentSheetIndex;
-                rowHeight = 39; // シートの行高
+                index = CurrentSheetIndex - 1;
+                rowHeight = 35; // シートの行高
+                viewportHeightRatio = 3.1; // 表の中程と画面高さの比率
             } else {
                 return;
             }
             var viewSize = await BrowserViewportService.GetCurrentBrowserWindowSizeAsync ();
-            var offset = rowHeight * index - viewSize.Height / 2.5; // 表の中程へ持ってくるオフセット
+            var offset = rowHeight * index - viewSize.Height / viewportHeightRatio;
             await ScrollManager.ScrollToAsync (".mud-table-container", 0, (int) (offset < 0d ? 0d : offset), ScrollBehavior.Auto);
         }
+    }
+
+    /// <summary>着目へ</summary>
+    protected async Task ScrollToCurrent () {
+        await ScrollToCurrentAsync ();
     }
 
     /// <summary>リストの上端へスクロール</summary>
@@ -220,19 +216,8 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     /// <summary>リロードして元の位置へ戻る</summary>
     protected virtual async Task ReloadAndFocus (long focusedId, bool editing = false) {
         await DataSet.LoadAsync ();
-        await StateHasChangedAsync ();
-        if (items != null && _table != null) {
-            var focused = items.Find (i => i.Id == focusedId);
-            if (focused != null) {
-                if (editing) {
-                    _table.SetEditingItem (focused);
-                    Edit (focused);
-                } else {
-                    _table.SetSelectedItem (focused);
-                }
-            }
-            await ScrollToCurrentAsync (focusedId);
-        }
+        //await StateHasChangedAsync ();
+        await ScrollToCurrentAsync (focusedId);
     }
 
     /// <summary>新規生成用の新規アイテム生成</summary>
@@ -246,11 +231,9 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     /// <param name="obj"></param>
     protected virtual async Task DeleteItem (object obj) {
         var item = GetT (obj);
-        if (_table == null) { return; }
         // 確認ダイアログ
         var dialogResult = await DialogService.Confirmation ([$"以下の{T.TableLabel}を完全に削除します。", item.ToString ()], title: $"{T.TableLabel}削除", position: DialogPosition.BottomCenter, acceptionLabel: "Delete", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
         if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
-            _table.SetEditingItem (null);
             var result = await DataSet.RemoveAsync (item);
             if (result.IsSuccess) {
                 StateHasChanged ();

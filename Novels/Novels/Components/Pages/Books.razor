@@ -182,11 +182,6 @@
         }
     }
 
-    /// <summary>着目へ</summary>
-    protected async Task ScrollToCurrent () {
-        await ScrollToCurrentAsync ();
-    }
-
     /// <summary>フィルター切り替え (トライステート)</summary>
     protected async Task ChangeFilter (string on, string off) {
         var newText = FilterText == on ? off : FilterText == off ? "" : on;

@@ -15,9 +15,6 @@ namespace Novels.Components.Pages;
 
 public partial class Publish : ItemListBase<Book> {
 
-    /// <inheritdoc/>
-    protected override int _initialPageSizeIndex => 1;
-
     /// <summary>–³Œø‚ÈURI</summary>
     protected bool IsInvalidUri (string? url) => !Uri.IsWellFormedUriString (url, UriKind.Absolute);
 
