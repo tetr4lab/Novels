@@ -42,8 +42,20 @@
                 </TemplateColumn>
                 <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1" HeaderStyle="width:2em;" CellStyle="text-align: center;" Title="@(Book.Label [nameof (Book.Status)])">
                     <CellTemplate>
-                        <MudTooltip Text="@($"{(context.Item.Readed ? "既読" : (context.Item.Released || context.Item.NumberOfPublished > 0 || context.Item.PublishedAt is not null) ? "未読" : "未発行")}{(context.Item.Wish ? "、好評" : "")}")" Arrow Duration="1000">
-                            <MudChip T="string" Color="@(context.Item.StatusBgColor)" Style="width: 6em" Label="true" Size="Size.Small" Variant="Variant.Outlined">@(context.Item.Status.ToJString ())</MudChip>
+                        <MudTooltip Style="text-align: left;" Arrow Duration="1000" Delay="500">
+                            <TooltipContent>
+                                <p>@($"{(context.Item.Readed ? "既読" : (context.Item.Released || context.Item.NumberOfPublished > 0 || context.Item.PublishedAt is not null) ? "未読" : "未発行")}{(context.Item.Wish ? "、好評" : "")}")</p>
+                                <p>&nbsp;</p>
+                                <p>著書</p>
+                                <p>@((MarkupString) string.Join ("</p><p>", items.FindAll (item => item.Author == context.Item.Author).ConvertAll (book => $"『{book.Title}』")))</p>
+                                @if (!string.IsNullOrEmpty (context.Item.SeriesTitle)) {
+                                    <p>@(Book.Label [nameof (Book.SeriesTitle)])</p>
+                                    <p>@((MarkupString) string.Join ("</p><p>", items.FindAll (item => item.SeriesTitle == context.Item.SeriesTitle).ConvertAll (book => $"『{book.Title}』")))</p>
+                                }
+                            </TooltipContent>
+                            <ChildContent>
+                                <MudChip T="string" Color="@(context.Item.StatusBgColor)" Style="width: 6em" Label="true" Size="Size.Small" Variant="Variant.Outlined">@(context.Item.Status.ToJString ())</MudChip>
+                            </ChildContent>
                         </MudTooltip>
                     </CellTemplate>
                 </TemplateColumn>
@@ -52,20 +64,14 @@
                 </TemplateColumn>
                 <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" CellStyle="max-width: 5em; text-overflow: ellipsis;" Title="@(Book.Label [nameof (Book.Author)])">
                     <CellTemplate>
-                        @{  
-                            var author = context.Item.Author.Replace (' ', '\u2423');
-                            var titles = $"「{author}」で絞り込み\n" + string.Join ('\n', items.FindAll (item => item.Author == context.Item.Author).ConvertAll (book => $"『{book.Title}』"));
-                        }
-                        <MudLink Disabled="_busy" OnClick="@(async () => await ChangeFilter (author, context.Item))" title="@titles" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Item.Author)</MudLink>
+                        @{ var author = context.Item.Author.Replace (' ', '\u2423'); }
+                        <MudLink Disabled="_busy" OnClick="@(async () => await ChangeFilter (author, context.Item))" title="@($"「{author}」で絞り込み")" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Item.Author)</MudLink>
                     </CellTemplate>
                 </TemplateColumn>
                 <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" CellStyle="max-width: 8em; text-overflow: ellipsis;" Title="@(Book.Label [nameof (Book.SeriesTitle)])">
                     <CellTemplate>
-                        @{
-                            var series = context.Item.SeriesTitle.Replace (' ', '\u2423');
-                            var titles = $"「{series}」で絞り込み\n" + string.Join ('\n', items.FindAll (item => item.SeriesTitle == context.Item.SeriesTitle).ConvertAll (book => $"『{book.Title}』"));
-                        }
-                        <MudLink Disabled="_busy" OnClick="@(async () => await ChangeFilter (series, context.Item))" title="@titles" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Item.SeriesTitle)</MudLink>
+                        @{ var series = context.Item.SeriesTitle.Replace (' ', '\u2423'); }
+                        <MudLink Disabled="_busy" OnClick="@(async () => await ChangeFilter (series, context.Item))" title="@($"「{series}」で絞り込み")" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Item.SeriesTitle)</MudLink>
                     </CellTemplate>
                 </TemplateColumn>
                 <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" HeaderStyle="width:2em;" CellStyle="text-align: center; max-width: 6em; text-overflow: ellipsis;" Title="@(Book.Label [nameof (Book.Site)])">
@@ -77,7 +83,7 @@
                 </TemplateColumn>
                 <TemplateColumn HeaderClass="pr-0" CellClass="py-1 pr-4" HeaderStyle="width:2em;" CellStyle="text-align:center;" Title="@(Book.Label [nameof (Book.NumberOfSheets)])">
                     <CellTemplate>
-                        <MudTooltip Arrow Duration="1000">
+                        <MudTooltip Arrow Duration="1000" Delay="500">
                             <ChildContent>
                                 <MudStack Row Spacing="0">
                                     <MudText Typo="Typo.inherit" Color="@(context.Item.IsErrorForNumberOfSheets ? Color.Error : context.Item.IsUpdatable ? Color.Warning : Color.Inherit)">
@@ -90,11 +96,11 @@
                             </ChildContent>
                             <TooltipContent>
                                 <MudStack Spacing="0" Class="align-start">
-                                    <MudText Typo="Typo.inherit">発行数量: @(context.Item.NumberOfPublished ?? 0)</MudText>
-                                    <MudText Typo="Typo.inherit">取得数量: @(context.Item.NumberOfRelatedSheets)</MudText>
-                                    <MudText Typo="Typo.inherit">書誌数量: @(context.Item.NumberOfSheets)</MudText>
-                                    <MudText Typo="Typo.inherit">発行日時: @(context.Item.PublishedAt)</MudText>
-                                    <MudText Typo="Typo.inherit">更新日時: @(context.Item.LastUpdate)</MudText>
+                                    <p>発行数量: @(context.Item.NumberOfPublished ?? 0)</p>
+                                    <p>取得数量: @(context.Item.NumberOfRelatedSheets)</p>
+                                    <p>書誌数量: @(context.Item.NumberOfSheets)</p>
+                                    <p>発行日時: @(context.Item.Released ? context.Item.PublishedAt?.ToString () ?? "抹消" : "未発行")</p>
+                                    <p>更新日時: @(context.Item.LastUpdate)</p>
                                 </MudStack>
                             </TooltipContent>
                         </MudTooltip>
