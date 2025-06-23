@@ -30,6 +30,7 @@
                     </HeaderTemplate>
                     <CellTemplate>
                         @{ var marked = Book.Bookmark == context.Item.Id; }
+                        <a id="@($"{typeof (Sheet).Name}-{context.Item.Id}")" />
                         <MudIconButton Disabled="_busy" OnClick="@(async () => await ChangeBookmarkAsync (context.Item.Id))" Icon="@(marked ? Icons.Material.Filled.Bookmark : Icons.Material.Filled.BookmarkBorder)" Size="Size.Small" />
                     </CellTemplate>
                 </TemplateColumn>
@@ -43,8 +44,10 @@
                         <MudStack Row Spacing="0" Class="align-center">
                             @if (items is not null && items.IndexOf (context.Item) + 1 == CurrentSheetIndex) {
                                 <MudTooltip Text="@($"着目中の{Sheet.TableLabel}")" Arrow Duration="1000">
-                                    <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" />
+                                    <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" Style="margin-bottom: -4px;" />
                                 </MudTooltip>
+                            } else {
+                                <MudIcon Icon="" />
                             }
                             <MudSpacer />
                             <MudLink Href="@context.Item.Url" Target="_blank" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">

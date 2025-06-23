@@ -28,8 +28,10 @@
                         <MudStack Row Spacing="0" Class="align-center">
                             @if (context.Item.Id == CurrentBookId) {
                                 <MudTooltip Text="@($"着目中の{Book.TableLabel}")" Arrow Duration="1000">
-                                    <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" />
+                                    <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" Style="margin-bottom: -4px;" />
                                 </MudTooltip>
+                            } else {
+                                <MudIcon Icon="" />
                             }
                             <MudSpacer />
                             @(context.Item.Id)
