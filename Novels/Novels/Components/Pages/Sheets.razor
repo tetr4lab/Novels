@@ -9,7 +9,7 @@
     <MudProgressCircular Indeterminate="true" />
 } else {
     if (!string.IsNullOrEmpty (Book.Explanation)) {
-        <MudPaper Class="ma-4 pa-2" Elevation="2" Style="max-height: 12em; overflow-y: auto;">
+        <MudPaper Class="ma-4 pa-2" Elevation="2" Style="height: 12em; overflow-y: auto;">
             <MudText Typo="Typo.caption">@((MarkupString) Book.Explanation)</MudText>
         </MudPaper>
     }
