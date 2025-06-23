@@ -175,12 +175,6 @@
 }
 
 @code {
-    /// <inheritdoc/>
-    protected override int _initialPageSizeIndex => 1;
-
-    /// <summary>表示ページ</summary>
-    protected int CurrentPage { get; set; } = 0;
-
     /// <summary>行がクリックされた</summary>
     protected async Task OnRowClickAsync (DataGridRowClickEventArgs<Book> context) {
         if (context.Item is Book book) {
@@ -216,7 +210,7 @@
         SetFilterText (filter);
         await TaskEx.DelayUntil (() => FilterText == filter);
         if (filter == string.Empty) {
-            TurnSelectedItemsPage ();
+            await ScrollToCurrentAsync ();
         }
         SetIdle ();
     }
@@ -229,6 +223,7 @@
         SetIdle ();
     }
 
+    /// <summary>設定</summary>
     protected async Task Settings () {
         SetBusy ();
         await SetAppMode (AppMode.Settings);
@@ -269,7 +264,7 @@
                 if (existingBook is not null) {
                     Snackbar.Add ($"既存の{Book.TableLabel}: 『{existingBook.Title}』", Severity.Warning);
                     await ChangeCurrentBookAsync (existingBook);
-                    TurnSelectedItemsPage ();
+                    await ScrollToCurrentAsync ();
                     return;
                 }
                 // オーバーレイ
@@ -297,26 +292,4 @@
             SetIdle ();
         }
     }
-
-    /// <summary>絞り込みがなければ、選択されている書籍があるページへ</summary>
-    protected void TurnSelectedItemsPage () {
-        if (_table is not null && items is not null && string.IsNullOrEmpty (FilterText)) {
-            var currentIndex = items.IndexOf (selectedItem);
-            var currentPage = currentIndex / _table.RowsPerPage;
-            if (currentPage != CurrentPage) {
-                CurrentPage = currentPage;
-                StateHasChanged ();
-            }
-        }
-    }
-
-    /// <summary>遅延初期化</summary>
-    protected override async Task OnAfterRenderAsync (bool firstRender) {
-        await base.OnAfterRenderAsync (firstRender);
-        if (!_inited && items?.Count > 0) {
-            _inited = true;
-            TurnSelectedItemsPage ();
-        }
-    }
-    protected bool _inited = false;
 }
