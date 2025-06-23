@@ -192,7 +192,8 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
             var index = 0;
             var rowHeight = 0;
             if (typeof (T) == typeof (Book)) {
-                index = items.FindIndex (x => x.Id == focusedId);
+                var list = string.IsNullOrEmpty (FilterText) || _dataGrid is null ? items : _dataGrid.FilteredItems.ToList ();
+                index = list.FindIndex (x => x.Id == focusedId);
                 rowHeight = 41; // 書誌の行高
             } else if (typeof (T) == typeof (Sheet)) {
                 index = CurrentSheetIndex;
