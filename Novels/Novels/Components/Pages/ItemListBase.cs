@@ -48,6 +48,13 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
         newItem = NewEditItem;
         if (Book is not null && Book is T item) {
             selectedItem = item;
+        } else if (typeof (T) == typeof (Sheet)) {
+            if (CurrentSheetIndex <= 0) {
+                AppModeService.SetCurrentSheetIndex (1);
+            }
+            if (items?.Count >= CurrentSheetIndex) {
+                selectedItem = items [CurrentSheetIndex - 1];
+            }
         }
     }
 

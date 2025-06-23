@@ -177,17 +177,4 @@
         await base.OnInitializedAsync ();
         SetSectionTitle (Book is null ? "Contents" : $"<span style=\"font-size:80%;\"><a href=\"{Book?.Url}\" target=\"_blank\" style=\"text-decoration: none;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</a></span>");
     }
-
-    /// <summary>遅延初期化</summary>
-    protected override async Task OnAfterRenderAsync (bool firstRender) {
-        await base.OnAfterRenderAsync (firstRender);
-        if (!_inited && items?.Count > 0) {
-            _inited = true;
-            if (CurrentSheetIndex >= 1 && CurrentSheetIndex <= items.Count) {
-                selectedItem = items [CurrentSheetIndex - 1];
-            }
-            await ScrollToCurrentAsync ();
-        }
-    }
-    protected bool _inited = false;
 }
