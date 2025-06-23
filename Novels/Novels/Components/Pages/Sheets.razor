@@ -25,18 +25,18 @@
                 <TemplateColumn HeaderClass="px-1" CellClass="py-1 pl-0 pr-1" HeaderStyle="width:1em;">
                     <HeaderTemplate>
                         <MudTooltip Text="@($"{Book.Label [nameof (Data.Book.Bookmark)]}へ着目")" Arrow Duration="1000">
-                            <MudIconButton OnClick="ScrollToMarkedAsync" Icon="@Icons.Material.Filled.BookmarkAdded" Size="Size.Small" />
+                            <MudIconButton Disabled="_busy" OnClick="ScrollToMarkedAsync" Icon="@Icons.Material.Filled.BookmarkAdded" Size="Size.Small" />
                         </MudTooltip>
                     </HeaderTemplate>
                     <CellTemplate>
                         @{ var marked = Book.Bookmark == context.Item.Id; }
-                        <MudIconButton OnClick="@(async () => await ChangeBookmarkAsync (context.Item.Id))" Icon="@(marked ? Icons.Material.Filled.Bookmark : Icons.Material.Filled.BookmarkBorder)" Size="Size.Small" />
+                        <MudIconButton Disabled="_busy" OnClick="@(async () => await ChangeBookmarkAsync (context.Item.Id))" Icon="@(marked ? Icons.Material.Filled.Bookmark : Icons.Material.Filled.BookmarkBorder)" Size="Size.Small" />
                     </CellTemplate>
                 </TemplateColumn>
                 <TemplateColumn HeaderClass="px-1" CellClass="py-1 pl-0 pr-1" HeaderStyle="width:3.8em;" CellStyle="text-align:right;">
                     <HeaderTemplate>
                         <MudTooltip Text="@($"着目中の{Sheet.TableLabel}へ")" Arrow Duration="1000">
-                            <MudLink OnClick="ScrollToCurrent" Color="Color.Inherit" Underline="Underline.None">@(Sheet.Label [nameof (Sheet.NovelNumber)])</MudLink>
+                            <MudLink Disabled="_busy" OnClick="ScrollToCurrent" Color="Color.Inherit" Underline="Underline.None">@(Sheet.Label [nameof (Sheet.NovelNumber)])</MudLink>
                         </MudTooltip>
                     </HeaderTemplate>
                     <CellTemplate>
@@ -53,21 +53,21 @@
                         </MudStack>
                     </CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1" HeaderStyle="max-width:10em;" CellStyle="min-width:10em;" Title="@(Sheet.Label [nameof (Sheet.ChapterTitle)])">
-                    <CellTemplate>@(context.Item.ChapterTitle)</CellTemplate>
+                <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" CellStyle="min-width: 6em; max-width: 6em; text-overflow: ellipsis;" Title="@(Sheet.Label [nameof (Sheet.ChapterTitle)])">
+                    <CellTemplate><span title="@(context.Item.ChapterTitle)">@(context.Item.ChapterTitle)</span></CellTemplate>
                 </TemplateColumn>
                 @if (Book.HasChapterSubTitle) {
-                    <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1" HeaderStyle="max-width:10em;" CellStyle="min-width:10em;" Title="@(Sheet.Label [nameof (Sheet.ChapterSubTitle)])">
-                        <CellTemplate>@(context.Item.ChapterSubTitle)</CellTemplate>
+                    <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" CellStyle="min-width: 6em; max-width: 6em; text-overflow: ellipsis;" Title="@(Sheet.Label [nameof (Sheet.ChapterSubTitle)])">
+                        <CellTemplate><span title="@(context.Item.ChapterSubTitle)">@(context.Item.ChapterSubTitle)</span></CellTemplate>
                     </TemplateColumn>
                 }
-                <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1" HeaderStyle="max-width: 10em;" CellStyle="min-width:10em;" Title="@(Sheet.Label[nameof(Sheet.SheetTitle)])">
+                <TemplateColumn HeaderClass="px-0" CellClass="py-1 px-0 text-nowrap" HeaderStyle="width: 1em;">
                     <CellTemplate>
-                        <MudStack Row Spacing="0" Class="align-center">
-                            <MudIconButton OnClick="@(async () => await ReadSheetAsync (context.Item))" Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" />
-                            <MudText Typo="Typo.inherit">@(context.Item.SheetTitle)</MudText>
-                        </MudStack>
+                        <MudIconButton Disabled="_busy" OnClick="@(async () => await ReadSheetAsync (context.Item))" Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" />
                     </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" CellStyle="min-width: 10em; max-width: 10em; text-overflow: ellipsis;" Title="@(Sheet.Label[nameof(Sheet.SheetTitle)])">
+                    <CellTemplate><span title="@(context.Item.SheetTitle)">@(context.Item.SheetTitle)</span></CellTemplate>
                 </TemplateColumn>
                 <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 text-nowrap" HeaderStyle="width: 2em;" Title="@(Sheet.Label[nameof(Sheet.SheetUpdatedAt)])">
                     <CellTemplate>

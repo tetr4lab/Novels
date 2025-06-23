@@ -27,9 +27,9 @@
                         <a id="@($"{typeof (Book).Name}-{context.Item.Id}")" />
                         <MudStack Row Spacing="0" Class="align-center">
                             @if (context.Item.Id == CurrentBookId) {
-                                <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" />
-                            } else {
-                                <MudIconButton OnClick="@(async () => { await ChangeCurrentBookAsync (context.Item);  })" Icon="" />
+                                <MudTooltip Text="@($"着目中の{Book.TableLabel}")" Arrow Duration="1000">
+                                    <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" />
+                                </MudTooltip>
                             }
                             <MudSpacer />
                             @(context.Item.Id)
@@ -40,67 +40,36 @@
                 </TemplateColumn>
                 <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1" HeaderStyle="width:2em;" CellStyle="text-align: center;" Title="@(Book.Label [nameof (Book.Status)])">
                     <CellTemplate>
-                        <MudChip T="string" Label="true" Size="Size.Small" Variant="Variant.Outlined" Color="@(context.Item.StatusBgColor)" Style="width: 6em">@(context.Item.Status.ToJString ())</MudChip>
+                        <MudTooltip Text="@($"{(context.Item.Readed ? "既読" : (context.Item.Released || context.Item.NumberOfPublished > 0 || context.Item.PublishedAt is not null) ? "未読" : "未発行")}{(context.Item.Wish ? "、好評" : "")}")" Arrow Duration="1000">
+                            <MudChip T="string" Color="@(context.Item.StatusBgColor)" Style="width: 6em" Label="true" Size="Size.Small" Variant="Variant.Outlined">@(context.Item.Status.ToJString ())</MudChip>
+                        </MudTooltip>
                     </CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" CellStyle="max-width: 18em; text-overflow: ellipsis;">
-                    <HeaderTemplate>
-                        <MudStack Row Spacing="0" Class="align-center">
-                            <MudText Typo="Typo.inherit">@(Book.Label [nameof (Book.Title)])</MudText>
-                        </MudStack>
-                    </HeaderTemplate>
-                    <CellTemplate>
-                        <MudStack Row Spacing="0" Class="align-center">
-                            <MudTooltip Text="@(context.Item.Title)" Arrow Duration="1000" Delay="1000">
-                                @(context.Item.Title)
-                            </MudTooltip>
-                        </MudStack>
-                    </CellTemplate>
+                <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" CellStyle="max-width: 18em; text-overflow: ellipsis;" Title="@(Book.Label [nameof (Book.Title)])">
+                    <CellTemplate><span title="@(context.Item.Title)">@(context.Item.Title)</span></CellTemplate>
                 </TemplateColumn>
                 <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" CellStyle="max-width: 5em; text-overflow: ellipsis;" Title="@(Book.Label [nameof (Book.Author)])">
                     <CellTemplate>
-                        @{ var author = context.Item.Author.Replace (' ', '\u2423'); }
-                        <MudTooltip Arrow Duration="1000">
-                            <ChildContent>
-                                <MudLink OnClick="@(async () => await ChangeFilter (author, context.Item))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Item.Author)</MudLink>
-                            </ChildContent>
-                            <TooltipContent>
-                                <MudStack Spacing="0" Class="align-start">
-                                    <MudText Typo="Typo.inherit">「@(author)」で絞り込み</MudText>
-                                    @foreach (var book in items) {
-                                        if (book.Author == context.Item.Author) {
-                                            <MudText Typo="Typo.inherit">『@(book.Title)』</MudText>
-                                        }
-                                    }
-                                </MudStack>
-                            </TooltipContent>
-                        </MudTooltip>
+                        @{  
+                            var author = context.Item.Author.Replace (' ', '\u2423');
+                            var titles = $"「{author}」で絞り込み\n" + string.Join ('\n', items.FindAll (item => item.Author == context.Item.Author).ConvertAll (book => $"『{book.Title}』"));
+                        }
+                        <MudLink Disabled="_busy" OnClick="@(async () => await ChangeFilter (author, context.Item))" title="@titles" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Item.Author)</MudLink>
                     </CellTemplate>
                 </TemplateColumn>
                 <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" CellStyle="max-width: 8em; text-overflow: ellipsis;" Title="@(Book.Label [nameof (Book.SeriesTitle)])">
                     <CellTemplate>
-                    @{ var series = context.Item.SeriesTitle.Replace (' ', '\u2423'); }
-                    <MudTooltip Arrow Duration="1000">
-                        <ChildContent>
-                            <MudLink OnClick="@(async () => await ChangeFilter (series, context.Item))" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Item.SeriesTitle)</MudLink>
-                        </ChildContent>
-                        <TooltipContent>
-                            <MudStack Spacing="0" Class="align-start">
-                                <MudText Typo="Typo.inherit">「@(series)」で絞り込み</MudText>
-                                @foreach (var book in items) {
-                                    if (book.SeriesTitle == context.Item.SeriesTitle) {
-                                        <MudText Typo="Typo.inherit">『@(book.Title)』</MudText>
-                                    }
-                                }
-                            </MudStack>
-                        </TooltipContent>
-                    </MudTooltip>
+                        @{
+                            var series = context.Item.SeriesTitle.Replace (' ', '\u2423');
+                            var titles = $"「{series}」で絞り込み\n" + string.Join ('\n', items.FindAll (item => item.SeriesTitle == context.Item.SeriesTitle).ConvertAll (book => $"『{book.Title}』"));
+                        }
+                        <MudLink Disabled="_busy" OnClick="@(async () => await ChangeFilter (series, context.Item))" title="@titles" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Item.SeriesTitle)</MudLink>
                     </CellTemplate>
                 </TemplateColumn>
                 <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" HeaderStyle="width:2em;" CellStyle="text-align: center; max-width: 6em; text-overflow: ellipsis;" Title="@(Book.Label [nameof (Book.Site)])">
                     <CellTemplate>
                     <MudTooltip Text="@($"{Book.Label[nameof(Book.Site)]}を開く")" Arrow Duration="1000">
-                        <MudChip OnClick="@(async () => { await JSRuntime.OpenUrl (context.Item.Url); await ChangeCurrentBookAsync (context.Item); })" Target="_blank" T="string" Label="true" Size="Size.Small" Variant="Variant.Outlined">@(context.Item.Site)</MudChip>
+                        <MudChip Disabled="_busy" OnClick="@(async () => await OpenUrl (context.Item))" Target="_blank" T="string" Label="true" Size="Size.Small" Variant="Variant.Outlined" Class="mx-0">@(context.Item.Site)</MudChip>
                     </MudTooltip>
                     </CellTemplate>
                 </TemplateColumn>
@@ -131,9 +100,7 @@
                 </TemplateColumn>
                 <TemplateColumn HeaderClass="pr-0" CellClass="py-1 pl-0 pr-4 overflow-hidden text-nowrap" HeaderStyle="width:2em;" CellStyle="max-width: 2em; text-overflow: ellipsis;" Title="@(Book.Label [nameof (Book.Remarks)])">
                     <CellTemplate>
-                        <MudTooltip Text="@(context.Item.Remarks)" Placement="Placement.Left" Arrow Duration="1000" Delay="1000">
-                            @context.Item.Remarks
-                        </MudTooltip>
+                        <span title="@(context.Item.Remarks)">@context.Item.Remarks</span>
                     </CellTemplate>
                 </TemplateColumn>
             </Columns>
