@@ -23,6 +23,8 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     [Inject] protected IDialogService DialogService { get; set; } = null!;
     [Inject] protected ISnackbar Snackbar { get; set; } = null!;
     [Inject] protected IAuthorizationService AuthorizationService { get; set; } = null!;
+    [Inject] protected IScrollManager ScrollManager { get; set; } = null!;
+    [Inject] protected IBrowserViewportService BrowserViewportService { get; set; } = null!;
 
     /// <summary>項目一覧</summary>
     protected List<T>? items => DataSet.IsReady ? DataSet.GetList<T> () : null;
@@ -59,6 +61,7 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
             /// 初期アンロック
             if (!_initialUnlocked && UiState.IsLocked && items?.Count > 0) {
                 _initialUnlocked = true;
+                await ScrollToCurrentAsync ();
                 UiState.Unlock ();
             }
         }
@@ -94,6 +97,9 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
 
     /// <summary>テーブル</summary>
     protected MudTable<T>? _table;
+
+    /// <summary>データグリッド</summary>
+    protected MudDataGrid<T>? _dataGrid;
 
     /// <summary>初期項目数のインデックス</summary>
     protected virtual int _initialPageSizeIndex => 6;
@@ -177,6 +183,39 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     /// <summary>最後に追加された項目Id</summary>
     protected long lastCreatedId;
 
+    /// <summary>リストの着目項目へスクロール</summary>
+    protected virtual async Task ScrollToCurrentAsync (long focusedId = 0) {
+        if (focusedId <= 0) { focusedId = CurrentBookId; }
+        //VirtualizeのためScrollIntoViewAsyncは使えない
+        //await ScrollManager.ScrollIntoViewAsync ($"a#{typeof (T).Name}-{focusedId}", ScrollBehavior.Auto);
+        if (items is not null) {
+            var index = 0;
+            var rowHeight = 0;
+            if (typeof (T) == typeof (Book)) {
+                index = items.FindIndex (x => x.Id == focusedId);
+                rowHeight = 41; // 書誌の行高
+            } else if (typeof (T) == typeof (Sheet)) {
+                index = CurrentSheetIndex;
+                rowHeight = 39; // シートの行高
+            } else {
+                return;
+            }
+            var viewSize = await BrowserViewportService.GetCurrentBrowserWindowSizeAsync ();
+            var offset = rowHeight * index - viewSize.Height / 2.5; // 表の中程へ持ってくるオフセット
+            await ScrollManager.ScrollToAsync (".mud-table-container", 0, (int) (offset < 0d ? 0d : offset), ScrollBehavior.Auto);
+        }
+    }
+
+    /// <summary>リストの上端へスクロール</summary>
+    protected virtual async Task ScrollToTopAsync () {
+        await ScrollManager.ScrollToTopAsync (".mud-table-container", ScrollBehavior.Auto);
+    }
+
+    /// <summary>リストの下端へスクロール</summary>
+    protected virtual async Task ScrollToBottomAsync () {
+        await ScrollManager.ScrollToBottomAsync (".mud-table-container", ScrollBehavior.Auto);
+    }
+
     /// <summary>リロードして元の位置へ戻る</summary>
     protected virtual async Task ReloadAndFocus (long focusedId, bool editing = false) {
         await DataSet.LoadAsync ();
@@ -191,6 +230,7 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
                     _table.SetSelectedItem (focused);
                 }
             }
+            await ScrollToCurrentAsync (focusedId);
         }
     }
 
