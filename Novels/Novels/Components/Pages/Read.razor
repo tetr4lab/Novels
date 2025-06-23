@@ -82,12 +82,6 @@
     /// <summary>着目中のシート</summary>
     protected Sheet? Sheet { get; set; } = null;
 
-    /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
-    protected override async Task OnInitializedAsync() {
-        await base.OnInitializedAsync ();
-        SetSheetAsync (CurrentSheetIndex);
-    }
-
     /// <summary>シート番号に依存した設定</summary>
     protected void SetSheetAsync (int index) {
         if (Book is not null) {
@@ -116,5 +110,11 @@
             // ページトップへスクロール
             await JsRuntime.ScrollToTop ();
         }
+    }
+
+    /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
+    protected override async Task OnInitializedAsync() {
+        await base.OnInitializedAsync ();
+        SetSheetAsync (CurrentSheetIndex);
     }
 }

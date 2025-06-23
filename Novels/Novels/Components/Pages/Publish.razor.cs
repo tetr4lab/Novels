@@ -316,13 +316,9 @@ public partial class Publish : ItemListBase<Book> {
 
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
     protected override async Task OnInitializedAsync () {
-        // 基底クラスで着目書籍オブジェクトを取得
         await base.OnInitializedAsync ();
-        if (!_inited && Book is not null) {
-            _inited = true;
-            SetAndEdit ();
-        }
+        // 基底クラスで着目書籍オブジェクトを取得済み
+        SetAndEdit ();
     }
-    protected bool _inited = false;
 
 }

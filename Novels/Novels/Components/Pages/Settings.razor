@@ -132,15 +132,10 @@
         return false;
     }
 
-    /// <summary>遅延初期化</summary>
-    protected override async Task OnAfterRenderAsync (bool firstRender) {
-        await base.OnAfterRenderAsync (firstRender);
-        if (!_inited2 && items?.Count > 0) {
-            _inited2 = true;
-            selectedItem = items [0];
-            StartEdit ();
-        }
+    /// <summary>初期化</summary>
+    protected override async Task OnInitializedAsync() {
+        await base.OnInitializedAsync ();
+        StartEdit ();
     }
-    protected bool _inited2 = false;
 
 }

@@ -55,6 +55,10 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
             if (items?.Count >= CurrentSheetIndex) {
                 selectedItem = items [CurrentSheetIndex - 1];
             }
+        } else if (typeof (T) == typeof (Setting)) {
+            if (items?.Count > 0) {
+                selectedItem = items [0];
+            }
         }
     }
 
