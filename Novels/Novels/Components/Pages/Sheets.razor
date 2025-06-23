@@ -18,7 +18,7 @@
         <MudDataGrid T="Sheet" Items="items" ReadOnly="false" Dense Hover Elevation="0" Breakpoint="Breakpoint.Xs" @ref="_dataGrid"
             SortMode="SortMode.None" ColumnResizeMode="ResizeMode.Column" FixedHeader Virtualize
             QuickFilter="FilterFunc" RowClick="OnRowClickAsync"
-            Height="calc(100vh - var(--mud-appbar-height) * 2 - 17em)"
+            Height="calc(100vh - var(--mud-appbar-height) * 2 - 15em)"
             Groupable GroupExpanded GroupClass="d-none"
         >
             <Columns>
@@ -91,11 +91,16 @@
                 </TemplateColumn>
             </Columns>
         </MudDataGrid>
-        <MudText Typo="Typo.caption">@(Book.Label [nameof (Book.LastUpdate)]): @(Book.LastUpdate.ToString ("yyyy/MM/dd HH:mm"))</MudText>
     } else {
         <MudText>No items found.</MudText>
     }
     <MudAppBar Class="backdrop-blur pb-2" Color="Color.Transparent" Dense Bottom="true" Fixed="true">
+        <MudTooltip Text="@($"{Book.Label [nameof (Data.Book.Bookmark)]}へ着目")" Arrow Duration="1000">
+            <MudFab Disabled="_busy" OnClick="ScrollToMarkedAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.BookmarkAdded" Class="mr-2" />
+        </MudTooltip>
+        <MudTooltip Text="@($"着目中の{Sheet.TableLabel}へ")" Arrow Duration="1000">
+            <MudFab Disabled="_busy" OnClick="ScrollToCurrent" Size="Size.Small" StartIcon="@Icons.Material.Filled.DoubleArrow" Class="mr-2" />
+        </MudTooltip>
         <MudSpacer />
         <MudTooltip Text="上端へ" Arrow Duration="1000">
             <MudFab Disabled="_busy" OnClick="ScrollToTopAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.VerticalAlignTop" Class="mr-2" />
@@ -104,6 +109,7 @@
             <MudFab Disabled="_busy" OnClick="ScrollToBottomAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.VerticalAlignBottom" Class="mr-2" />
         </MudTooltip>
         <MudSpacer />
+        <MudText Class="align-self-start mt-1" Typo="Typo.caption">@(Book.Label [nameof (Book.LastUpdate)]): @(Book.LastUpdate.ToString ("yyyy/MM/dd HH:mm"))</MudText>
     </MudAppBar>
 }
 
