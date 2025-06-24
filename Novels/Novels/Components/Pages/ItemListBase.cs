@@ -63,19 +63,13 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     protected override async Task OnAfterRenderAsync (bool firstRender) {
         await base.OnAfterRenderAsync (firstRender);
         if (firstRender) {
-            _firstRendered = true;
-        }
-        if (_firstRendered) {
             /// 初期アンロック
-            if (!_initialUnlocked && UiState.IsLocked && items?.Count > 0) {
-                _initialUnlocked = true;
+            if (UiState.IsLocked) {
                 await ScrollToCurrentAsync ();
                 UiState.Unlock ();
             }
         }
     }
-    protected bool _firstRendered;
-    protected bool _initialUnlocked;
 
     /// <summary>破棄</summary>
     public override void Dispose () {
