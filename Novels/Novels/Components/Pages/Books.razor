@@ -125,7 +125,7 @@
             <MudFab Disabled="_busy" OnClick="ScrollToBottomAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.VerticalAlignBottom" Class="mr-2" />
         </MudTooltip>
         <MudTooltip Text="発行済み/未発行を絞り込み" Duration="1000">
-            <MudFab Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_issued_", "_not_isshued_"))" StartIcon="@Icons.Material.Outlined.PublishedWithChanges" Size="Size.Small" Class="mr-2" />
+            <MudFab Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_issued_", "_not_issued_"))" StartIcon="@Icons.Material.Outlined.PublishedWithChanges" Size="Size.Small" Class="mr-2" />
         </MudTooltip>
         <MudTooltip Text="既読/未読を絞り込み" Duration="1000">
             <MudFab Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_readed_", "_not_readed_"))" StartIcon="@Icons.Material.Outlined.Visibility" Size="Size.Small" Class="mr-2" />

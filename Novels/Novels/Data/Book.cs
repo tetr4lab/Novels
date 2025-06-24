@@ -770,7 +770,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public override string? [] SearchTargets => [
         $"#{Id}.",
         $":{Site}.",
-        IsUpToDateWithIssued ? "_is_released_" : "_not_released_",
+        IsUpToDateWithIssued ? "_is_issued_" : "_not_issued_",
         Readed ? "_is_readed_" : "_not_readed_",
         $"_{Status.ToJString ()}_",
         Wish ? "_is_wished_" : "_not_wished_",
