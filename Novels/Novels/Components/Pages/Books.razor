@@ -26,13 +26,7 @@
                     <CellTemplate>
                         <a id="@($"{typeof (Book).Name}-{context.Item.Id}")" />
                         <MudStack Row Spacing="0" Class="align-center">
-                            @if (context.Item.Id == CurrentBookId) {
-                                <MudTooltip Text="@($"着目中の{Book.TableLabel}")" Arrow Duration="1000">
-                                    <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" Style="margin-bottom: -4px;" />
-                                </MudTooltip>
-                            } else {
-                                <MudIcon Icon="" />
-                            }
+                            <MudIcon Icon="@(context.Item.Id == CurrentBookId ? Icons.Material.Filled.DoubleArrow : null)" />
                             <MudSpacer />
                             @(context.Item.Id)
                             <MudIconButton Disabled="_busy" OnClick="@(async () => await IsshueBook (context.Item))" Style="margin-left: 2px;" Icon="@(context.Item.IsEmpty ? Icons.Material.Filled.Download : context.Item.IsUpdatable && !context.Item.IsErrorForNumberOfSheets ? Icons.Material.Filled.Refresh : context.Item.IsUpToDateWithIssued && !context.Item.IsIssuable ? Icons.Material.Filled.Sync : Icons.Material.Filled.Publish)" Size="Size.Small" />

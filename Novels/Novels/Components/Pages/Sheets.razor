@@ -42,13 +42,7 @@
                     </HeaderTemplate>
                     <CellTemplate>
                         <MudStack Row Spacing="0" Class="align-center">
-                            @if (items is not null && items.IndexOf (context.Item) + 1 == CurrentSheetIndex) {
-                                <MudTooltip Text="@($"着目中の{Sheet.TableLabel}")" Arrow Duration="1000">
-                                    <MudIcon Icon="@Icons.Material.Filled.DoubleArrow" Style="margin-bottom: -4px;" />
-                                </MudTooltip>
-                            } else {
-                                <MudIcon Icon="" />
-                            }
+                            <MudIcon Icon="@(items is not null && items.IndexOf (context.Item) + 1 == CurrentSheetIndex ? Icons.Material.Filled.DoubleArrow : null)" />
                             <MudSpacer />
                             <MudLink Href="@context.Item.Url" Target="_blank" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">
                                 @(context.Item.NovelNumber)

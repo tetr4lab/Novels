@@ -1,7 +1,6 @@
 ﻿using PetaPoco;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
-using System.Reflection;
 using Tetr4lab;
 
 namespace Novels.Data;
@@ -16,4 +15,18 @@ public abstract class NovelsBaseModel<T> : BaseModel<T>, IEquatable<T> where T :
     //public static readonly char Terminator = '\n';
     public static readonly string Separator = "||";
     public static readonly string Terminator = "\n";
+
+    /// <inheritdoc/>
+    public override T Clone () {
+        var item = base.Clone ();
+        item.DataSet = DataSet;
+        return item;
+    }
+
+    /// <inheritdoc/>
+    public override T CopyTo (T destination) {
+        destination.DataSet = DataSet;
+        return base.CopyTo (destination);
+    }
+
 }

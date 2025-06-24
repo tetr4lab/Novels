@@ -22,7 +22,4 @@ public abstract class NovelsPageBase : NovelsComponentBase {
 
     /// <summary>セクションラベル設定</summary>
     protected Action<string> SetSectionTitle => AppModeService.SetSectionTitle;
-
-    /// <summary>着目中の書籍</summary>
-    public virtual Book? Book { get; set; } = null;
 }

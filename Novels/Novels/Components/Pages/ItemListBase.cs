@@ -32,11 +32,8 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     /// <summary>選択項目</summary>
     protected T selectedItem { get; set; } = new ();
 
-    /// <summary>認証済みID</summary>
-    [Parameter] public override AuthedIdentity? Identity { get; set; }
-
     /// <summary>着目中の書籍</summary>
-    [Parameter] public override Book? Book { get; set; } = null;
+    [Parameter] public Book? Book { get; set; } = null;
 
     /// <summary>DataSetの再読み込み</summary>
     [Parameter] public EventCallback ReLoadAsync { get; set; }

@@ -279,7 +279,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     }
 
     /// <summary>キャッシュをクリア</summary>
-    protected void Flash () {
+    public void Flash () {
         __htmlDocument = null;
         __sheetTitle = null;
         __sheetHonbun = null;
@@ -288,6 +288,14 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         __chapterSubTitle = null;
         __preface = null;
         __afterword = null;
+        // 再パース
+        _ = SheetTitle;
+        _ = SheetHonbun;
+        _ = OriginalChapterTitle;
+        _ = ChapterTitle;
+        _ = ChapterSubTitle;
+        _ = Preface;
+        _ = Afterword;
     }
 
     /// <summary>パース結果</summary>
@@ -319,6 +327,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     /// <inheritdoc/>
     public override Sheet Clone () {
         var item = base.Clone ();
+        item.Book = Book;
         item.BookId = BookId;
         item.Url = Url;
         item.Html = Html;
@@ -330,6 +339,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
 
     /// <inheritdoc/>
     public override Sheet CopyTo (Sheet destination) {
+        destination.Book = Book;
         destination.BookId = BookId;
         destination.Url = Url;
         destination.Html = Html;

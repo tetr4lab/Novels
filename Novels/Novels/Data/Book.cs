@@ -737,7 +737,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     }
 
     /// <summary>パース結果のキャッシュをクリア</summary>
-    protected void Flash () {
+    public void Flash () {
         __htmlDocument = null;
         __sheetUrls = null;
         __sheetUpdateDates = null;
@@ -746,10 +746,6 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         __subTitle = null;
         __explanation = null;
         // 再パース
-        _ = Site;
-        _ = Title;
-        _ = Author;
-        _ = NumberOfSheets;
         _ = SheetUrls;
         _ = SheetUpdateDates;
         _ = SeriesTitle;

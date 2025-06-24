@@ -17,7 +17,7 @@ public abstract class NovelsComponentBase : ComponentBase, IDisposable {
     [CascadingParameter] protected Task<AuthenticationState> AuthState { get; set; } = default!;
 
     /// <summary>認証済みID</summary>
-    public virtual AuthedIdentity? Identity { get; set; }
+    protected virtual AuthedIdentity? Identity { get; set; }
 
     /// <summary>ユーザ識別子</summary>
     protected virtual string UserIdentifier => Identity?.Identifier ?? "unknown";

@@ -134,12 +134,17 @@ public sealed class NovelsDataSet : BasicDataSet {
         if (books is not null && sheets is not null && settings is not null) {
             if (!onlySheets) {
                 ListSet [typeof (Setting)] = settings;
+                settings.ForEach (setting => setting.DataSet = this);
                 ListSet [typeof (Book)] = books;
+                books.ForEach (book => book.DataSet = this);
                 _id2Book = books.ToDictionary (book => book.Id, book => book);
             }
             ListSet [typeof (Sheet)] = sheets;
             if (sheets.Count > 0) {
-                sheets.ForEach (sheet => sheet.Book = GetItemById<Book> (sheet.BookId));
+                sheets.ForEach (sheet => {
+                    sheet.DataSet = this;
+                    sheet.Book = GetItemById<Book> (sheet.BookId);
+                });
                 _id2Sheet = sheets.ToDictionary (sheet => sheet.Id, sheet => sheet);
                 CurrentBook.Sheets = sheets;
             }
