@@ -174,23 +174,24 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     protected long lastCreatedId;
 
     /// <summary>リストの着目項目へスクロール</summary>
-    protected virtual async Task ScrollToCurrentAsync (long focusedId = 0) {
+    /// <param name="focusedId">書誌ID</param>
+    /// <param name="focusedIndex">シートインデックス</param>
+    protected virtual async Task ScrollToCurrentAsync (long focusedId = 0, int focusedIndex = 0) {
         if (focusedId <= 0) { focusedId = CurrentBookId; }
+        if (focusedIndex <= 0) { focusedIndex = CurrentSheetIndex; }
         //VirtualizeのためScrollIntoViewAsyncは使えない
         //await ScrollManager.ScrollIntoViewAsync ($"a#{typeof (T).Name}-{focusedId}", ScrollBehavior.Auto);
         if (items is not null) {
             var index = 0;
-            var rowHeight = 0.0;
-            var viewportHeightRatio = 0.0;
+            var rowHeight = _dataGrid?.ItemSize ?? 0.0f; // 行高
+            var viewportHeightRatio = 0.0d;
             if (typeof (T) == typeof (Book)) {
                 var list = string.IsNullOrEmpty (FilterText) || _dataGrid is null ? items : _dataGrid.FilteredItems.ToList ();
                 index = list.FindIndex (x => x.Id == focusedId);
-                rowHeight = 41; // 書誌の行高
-                viewportHeightRatio = 2.5; // 表の中程と画面高さの比率
+                viewportHeightRatio = Books.ViewportHeightRatio;
             } else if (typeof (T) == typeof (Sheet)) {
                 index = CurrentSheetIndex - 1;
-                rowHeight = 35; // シートの行高
-                viewportHeightRatio = 3.1; // 表の中程と画面高さの比率
+                viewportHeightRatio = Sheets.ViewportHeightRatio;
             } else {
                 return;
             }
@@ -218,8 +219,7 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     /// <summary>リロードして元の位置へ戻る</summary>
     protected virtual async Task ReloadAndFocus (long focusedId, bool editing = false) {
         await DataSet.LoadAsync ();
-        //await StateHasChangedAsync ();
-        await ScrollToCurrentAsync (focusedId);
+        await ScrollToCurrentAsync (focusedId: focusedId);
     }
 
     /// <summary>新規生成用の新規アイテム生成</summary>

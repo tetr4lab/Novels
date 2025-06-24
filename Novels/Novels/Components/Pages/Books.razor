@@ -12,15 +12,14 @@
         <MudDataGrid T="Book" Items="items" ReadOnly="false" Dense Hover Elevation="0" Breakpoint="Breakpoint.Xs" @ref="_dataGrid"
             SortMode="SortMode.None" ColumnResizeMode="ResizeMode.Column" FixedHeader Virtualize
             QuickFilter="FilterFunc" RowClick="OnRowClickAsync"
-            Height="calc(100vh - var(--mud-appbar-height) * 2 - 1em)"
+            Height="calc(100vh - var(--mud-appbar-height) * 2 - 1em)" ItemSize="@RowSize"
         >
             <Columns>
                 <TemplateColumn HeaderClass="px-1" CellClass="py-1 pl-0 pr-1" HeaderStyle="width:3.8em;" CellStyle="text-align:right;">
                     <HeaderTemplate>
                         <MudTooltip Text="@($"着目中の{Book.TableLabel}へ")" Placement="Placement.Right" Arrow Duration="1000">
-                            <MudIconButton Disabled="_busy" OnClick="ScrollToCurrent" Icon="@Icons.Material.Filled.DoubleArrow" Size="Size.Small" />
+                            <MudLink Disabled="_busy" OnClick="ScrollToCurrent" Color="Color.Default" Underline="Underline.None">@(Book.Label [nameof (Book.Id)])</MudLink>
                         </MudTooltip>
-                        @(Book.Label [nameof (Book.Id)])
                     </HeaderTemplate>
                     <CellTemplate>
                         <a id="@($"{typeof (Book).Name}-{context.Item.Id}")" />
@@ -113,16 +112,16 @@
         <MudText>No items found.</MudText>
     }
     <MudAppBar Class="backdrop-blur pb-2" Color="Color.Transparent" Dense Bottom="true" Fixed="true">
-        <MudTooltip Text="設定" Duration="1000">
-            <MudFab Disabled="_busy" OnClick="Settings" StartIcon="@Icons.Material.Outlined.Settings" Size="Size.Small" Class="mr-2" />
+        <MudTooltip Text="@($"着目中の{Book.TableLabel}へ")" Arrow Duration="1000">
+            <MudFab Disabled="_busy" OnClick="ScrollToCurrent" Size="Size.Small" StartIcon="@Icons.Material.Filled.DoubleArrow" Class="mr-2" />
         </MudTooltip>
-        <MudSpacer />
         <MudTooltip Text="上端へ" Arrow Duration="1000">
             <MudFab Disabled="_busy" OnClick="ScrollToTopAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.VerticalAlignTop" Class="mr-2" />
         </MudTooltip>
         <MudTooltip Text="下端へ" Arrow Duration="1000">
             <MudFab Disabled="_busy" OnClick="ScrollToBottomAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.VerticalAlignBottom" Class="mr-2" />
         </MudTooltip>
+        <MudSpacer />
         <MudTooltip Text="発行済み/未発行を絞り込み" Duration="1000">
             <MudFab Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_issued_", "_not_issued_"))" StartIcon="@Icons.Material.Outlined.PublishedWithChanges" Size="Size.Small" Class="mr-2" />
         </MudTooltip>
@@ -143,6 +142,12 @@
 }
 
 @code {
+    /// <summary>1行のサイズ</summary>
+    protected const float RowSize = 41.0f;
+
+    /// <summary>表の中程と画面高さの比率のようなもの</summary>
+    public static readonly double ViewportHeightRatio = 2.5d;
+
     /// <summary>行がクリックされた</summary>
     protected async Task OnRowClickAsync (DataGridRowClickEventArgs<Book> context) {
         if (context.Item is Book book) {
