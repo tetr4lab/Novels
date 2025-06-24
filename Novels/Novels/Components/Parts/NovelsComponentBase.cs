@@ -34,13 +34,13 @@ public abstract class NovelsComponentBase : ComponentBase, IDisposable {
     }
 
     /// <summary>アプリモード変化時の画面更新</summary>
-    protected async Task OnAppModeChangedAsync (object? sender, PropertyChangedEventArgs e) {
+    protected virtual async Task OnAppModeChangedAsync (object? sender, PropertyChangedEventArgs e) {
         if (e.PropertyName != "RequestedMode") {
             await InvokeAsync (StateHasChanged);
         }
     }
 
-    /// <summary>アプリモードが変化した</summary>
+    /// <summary>アプリロックが変化した</summary>
     protected virtual async void OnAppLockChanged (object? sender, PropertyChangedEventArgs e) {
         if (e.PropertyName == "IsLocked") {
             // MainLayoutでも再描画されるが、こちらのボタンのDisabledに反映されない(こちらの再描画が起きない)場合があるため
