@@ -66,7 +66,7 @@
                         <MudLink Disabled="_busy" OnClick="@(async () => await ChangeFilter (series, context.Item))" title="@($"「{series}」で絞り込み")" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Item.SeriesTitle)</MudLink>
                     </CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" HeaderStyle="width:2em;" CellStyle="text-align: center; max-width: 6em; text-overflow: ellipsis;" Title="@(Book.Label [nameof (Book.Site)])">
+                <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 text-nowrap" HeaderStyle="width:2em;" CellStyle="text-align: center; max-width: 7em;" Title="@(Book.Label [nameof (Book.Site)])">
                     <CellTemplate>
                     <MudTooltip Text="@($"{Book.Label[nameof(Book.Site)]}を開く")" Arrow Duration="1000">
                         <MudChip Disabled="_busy" OnClick="@(async () => await OpenUrl (context.Item))" Target="_blank" T="string" Label="true" Size="Size.Small" Variant="Variant.Outlined" Class="mx-0">@(context.Item.Site)</MudChip>
