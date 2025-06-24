@@ -13,7 +13,7 @@
     <MudButton Disabled="@(AppModeService.CurrentMode == AppMode.Books)" OnClick="@(() => RequestMode (AppMode.Books))" StartIcon="@Icons.Material.Filled.LibraryBooks" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Books</MudText></MudButton>
 </MudItem>
 <MudItem>
-    <MudButton Disabled="@(AppModeService.CurrentMode == AppMode.Publish)" OnClick="@(() => RequestMode (AppMode.Publish))" StartIcon="@Icons.Material.Filled.Sync" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Publish</MudText></MudButton>
+    <MudButton Disabled="@(AppModeService.CurrentMode == AppMode.Issue)" OnClick="@(() => RequestMode (AppMode.Issue))" StartIcon="@Icons.Material.Filled.Sync" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Issue</MudText></MudButton>
 </MudItem>
 <MudItem>
     <MudButton Disabled="@(AppModeService.CurrentMode == AppMode.Contents)" OnClick="@(() => RequestMode (AppMode.Contents))" StartIcon="@Icons.Material.Filled.ViewHeadline" Class="mx-2" IconClass="mr-1"><MudText Typo="Typo.h6">Contents</MudText></MudButton>
@@ -55,7 +55,7 @@
                     <p>'#~.'@(Book.TableLabel)@(Book.Label [nameof (Book.Id)])</p>
                     <p>':~.'@(Book.Label [nameof (Book.Site)])</p>
                     <p>'%~.'@(Book.Label [nameof (Book.NumberOfRelatedSheets)])</p>
-                    <p>'_is_released_'/'_not_released_'@(Book.Label [nameof (Book.Released)])</p>
+                    <p>'_is_issued_'/'_not_isshued_'@(Book.Label [nameof (Book.IsUpToDateWithIssued)])</p>
                     <p>'_is_readed_'/'_not_readed_'@(Book.Label [nameof (Book.Readed)])</p>
                     <p>'_is_wished_'/'_not_wished_'@(Book.Label [nameof (Book.Wish)])</p>
                     <p>'_<i>status</i>_'@(Book.Label [nameof (Book.Status)])</p>

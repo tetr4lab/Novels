@@ -13,7 +13,7 @@ using Tetr4lab;
 
 namespace Novels.Components.Pages;
 
-public partial class Publish : ItemListBase<Book> {
+public partial class Issue : ItemListBase<Book> {
 
     /// <summary>無効なURI</summary>
     protected bool IsInvalidUri (string? url) => !Uri.IsWellFormedUriString (url, UriKind.Absolute);
@@ -100,16 +100,16 @@ public partial class Publish : ItemListBase<Book> {
     }
 
     /// <summary>発行の確認</summary>
-    protected async Task<bool> ConfirmPublishBookAsync (MouseEventArgs eventArgs) {
+    protected async Task<bool> ConfirmIssueBookAsync (MouseEventArgs eventArgs) {
         if (Book is not null && !IsDirty) {
-            var publish = !eventArgs.CtrlKey;
-            var operation = publish ? "発行" : "生成";
+            var issue = !eventArgs.CtrlKey;
+            var operation = issue ? "発行" : "生成";
             var dialogResult = await DialogService.Confirmation ([
-                $"『{Book.MainTitle}.epub』を{(publish ? $"<{DataSet.Setting.SmtpMailto}>へ発行": "生成してダウンロード")}します。",
-            ], title: $"『{Book.MainTitle}.epub』{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: publish ? Color.Success : Color.Primary, acceptionIcon: publish ? Icons.Material.Filled.Publish : Icons.Material.Filled.FileDownload);
+                $"『{Book.MainTitle}.epub』を{(issue ? $"<{DataSet.Setting.SmtpMailto}>へ発行": "生成してダウンロード")}します。",
+            ], title: $"『{Book.MainTitle}.epub』{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: issue ? Color.Success : Color.Primary, acceptionIcon: issue ? Icons.Material.Filled.Publish : Icons.Material.Filled.FileDownload);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 SetBusy ();
-                await PublishBookAsync (Book, publish);
+                await IssueBookAsync (Book, issue);
                 SetIdle ();
             } else {
                 return false;
@@ -119,13 +119,13 @@ public partial class Publish : ItemListBase<Book> {
     }
 
     /// <summary>発行抹消の確認</summary>
-    protected async Task<bool> ConfirmUnPublishBookAsync () {
-        if (Book is not null && Book.Released && !IsDirty) {
+    protected async Task<bool> ConfirmUnIssueBookAsync () {
+        if (Book is not null && Book.IsUpToDateWithIssued && !IsDirty) {
             var dialogResult = await DialogService.Confirmation ([$"{Book.TableLabel}の発行記録を抹消します。",], title: $"発行抹消", position: DialogPosition.BottomCenter, acceptionLabel: "抹消", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 SetBusy ();
-                Book.NumberOfPublished = null;
-                Book.PublishedAt = null;
+                Book.NumberOfIsshued = null;
+                Book.IssuedAt = null;
                 SetIdle ();
                 Snackbar.Add ($"{Book.TableLabel}の発行記録を抹消しました。", Severity.Normal);
                 if ((await UpdateBookAsync (Book)).IsFailure) {
@@ -166,7 +166,7 @@ public partial class Publish : ItemListBase<Book> {
     }
 
     /// <summary>発行</summary>
-    protected async Task PublishBookAsync (Book book, bool sendToKindle = true) {
+    protected async Task IssueBookAsync (Book book, bool sendToKindle = true) {
         if (book is not null) {
             var title = $"{book.MainTitle}.epub";
             Snackbar.Add ($"『{title}』の生成を開始しました。", Severity.Normal);
@@ -198,8 +198,8 @@ public partial class Publish : ItemListBase<Book> {
                     }
                     if (SendToKindle (epubPath, title)) {
                         Snackbar.Add ($"『{title}』を発行しました。", Severity.Normal);
-                        book.PublishedAt = DateTime.Now;
-                        book.NumberOfPublished = book.Sheets.Count;
+                        book.IssuedAt = DateTime.Now;
+                        book.NumberOfIsshued = book.Sheets.Count;
                         var result = await UpdateBookAsync (book);
                         if (result.IsFailure) {
                             Snackbar.Add ($"{Book.TableLabel}の更新に失敗しました。", Severity.Error);
@@ -307,7 +307,7 @@ public partial class Publish : ItemListBase<Book> {
 
     /// <summary>タイトルを設定して編集を開始</summary>
     protected void SetAndEdit () {
-        SetSectionTitle (Book is null ? "Publish" : $"<span style=\"font-size:80%;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</span>");
+        SetSectionTitle (Book is null ? "Issue" : $"<span style=\"font-size:80%;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</span>");
         // 強制
         editingItem = null;
         StartEdit ();

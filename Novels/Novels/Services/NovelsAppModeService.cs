@@ -7,7 +7,7 @@ public enum AppMode {
     None = NovelsAppModeService.NoneMode,
     Boot = NovelsAppModeService.DefaultMode,
     Books,
-    Publish,
+    Issue,
     Contents,
     Read,
     Settings,

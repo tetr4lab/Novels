@@ -35,7 +35,7 @@
                             }
                             <MudSpacer />
                             @(context.Item.Id)
-                            <MudIconButton Disabled="_busy" OnClick="@(async () => await PublishBook (context.Item))" Style="margin-left: 2px;" Icon="@(context.Item.IsEmpty ? Icons.Material.Filled.Download : context.Item.IsUpdatable && !context.Item.IsErrorForNumberOfSheets ? Icons.Material.Filled.Refresh : context.Item.Released && !context.Item.IsPublishable ? Icons.Material.Filled.Sync : Icons.Material.Filled.Publish)" Size="Size.Small" />
+                            <MudIconButton Disabled="_busy" OnClick="@(async () => await IsshueBook (context.Item))" Style="margin-left: 2px;" Icon="@(context.Item.IsEmpty ? Icons.Material.Filled.Download : context.Item.IsUpdatable && !context.Item.IsErrorForNumberOfSheets ? Icons.Material.Filled.Refresh : context.Item.IsUpToDateWithIssued && !context.Item.IsIssuable ? Icons.Material.Filled.Sync : Icons.Material.Filled.Publish)" Size="Size.Small" />
                             <MudIconButton Disabled="_busy" OnClick="@(async () => await OpenBook (context.Item))" Style="margin-right: -6px;" Icon="@Icons.Material.Filled.ViewHeadline" Size="Size.Small" />
                         </MudStack>
                     </CellTemplate>
@@ -44,7 +44,7 @@
                     <CellTemplate>
                         <MudTooltip Style="text-align: left;" Arrow Duration="1000" Delay="500">
                             <TooltipContent>
-                                <p>@($"{(context.Item.Readed ? "既読" : (context.Item.Released || context.Item.NumberOfPublished > 0 || context.Item.PublishedAt is not null) ? "未読" : "未発行")}{(context.Item.Wish ? "、好評" : "")}")</p>
+                                <p>@($"{(context.Item.Readed ? "既読" : context.Item.HasBeenIssued ? "未読" : "未発行")}{(context.Item.Wish ? "、好評" : "")}")</p>
                                 <p>&nbsp;</p>
                                 <p>著書</p>
                                 <p>@((MarkupString) string.Join ("</p><p>", items.FindAll (item => item.Author == context.Item.Author).ConvertAll (book => $"『{book.Title}』")))</p>
@@ -96,10 +96,10 @@
                             </ChildContent>
                             <TooltipContent>
                                 <MudStack Spacing="0" Class="align-start">
-                                    <p>発行数量: @(context.Item.NumberOfPublished ?? 0)</p>
+                                    <p>発行数量: @(context.Item.NumberOfIsshued ?? 0)</p>
                                     <p>取得数量: @(context.Item.NumberOfRelatedSheets)</p>
                                     <p>書誌数量: @(context.Item.NumberOfSheets)</p>
-                                    <p>発行日時: @(context.Item.Released ? context.Item.PublishedAt?.ToString () ?? "抹消" : "未発行")</p>
+                                    <p>発行日時: @(context.Item.HasBeenIssued ? context.Item.IssuedAt?.ToString () ?? "抹消" : "未発行")</p>
                                     <p>更新日時: @(context.Item.LastUpdate)</p>
                                 </MudStack>
                             </TooltipContent>
@@ -131,7 +131,7 @@
             <MudFab Disabled="_busy" OnClick="ScrollToBottomAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.VerticalAlignBottom" Class="mr-2" />
         </MudTooltip>
         <MudTooltip Text="発行済み/未発行を絞り込み" Duration="1000">
-            <MudFab Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_released_", "_not_released_"))" StartIcon="@Icons.Material.Outlined.PublishedWithChanges" Size="Size.Small" Class="mr-2" />
+            <MudFab Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_issued_", "_not_isshued_"))" StartIcon="@Icons.Material.Outlined.PublishedWithChanges" Size="Size.Small" Class="mr-2" />
         </MudTooltip>
         <MudTooltip Text="既読/未読を絞り込み" Duration="1000">
             <MudFab Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_readed_", "_not_readed_"))" StartIcon="@Icons.Material.Outlined.Visibility" Size="Size.Small" Class="mr-2" />
@@ -201,10 +201,10 @@
     }
 
     /// <summary>書籍を発行</summary>
-    protected async Task PublishBook (Book book) {
+    protected async Task IsshueBook (Book book) {
         SetBusy ();
         await ChangeCurrentBookAsync (book);
-        await SetAppMode (AppMode.Publish);
+        await SetAppMode (AppMode.Issue);
         SetIdle ();
     }
 
@@ -248,8 +248,8 @@
                     var newBook = result.Value.book;
                     lastCreatedId = newBook.Id;
                     await ChangeCurrentBookAsync (newBook);
-                    // Publishページへ移動する
-                    await PublishBook (newBook);
+                    // Issueページへ移動する
+                    await IsshueBook (newBook);
                 } else {
                     Snackbar.Add ($"追加に失敗: {(items is null ? "null, " : "")}{lastCreatedId}\n{newItem}", Severity.Error);
                 }

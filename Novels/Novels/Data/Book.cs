@@ -90,10 +90,10 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (Title), "書名" },
         { nameof (Author), "著者" },
         { nameof (NumberOfSheets), "シート数" },
-        { nameof (NumberOfPublished), "発行済みシート数" },
+        { nameof (NumberOfIsshued), "発行済みシート数" },
         { nameof (NumberOfRelatedSheets), "取得済みシート数" },
-        { nameof (PublishedAt), "発行日時" },
-        { nameof (Released), "既刊" },
+        { nameof (IssuedAt), "発行日時" },
+        { nameof (IsUpToDateWithIssued), "既刊" },
         { nameof (Readed), "既読" },
         { nameof (ReadedMemo), "栞メモ" },
         { nameof (Status), "状態" },
@@ -119,9 +119,9 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     [Column ("title")] public string? _title { get; set; } = null;
     [Column ("author")] public string? _author { get; set; } = null;
     /// <summary>Epub発行シート数</summary>
-    [Column ("number_of_published")] public int? NumberOfPublished { get; set; } = null;
+    [Column ("number_of_published")] public int? NumberOfIsshued { get; set; } = null;
     /// <summary>Epub発行日時</summary>
-    [Column ("published_at")] public DateTime? PublishedAt { get; set; } = null;
+    [Column ("published_at")] public DateTime? IssuedAt { get; set; } = null;
     [Column ("read")] public bool Readed { get; set; } = false;
     [Column ("memorandum")] public string? ReadedMemo { get; set; } = null;
     [Column ("status")] public string _status { get; set; } = "";
@@ -158,13 +158,13 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         get {
             if (Status == BookStatus.NotSet) { return Color.Error; }
             if (Readed) { return Color.Dark; }
-            if (Released) { return Color.Primary; }
+            if (IsUpToDateWithIssued) { return Color.Primary; }
             return ((Color [])[Color.Success, Color.Tertiary, Color.Info, Color.Warning, Color.Surface,]) [(int) Status];
         }
     }
 
     /// <summary>状態に応じた順位</summary>
-    public int StatusPriority => ((int) Status) + (Readed ? 100 : 0) + (Released ? 10 : 0);
+    public int StatusPriority => ((int) Status) + (Readed ? 100 : 0) + (IsUpToDateWithIssued ? 10 : 0);
 
     /// <summary>書誌、または、シートから得られる最終更新日時</summary>
     public DateTime LastUpdate {
@@ -180,19 +180,22 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         }
     }
 
-    /// <summary>発行済みである</summary>
-    public bool Released =>
-        NumberOfPublished is not null && NumberOfPublished >= NumberOfSheets
-        && (PublishedAt is null || PublishedAt >= LastUpdate);
+    /// <summary>発行済みより新しい更新がない</summary>
+    public bool IsUpToDateWithIssued =>
+        NumberOfIsshued is not null && NumberOfIsshued >= NumberOfSheets
+        && (IssuedAt is null || IssuedAt >= LastUpdate);
+
+    /// <summary>発行したことがある</summary>
+    public bool HasBeenIssued => NumberOfIsshued > 0 || IssuedAt is not null;
 
     /// <summary>シート数にエラーがある</summary>
-    public bool IsErrorForNumberOfSheets => (NumberOfPublished ?? 0) > NumberOfRelatedSheets || NumberOfRelatedSheets > NumberOfSheets;
+    public bool IsErrorForNumberOfSheets => (NumberOfIsshued ?? 0) > NumberOfRelatedSheets || NumberOfRelatedSheets > NumberOfSheets;
 
     /// <summary>更新可能である</summary>
     public bool IsUpdatable => NumberOfRelatedSheets < NumberOfSheets;
 
     /// <summary>出版可能である</summary>
-    public bool IsPublishable => (NumberOfPublished ?? 0) < NumberOfRelatedSheets;
+    public bool IsIssuable => (NumberOfIsshued ?? 0) < NumberOfRelatedSheets;
 
     /// <summary>シート(Url)数</summary>
     public int NumberOfSheets => SheetUrls.Count;
@@ -693,8 +696,8 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         _site = Site.Unknown;
         _title = null;
         _author = null;
-        NumberOfPublished = null;
-        PublishedAt = null;
+        NumberOfIsshued = null;
+        IssuedAt = null;
         Readed = false;
         ReadedMemo = null;
         _status = string.Empty;
@@ -771,7 +774,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public override string? [] SearchTargets => [
         $"#{Id}.",
         $":{Site}.",
-        Released ? "_is_released_" : "_not_released_",
+        IsUpToDateWithIssued ? "_is_released_" : "_not_released_",
         Readed ? "_is_readed_" : "_not_readed_",
         $"_{Status.ToJString ()}_",
         Wish ? "_is_wished_" : "_not_wished_",
@@ -794,8 +797,8 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         item._site = Site;
         item._title = Title;
         item._author = Author;
-        item.NumberOfPublished = NumberOfPublished;
-        item.PublishedAt = PublishedAt;
+        item.NumberOfIsshued = NumberOfIsshued;
+        item.IssuedAt = IssuedAt;
         item.Readed = Readed;
         item.ReadedMemo = ReadedMemo;
         item._status = _status;
@@ -814,8 +817,8 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         destination._site = Site;
         destination._title = Title;
         destination._author = Author;
-        destination.NumberOfPublished = NumberOfPublished;
-        destination.PublishedAt = PublishedAt;
+        destination.NumberOfIsshued = NumberOfIsshued;
+        destination.IssuedAt = IssuedAt;
         destination.Readed = Readed;
         destination.ReadedMemo = ReadedMemo;
         destination._status = _status;
@@ -836,8 +839,8 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         && _site == other._site
         && _title == other._title
         && _author == other._author
-        && NumberOfPublished == other.NumberOfPublished
-        && PublishedAt == other.PublishedAt
+        && NumberOfIsshued == other.NumberOfIsshued
+        && IssuedAt == other.IssuedAt
         && Readed == other.Readed
         && ReadedMemo == other.ReadedMemo
         && _status == other._status
@@ -850,10 +853,10 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
 
     /// <inheritdoc/>
     public override int GetHashCode () => HashCode.Combine (
-        HashCode.Combine (Url1, Url2, _html, _site, _title, _author, NumberOfPublished, PublishedAt),
+        HashCode.Combine (Url1, Url2, _html, _site, _title, _author, NumberOfIsshued, IssuedAt),
         HashCode.Combine (Readed, ReadedMemo, _status, HtmlBackup, Errata, Wish, Bookmark, Remarks),
         base.GetHashCode ());
 
     /// <inheritdoc/>
-    public override string ToString () => $"{TableLabel} {Id}: {Url1}, {Url2}, {_site}, {_title}, {_author}, {_status}, {(Readed ? "Readed, " : "")}\"{ReadedMemo}\", {(Wish? "Wish, " : "")}{NumberOfPublished}/{NumberOfSheets}, {PublishedAt}, {(Errata is null ? "" : string.Join (',', Errata.Split ('\n')) + ", ")}\"{Remarks}\"";
+    public override string ToString () => $"{TableLabel} {Id}: {Url1}, {Url2}, {_site}, {_title}, {_author}, {_status}, {(Readed ? "Readed, " : "")}\"{ReadedMemo}\", {(Wish? "Wish, " : "")}{NumberOfIsshued}/{NumberOfSheets}, {IssuedAt}, {(Errata is null ? "" : string.Join (',', Errata.Split ('\n')) + ", ")}\"{Remarks}\"";
 }

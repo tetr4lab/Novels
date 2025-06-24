@@ -27,10 +27,10 @@
                     <MudStack Row Spacing="1" Class="align-center">
                         <MudText Typo="Typo.inherit">@Book.Id</MudText>
                         <MudSpacer />
-                        @if (Book.PublishedAt is not null) {
+                        @if (Book.IssuedAt is not null) {
                             <MudChip T="string" Variant="Variant.Outlined">
-                                @(Book.Label [nameof (Book.PublishedAt)]): @(Book.PublishedAt.Value.ToString ("yyyy/MM/dd HH:mm"))
-                                <MudIconButton Disabled="_busy" OnClick="ConfirmUnPublishBookAsync" Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
+                                @(Book.Label [nameof (Book.IssuedAt)]): @(Book.IssuedAt.Value.ToString ("yyyy/MM/dd HH:mm"))
+                                <MudIconButton Disabled="_busy" OnClick="ConfirmUnIssueBookAsync" Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
                             </MudChip>
                         }
                         <MudSpacer />
@@ -39,9 +39,9 @@
                                 <MudText Typo="Typo.inherit">@Book.Site</MudText>
                             </MudTooltip>
                             <span> : </span>
-                            @if (Book.Released) {
-                                <MudTooltip Arrow Duration="1000" Text="@(Book.Label [nameof (Book.NumberOfPublished)])">
-                                    <MudText Color="@(Book.NumberOfPublished < Book.NumberOfRelatedSheets && Book.NumberOfPublished < Book.NumberOfSheets ? Color.Warning : Color.Inherit)">@(Book.NumberOfPublished)</MudText>
+                            @if (Book.IsUpToDateWithIssued) {
+                                <MudTooltip Arrow Duration="1000" Text="@(Book.Label [nameof (Book.NumberOfIsshued)])">
+                                    <MudText Color="@(Book.NumberOfIsshued < Book.NumberOfRelatedSheets && Book.NumberOfIsshued < Book.NumberOfSheets ? Color.Warning : Color.Inherit)">@(Book.NumberOfIsshued)</MudText>
                                 </MudTooltip>
                                 <span> / </span>
                             }
@@ -152,7 +152,7 @@
                 <span style="writing-mode: vertical-rl;">で生成のみ）</span>
             </TooltipContent>
             <ChildContent>
-                <MudIconButton Disabled="_busy || Book.IsEmpty || Book.Released || IsDirty" OnClick="ConfirmPublishBookAsync" Color="Color.Tertiary" Icon="@Icons.Material.Filled.Publish" Variant="Variant.Outlined" Size="Size.Large" />
+                <MudIconButton Disabled="_busy || Book.IsEmpty || Book.IsUpToDateWithIssued || IsDirty" OnClick="ConfirmIssueBookAsync" Color="Color.Tertiary" Icon="@Icons.Material.Filled.Publish" Variant="Variant.Outlined" Size="Size.Large" />
             </ChildContent>
         </MudTooltip>
         <MudSpacer />
