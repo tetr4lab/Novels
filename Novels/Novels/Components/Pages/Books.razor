@@ -18,7 +18,7 @@
                 <TemplateColumn HeaderClass="px-1" CellClass="py-1 pl-0 pr-1" HeaderStyle="width:3.8em;" CellStyle="text-align:right;">
                     <HeaderTemplate>
                         <MudTooltip Text="@($"着目中の{Book.TableLabel}へ")" Placement="Placement.Right" Arrow Duration="1000">
-                            <MudLink Disabled="_busy" OnClick="ScrollToCurrent" Color="Color.Default" Underline="Underline.None">@(Book.Label [nameof (Book.Id)])</MudLink>
+                            <MudLink Disabled="_busy" OnClick="ScrollToCurrent" Typo="Typo.inherit" Color="Color.Default" Underline="Underline.None">@(Book.Label [nameof (Book.Id)])</MudLink>
                         </MudTooltip>
                     </HeaderTemplate>
                     <CellTemplate>
