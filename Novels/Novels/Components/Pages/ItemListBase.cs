@@ -203,17 +203,23 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
 
     /// <summary>着目へ</summary>
     protected async Task ScrollToCurrent () {
+        SetBusy ();
         await ScrollToCurrentAsync ();
+        SetIdle ();
     }
 
     /// <summary>リストの上端へスクロール</summary>
     protected virtual async Task ScrollToTopAsync () {
+        SetBusy ();
         await ScrollManager.ScrollToTopAsync (".mud-table-container", ScrollBehavior.Auto);
+        SetIdle ();
     }
 
     /// <summary>リストの下端へスクロール</summary>
     protected virtual async Task ScrollToBottomAsync () {
+        SetBusy ();
         await ScrollManager.ScrollToBottomAsync (".mud-table-container", ScrollBehavior.Auto);
+        SetIdle ();
     }
 
     /// <summary>リロードして元の位置へ戻る</summary>
