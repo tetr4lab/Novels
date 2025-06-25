@@ -16,11 +16,11 @@ public sealed class NovelsDataSet : BasicDataSet {
     public NovelsDataSet (Database database) : base (database) { }
 
     /// <inheritdoc/>
-    /// <remarks>最初の書籍Idを得る</remarks>
+    /// <remarks>最後の書籍Idを得る</remarks>
     public override async Task InitializeAsync () {
         if (!IsInitialized && !IsInitializeStarted) {
             try {
-                CurrentBookId = await database.FirstOrDefaultAsync<long> ("select `id` from `books` limit 1;");
+                CurrentBookId = await database.FirstOrDefaultAsync<long> ("select `id` from `books` order by `id` desc limit 1;");
             }
             catch (Exception e) {
                 System.Diagnostics.Debug.WriteLine ($"Exception: {e.Message}\n{e.StackTrace}");
