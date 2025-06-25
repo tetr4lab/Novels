@@ -109,6 +109,9 @@
         <MudText>No items found.</MudText>
     }
     <MudAppBar Class="backdrop-blur pb-2" Color="Color.Transparent" Dense Bottom="true" Fixed="true">
+        <MudTooltip Text="設定" Duration="1000">
+            <MudFab Disabled="_busy" OnClick="Settings" StartIcon="@Icons.Material.Outlined.Settings" Size="Size.Small" Class="mr-4" />
+        </MudTooltip>
         <MudTooltip Text="@($"着目中の{Book.TableLabel}へ")" Arrow Duration="1000">
             <MudFab Disabled="_busy" OnClick="ScrollToCurrent" Size="Size.Small" StartIcon="@Icons.Material.Filled.DoubleArrow" Class="mr-2" />
         </MudTooltip>
