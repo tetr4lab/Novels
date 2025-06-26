@@ -34,6 +34,19 @@ Web小説を取得し、EPUBを生成して、Kindleパーソナルドキュメ�
 
 https://zenn.dev/tetr4lab/articles/ad947ade600764
 
+https://zenn.dev/tetr4lab/articles/3fb1d4e8e7ff21
+
+#### その他
+##### メールサーバ
+さくらインターネット
+
+##### ブラウザ
+Google Chrome
+
+##### 認証
+
+https://zenn.dev/tetr4lab/articles/1946ec08aec508
+
 ## できること
 - Web小説の取得・更新 (なろう、ノクターン、カクヨム、ノベルアップ他)
 - 小説内容の確認、各種メモ、文字校正
@@ -231,6 +244,8 @@ DELIMITER ;
 </details>
 
 ## 画面と機能
+SPAです。
+
 ### 論理構成
 - 共通: ナビゲーションバー
   - ページ切り替え、検索、テーマ切り替え
