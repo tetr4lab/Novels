@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Components.Server.Circuits;
 using MudBlazor;
 using MudBlazor.Services;
 using PetaPoco;
-using Novels.Client.Pages;
 using Novels.Components;
 using Novels.Components.Pages;
 using Novels.Services;
