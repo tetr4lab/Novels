@@ -9,6 +9,9 @@ using Novels.Services;
 using Tetr4lab;
 using System.Globalization;
 
+// dotnet coreでマイナーエンコードに対応する予防的措置
+System.Text.Encoding.RegisterProvider (System.Text.CodePagesEncodingProvider.Instance);
+
 var builder = WebApplication.CreateBuilder (args);
 var connectionString = $"database=novels;{builder.Configuration.GetConnectionString ("Host")}{builder.Configuration.GetConnectionString ("Account")}Allow User Variables=true;";
 
