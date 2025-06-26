@@ -308,16 +308,31 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
 
     /// <summary>アプリモードが変化した</summary>
     protected override async void OnAppModeChanged (object? sender, PropertyChangedEventArgs e) {
-        if (e.PropertyName == "RequestedMode" && sender is NovelsAppModeService service) {
-            // アプリモード遷移の要求があった
-            if (service.RequestedMode != AppMode.None) {
-                if (service.RequestedMode != service.CurrentMode) {
-                    await SetAppMode (service.RequestedMode);
+        if (sender is NovelsAppModeService service) {
+            if (e.PropertyName == "RequestedMode") {
+                // アプリモード遷移の要求があった
+                if (service.RequestedMode != AppMode.None) {
+                    if (service.RequestedMode != service.CurrentMode) {
+                        await SetAppMode (service.RequestedMode);
+                    }
+                    service.RequestMode (AppMode.None);
                 }
-                service.RequestMode (AppMode.None);
+            } else if (e.PropertyName == "FilterText") {
+                // 検索文字列の変化
+                if (_dataGrid is not null && !string.IsNullOrEmpty (service.FilterText)) {
+                    var filtered = _dataGrid.FilteredItems.ToList ();
+                    if (filtered.Count > 0 && !filtered.Contains (selectedItem)) {
+                        // 現選択アイテムが結果にないなら最初のアイテムを選択
+                        selectedItem = filtered [0];
+                        if (selectedItem is Book book) {
+                            await ChangeCurrentBookAsync (book);
+                        }
+                    }
+                }
+                await ScrollToCurrentAsync ();
             }
+            await OnAppModeChangedAsync (sender, e);
         }
-        await OnAppModeChangedAsync (sender, e);
     }
 
     /// <summary>アプリモード遷移実施</summary>
