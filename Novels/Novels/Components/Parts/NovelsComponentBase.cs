@@ -10,7 +10,6 @@ namespace Novels.Components.Pages;
 /// <summary>ページの基底</summary>
 public abstract class NovelsComponentBase : ComponentBase, IDisposable {
     [Inject] protected IAppLockState UiState { get; set; } = null!;
-    [Inject] protected IAppLockState AppLockState { get; set; } = null!;
     [Inject] protected NovelsAppModeService AppModeService { get; set; } = null!;
 
     /// <summary>認証状況を得る</summary>
@@ -52,7 +51,7 @@ public abstract class NovelsComponentBase : ComponentBase, IDisposable {
     protected override async Task OnInitializedAsync () {
         await base.OnInitializedAsync ();
         // 購読開始
-        AppLockState.PropertyChanged += OnAppLockChanged;
+        UiState.PropertyChanged += OnAppLockChanged;
         AppModeService.PropertyChanged += OnAppModeChanged;
         // 認証・認可
         Identity = await AuthState.GetIdentityAsync ();
@@ -60,7 +59,7 @@ public abstract class NovelsComponentBase : ComponentBase, IDisposable {
 
     /// <summary>購読終了</summary>
     public virtual void Dispose () {
-        AppLockState.PropertyChanged -= OnAppLockChanged;
+        UiState.PropertyChanged -= OnAppLockChanged;
         AppModeService.PropertyChanged -= OnAppModeChanged;
     }
 
