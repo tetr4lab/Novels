@@ -181,17 +181,21 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     protected virtual async Task ScrollToCurrentAsync (long focusedId = 0, int focusedIndex = 0) {
         if (focusedId <= 0) { focusedId = CurrentBookId; }
         if (focusedIndex <= 0) { focusedIndex = CurrentSheetIndex; }
-        //VirtualizeのためScrollIntoViewAsyncは使えない
-        //await ScrollManager.ScrollIntoViewAsync ($"a#{typeof (T).Name}-{focusedId}", ScrollBehavior.Auto);
         if (items is not null) {
+            var lastTableHeight = double.NaN;
+            var lastItemHeight = double.NaN;
             var table = (ElementDimensions?) null;
             var item = (ElementDimensions?) null;
             var itemSelector = $"tr.mud-table-row:has(td.mud-table-cell>a[id^='{typeof (T).Name}-'])";
             for (var i = 0; i < 10; i++) {
+                lastTableHeight = table?.Height ?? double.NaN;
+                lastItemHeight = item?.Height ?? double.NaN;
                 table = await JSRuntime.GetElementDimensions (".mud-table-container");
                 item = await JSRuntime.GetElementDimensions (itemSelector);
-                if (table is not null && item is not null) { break; }
-                await TaskEx.DelayOneFrame; // レンダリング待ち
+                if (table is not null && table.Height == lastTableHeight && item is not null && item.Height == lastItemHeight) {
+                    break; // レンダリングが落ち着いたら抜ける
+                }
+                await TaskEx.DelayOneFrame;
             }
             if (table is null || item is null) { return; }
             var index = 0;

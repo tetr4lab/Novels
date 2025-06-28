@@ -4,14 +4,14 @@ namespace Novels.Services;
 
 /// <summary>要素の位置とサイズ</summary>
 public class ElementDimensions {
-    public double X { get; set; }
-    public double Y { get; set; }
-    public double Width { get; set; }
-    public double Height { get; set; }
-    public double Top { get; set; }
-    public double Right { get; set; }
-    public double Bottom { get; set; }
-    public double Left { get; set; }
+    public double X { get; init; }
+    public double Y { get; init; }
+    public double Width { get; init; }
+    public double Height { get; init; }
+    public double Top { get; init; }
+    public double Right { get; init; }
+    public double Bottom { get; init; }
+    public double Left { get; init; }
 }
 
 public static class JSRuntimeHelper {
@@ -46,6 +46,6 @@ public static class JSRuntimeHelper {
     /// <returns></returns>
     public static async Task<ElementDimensions?> GetElementDimensions (this IJSRuntime JSRuntime, string selector) {
         if (string.IsNullOrEmpty (selector)) { return null; }
-        return await JSRuntime.InvokeAsync<ElementDimensions> ("getElementDimensions", selector);
+        return await JSRuntime.InvokeAsync<ElementDimensions?> ("getElementDimensions", selector);
     }
 }
