@@ -22,3 +22,21 @@ async function downloadFileFromStream(fileName, contentStreamReference) {
     anchorElement.remove();
     URL.revokeObjectURL(url);
 }
+
+function getElementDimensions(selector) {
+    const element = document.querySelector(selector);
+    if (element) {
+        const rect = element.getBoundingClientRect();
+        return {
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height,
+            top: rect.top,
+            right: rect.right,
+            bottom: rect.bottom,
+            left: rect.left
+        };
+    }
+    return null;
+}

@@ -213,7 +213,7 @@ public partial class Issue : ItemListBase<Book> {
                     try {
                         using (var fileStream = new FileStream (epubPath, FileMode.Open))
                         using (var streamRef = new DotNetStreamReference (stream: fileStream)) {
-                            await JSRuntime.InvokeVoidAsync ("downloadFileFromStream", title, streamRef);
+                            await JSRuntime.DownloadFileFromStream (title, streamRef);
                         }
                     }
                     catch (Exception e) {

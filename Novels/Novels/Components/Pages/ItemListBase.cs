@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.JSInterop;
 using MudBlazor;
 using Novels.Data;
 using Novels.Services;
@@ -25,6 +26,7 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     [Inject] protected IAuthorizationService AuthorizationService { get; set; } = null!;
     [Inject] protected IScrollManager ScrollManager { get; set; } = null!;
     [Inject] protected IBrowserViewportService BrowserViewportService { get; set; } = null!;
+    [Inject] protected IJSRuntime JSRuntime { get; set; } = null!;
 
     /// <summary>項目一覧</summary>
     protected List<T>? items => DataSet.IsReady ? DataSet.GetList<T> () : null;
@@ -182,21 +184,26 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
         //VirtualizeのためScrollIntoViewAsyncは使えない
         //await ScrollManager.ScrollIntoViewAsync ($"a#{typeof (T).Name}-{focusedId}", ScrollBehavior.Auto);
         if (items is not null) {
+            var table = (ElementDimensions?) null;
+            var item = (ElementDimensions?) null;
+            var itemSelector = $"tr.mud-table-row:has(td.mud-table-cell>a[id^='{typeof (T).Name}-'])";
+            for (var i = 0; i < 10; i++) {
+                table = await JSRuntime.GetElementDimensions (".mud-table-container");
+                item = await JSRuntime.GetElementDimensions (itemSelector);
+                if (table is not null && item is not null) { break; }
+                await TaskEx.DelayOneFrame; // レンダリング待ち
+            }
+            if (table is null || item is null) { return; }
             var index = 0;
-            var rowHeight = _dataGrid?.ItemSize ?? 0.0f; // 行高
-            var viewportHeightRatio = 0.0d;
             if (typeof (T) == typeof (Book)) {
                 var list = string.IsNullOrEmpty (FilterText) || _dataGrid is null ? items : _dataGrid.FilteredItems.ToList ();
                 index = list.FindIndex (x => x.Id == focusedId);
-                viewportHeightRatio = Books.ViewportHeightRatio;
             } else if (typeof (T) == typeof (Sheet)) {
                 index = CurrentSheetIndex - 1;
-                viewportHeightRatio = Sheets.ViewportHeightRatio;
             } else {
                 return;
             }
-            var viewSize = await BrowserViewportService.GetCurrentBrowserWindowSizeAsync ();
-            var offset = rowHeight * index - viewSize.Height / viewportHeightRatio;
+            var offset = item.Height * index - table.Height / 2.0; // 行高 * index - テーブル高の半分
             await ScrollManager.ScrollToAsync (".mud-table-container", 0, (int) (offset < 0d ? 0d : offset), ScrollBehavior.Auto);
         }
     }
