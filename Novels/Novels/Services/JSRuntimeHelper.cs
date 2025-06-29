@@ -18,10 +18,11 @@ public static class JSRuntimeHelper {
     /// <summary>URLを新しいタブで開く</summary>
     /// <param name="JSRuntime"></param>
     /// <param name="url"></param>
+    /// <param name="target"></param>
     /// <returns></returns>
-    public static async Task OpenUrl (this IJSRuntime JSRuntime, string url) {
-        if (!string.IsNullOrEmpty (url)) {
-            await JSRuntime.InvokeAsync<object> ("openInNewTab", url);
+    public static async Task OpenUrl (this IJSRuntime JSRuntime, string url, string target = "_blank") {
+        if (!string.IsNullOrEmpty (url) && !string.IsNullOrEmpty (target)) {
+            await JSRuntime.InvokeVoidAsync ("open", url, target);
         }
     }
     /// <summary>ページトップへスクロール</summary>

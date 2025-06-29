@@ -182,22 +182,6 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
         if (focusedId <= 0) { focusedId = CurrentBookId; }
         if (focusedIndex <= 0) { focusedIndex = CurrentSheetIndex; }
         if (items is not null) {
-            var lastTableHeight = double.NaN;
-            var lastItemHeight = double.NaN;
-            var table = (ElementDimensions?) null;
-            var item = (ElementDimensions?) null;
-            var itemSelector = $"tr.mud-table-row:has(td.mud-table-cell>a[id^='{typeof (T).Name}-'])";
-            for (var i = 0; i < 10; i++) {
-                lastTableHeight = table?.Height ?? double.NaN;
-                lastItemHeight = item?.Height ?? double.NaN;
-                table = await JSRuntime.GetElementDimensions (".mud-table-container");
-                item = await JSRuntime.GetElementDimensions (itemSelector);
-                if (table is not null && table.Height == lastTableHeight && item is not null && item.Height == lastItemHeight) {
-                    break; // レンダリングが落ち着いたら抜ける
-                }
-                await TaskEx.DelayOneFrame;
-            }
-            if (table is null || item is null) { return; }
             var index = 0;
             if (typeof (T) == typeof (Book)) {
                 var list = string.IsNullOrEmpty (FilterText) || _dataGrid is null ? items : _dataGrid.FilteredItems.ToList ();
@@ -207,8 +191,7 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
             } else {
                 return;
             }
-            var offset = item.Height * index - table.Height / 2.0; // 行高 * index - テーブル高の半分
-            await ScrollManager.ScrollToAsync (".mud-table-container", 0, (int) (offset < 0d ? 0d : offset), ScrollBehavior.Auto);
+            await ScrollManager.ScrollToIndexAsync (JSRuntime, index);
         }
     }
 
