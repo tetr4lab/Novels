@@ -14,39 +14,23 @@
     <AuthorizeView Policy="Users">
         <Authorized>
             <nav>
-                <MudHidden Breakpoint="Breakpoint.Xs" Invert="true">
-                    <MudFab Class="fixed ma-2 z-100" Style="right: 0px;" Color="Color.Transparent" Ripple="false" StartIcon="@Icons.Material.Filled.Menu" Size="Size.Small" OnClick="@(() => _drawerOpen = true)" />
-                    <MudDrawer Class="fixed" @bind-Open="@_drawerOpen" Anchor="Anchor.Top" Elevation="1" Variant="@DrawerVariant.Temporary">
-                        <MudNavMenu Dense Color="Color.Dark" Class="px-4 my-2">
-                            <CascadingValue Value="@_isDarkMode" Name="IsDarkMode">
-                            <CascadingValue Value="@(EventCallback.Factory.Create (this, ChangeModeAsync))" Name="ChangeModeAsync">
-                                <NavBar />
-                            </CascadingValue>
-                            </CascadingValue>
-                        </MudNavMenu>
-                    </MudDrawer>
-                </MudHidden>
-                <MudHidden Breakpoint="Breakpoint.Xs">
-                    <MudAppBar Color="Color.Transparent" Dense Fixed="true" Class="backdrop-blur">
-                        <MudGrid Class="align-center flex-nowrap" Spacing="0">
-                            <CascadingValue Value="@_isDarkMode" Name="IsDarkMode">
-                            <CascadingValue Value="@(EventCallback.Factory.Create (this, ChangeModeAsync))" Name="ChangeModeAsync">
-                                <NavBar />
-                            </CascadingValue>
-                            </CascadingValue>
-                        </MudGrid>
-                    </MudAppBar>
-                </MudHidden>
+                <MudAppBar Color="Color.Transparent" Dense Fixed="true" Class="backdrop-blur">
+                    <MudGrid Class="align-center flex-nowrap" Spacing="0">
+                        <CascadingValue Value="@_isDarkMode" Name="IsDarkMode">
+                        <CascadingValue Value="@(EventCallback.Factory.Create (this, ChangeModeAsync))" Name="ChangeModeAsync">
+                            <NavBar />
+                        </CascadingValue>
+                        </CascadingValue>
+                    </MudGrid>
+                </MudAppBar>
             </nav>
             <main>
-                <MudHidden Breakpoint="Breakpoint.Xs">
-                    <MudAppBar Color="Color.Transparent" Style="z-index:0;" Elevation="0" Dense Fixed="false">
-                        @*hidden spacer*@
-                    </MudAppBar>
-                </MudHidden>
+                <MudAppBar Color="Color.Transparent" Style="z-index:0;" Elevation="0" Dense Fixed="false">
+                    @*hidden spacer*@
+                </MudAppBar>
                 <MudStack Row Class="px-4" Justify="Justify.SpaceBetween">
-                    <MudText Typo="Typo.h5">@((MarkupString) AppModeService.SectionTitle)</MudText>
-                    <MudText Typo="Typo.h5"><SessionCounter /></MudText>
+                    <MudText Typo="Typo.h5" Class="overflow-hidden text-nowrap" Style="text-overflow: ellipsis;">@((MarkupString) AppModeService.SectionTitle)</MudText>
+                    <MudText Typo="Typo.h5" Class="overflow-hidden text-nowrap"><SessionCounter /></MudText>
                 </MudStack>
                 <article class="content px-4">
                     @Body

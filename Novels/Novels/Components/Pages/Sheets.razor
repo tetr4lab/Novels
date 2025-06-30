@@ -15,10 +15,10 @@
     }
     if (items.Count > 0) {
         var explanationSize = string.IsNullOrEmpty (Book.Explanation) ? 0 : Book.Explanation.Length - Book.Explanation.Replace ("<" , "").Length;
-        <MudDataGrid T="Sheet" Items="items" ReadOnly="false" Dense Hover Elevation="0" Breakpoint="Breakpoint.Xs" @ref="_dataGrid"
+        <MudDataGrid T="Sheet" Items="items" ReadOnly="false" Dense Hover Elevation="0" Breakpoint="Breakpoint.None" @ref="_dataGrid"
             SortMode="SortMode.None" ColumnResizeMode="ResizeMode.Column" FixedHeader Virtualize
             QuickFilter="FilterFunc" RowClick="OnRowClickAsync"
-            Height="calc(100vh - var(--mud-appbar-height) * 2 - 15em)"
+            Height="calc(100vh - var(--mud-appbar-height) * 2 - 15em)" ItemSize="@RowSize"
         >
             <Columns>
                 <TemplateColumn HeaderClass="px-1" CellClass="py-1 pl-0 pr-1" HeaderStyle="width:1em;">
@@ -109,6 +109,12 @@
 }
 
 @code {
+    /// <summary>1行のサイズ</summary>
+    protected const float RowSize = 35.0f;
+
+    /// <summary>テーブルと画面高さの比率のようなもの</summary>
+    public static readonly double ViewportHeightRatio = 1.55d;
+
     /// <summary>行がクリックされた</summary>
     protected async Task OnRowClickAsync (DataGridRowClickEventArgs<Sheet> context) {
         if (context.Item is Sheet sheet) {

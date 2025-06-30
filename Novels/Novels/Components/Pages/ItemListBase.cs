@@ -181,17 +181,24 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     protected virtual async Task ScrollToCurrentAsync (long focusedId = 0, int focusedIndex = 0) {
         if (focusedId <= 0) { focusedId = CurrentBookId; }
         if (focusedIndex <= 0) { focusedIndex = CurrentSheetIndex; }
+        var viewportHeightRatio = 0.0d;
         if (items is not null) {
             var index = 0;
             if (typeof (T) == typeof (Book)) {
                 var list = string.IsNullOrEmpty (FilterText) || _dataGrid is null ? items : _dataGrid.FilteredItems.ToList ();
                 index = list.FindIndex (x => x.Id == focusedId);
+                viewportHeightRatio = Books.ViewportHeightRatio;
             } else if (typeof (T) == typeof (Sheet)) {
                 index = CurrentSheetIndex - 1;
+                viewportHeightRatio = Sheets.ViewportHeightRatio;
             } else {
                 return;
             }
-            await ScrollManager.ScrollToIndexAsync (JSRuntime, index);
+            var rowHeight = _dataGrid?.ItemSize ?? 0.0f; // 行高
+            var viewSize = await BrowserViewportService.GetCurrentBrowserWindowSizeAsync ();
+            var tableHeight = viewSize.Height / viewportHeightRatio; // テーブル高
+            double offset = rowHeight * (double) index - tableHeight / 2.0;
+            await ScrollManager.ScrollToAsync (".mud-table-container", 0, (int) ((offset < 0.0) ? 0.0 : offset), ScrollBehavior.Auto);
         }
     }
 

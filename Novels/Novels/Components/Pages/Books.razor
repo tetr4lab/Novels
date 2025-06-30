@@ -8,10 +8,10 @@
     <MudProgressCircular Indeterminate="true" />
 } else {
     if (items.Count > 0) {
-        <MudDataGrid T="Book" Items="items" ReadOnly="false" Dense Hover Elevation="0" Breakpoint="Breakpoint.Xs" @ref="_dataGrid"
+        <MudDataGrid T="Book" Items="items" ReadOnly="false" Dense Hover Elevation="0" Breakpoint="Breakpoint.None" @ref="_dataGrid"
             SortMode="SortMode.None" ColumnResizeMode="ResizeMode.Column" FixedHeader Virtualize
             QuickFilter="FilterFunc" RowClick="OnRowClickAsync"
-            Height="calc(100vh - var(--mud-appbar-height) * 2 - 1em)"
+            Height="calc(100vh - var(--mud-appbar-height) * 2 - 1em)" ItemSize="@RowSize"
         >
             <Columns>
                 <TemplateColumn HeaderClass="px-1" CellClass="py-1 pl-0 pr-1" HeaderStyle="width:3.8em;" CellStyle="text-align:right;">
@@ -141,6 +141,12 @@
 }
 
 @code {
+    /// <summary>1行のサイズ</summary>
+    protected const float RowSize = 41.0f;
+
+    /// <summary>テーブルと画面高さの比率のようなもの</summary>
+    public static readonly double ViewportHeightRatio = 1.25d;
+
     /// <summary>行がクリックされた</summary>
     protected async Task OnRowClickAsync (DataGridRowClickEventArgs<Book> context) {
         if (context.Item is Book book) {
