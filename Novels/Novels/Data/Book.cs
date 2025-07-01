@@ -789,17 +789,17 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         var item = base.Clone ();
         item.Url1 = Url1;
         item.Url2 = Url2;
-        item.Html = Html;
-        item._site = Site;
-        item._title = Title;
-        item._author = Author;
+        item._html = _html;
+        item._site = _site;
+        item._title = _title;
+        item._author = _author;
         item.NumberOfIsshued = NumberOfIsshued;
         item.IssuedAt = IssuedAt;
         item.Readed = Readed;
         item.ReadedMemo = ReadedMemo;
         item._status = _status;
         item.HtmlBackup = HtmlBackup;
-        item.Errata = Errata;
+        item._errata = _errata;
         item.Wish = Wish;
         item.Bookmark = Bookmark;
         return item;
@@ -809,17 +809,17 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public override Book CopyTo (Book destination) {
         destination.Url1 = Url1;
         destination.Url2 = Url2;
-        destination.Html = Html;
-        destination._site = Site;
-        destination._title = Title;
-        destination._author = Author;
+        destination._html = _html;
+        destination._site = _site;
+        destination._title = _title;
+        destination._author = _author;
         destination.NumberOfIsshued = NumberOfIsshued;
         destination.IssuedAt = IssuedAt;
         destination.Readed = Readed;
         destination.ReadedMemo = ReadedMemo;
         destination._status = _status;
         destination.HtmlBackup = HtmlBackup;
-        destination.Errata = Errata;
+        destination._errata = _errata;
         destination.Wish = Wish;
         destination.Bookmark = Bookmark;
         return base.CopyTo (destination);
@@ -841,7 +841,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         && ReadedMemo == other.ReadedMemo
         && _status == other._status
         && HtmlBackup == other.HtmlBackup
-        && Errata == other.Errata
+        && _errata == other._errata
         && Wish == other.Wish
         && Bookmark == other.Bookmark
         && Remarks == other.Remarks
@@ -850,7 +850,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <inheritdoc/>
     public override int GetHashCode () => HashCode.Combine (
         HashCode.Combine (Url1, Url2, _html, _site, _title, _author, NumberOfIsshued, IssuedAt),
-        HashCode.Combine (Readed, ReadedMemo, _status, HtmlBackup, Errata, Wish, Bookmark, Remarks),
+        HashCode.Combine (Readed, ReadedMemo, _status, HtmlBackup, _errata, Wish, Bookmark, Remarks),
         base.GetHashCode ());
 
     /// <inheritdoc/>

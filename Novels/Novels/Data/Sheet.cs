@@ -330,10 +330,10 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         item.Book = Book;
         item.BookId = BookId;
         item.Url = Url;
-        item.Html = Html;
+        item._html = _html;
         item.NovelNumber = NovelNumber;
         item.SheetUpdatedAt = SheetUpdatedAt;
-        item.Errata = Errata;
+        item._errata = _errata;
         return item;
     }
 
@@ -342,10 +342,10 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         destination.Book = Book;
         destination.BookId = BookId;
         destination.Url = Url;
-        destination.Html = Html;
+        destination._html = _html;
         destination.NovelNumber = NovelNumber;
         destination.SheetUpdatedAt = SheetUpdatedAt;
-        destination.Errata = Errata;
+        destination._errata = _errata;
         return base.CopyTo (destination);
     }
 
@@ -355,16 +355,16 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         && Id == other.Id
         && BookId == other.BookId
         && Url == other.Url
-        && Html == other.Html
+        && _html == other._html
         && NovelNumber == other.NovelNumber
         && SheetUpdatedAt == other.SheetUpdatedAt
-        && Errata == other.Errata
+        && _errata == other._errata
         && Remarks == other.Remarks
     ;
 
     /// <inheritdoc/>
     public override int GetHashCode () => HashCode.Combine (
-        HashCode.Combine (Url, _html, NovelNumber, SheetUpdatedAt, Errata, BookId, Remarks),
+        HashCode.Combine (Url, _html, NovelNumber, SheetUpdatedAt, _errata, BookId, Remarks),
         base.GetHashCode ());
 
     /// <inheritdoc/>
