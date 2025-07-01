@@ -73,7 +73,7 @@
                         <MudIconButton Disabled="@(_busy || IsInvalidUri (Book.Url1))" OnClick="@(async () => await JSRuntime.OpenUrl (Book.Url1))" Icon="@Icons.Material.Filled.Link" />
                     </MudStack>
                 </td>
-                <td><MudTextField T="string" @bind-Value="Book.Url1" /></td>
+                <td><MudTextField T="string" @bind-Value="Book.Url1" Validation="(Func<string,string>) ValidateUri" Required /></td>
             </tr>
             <tr>
                 <td>
@@ -83,7 +83,7 @@
                         <MudIconButton Disabled="@(_busy || IsInvalidUri (Book.Url2))" OnClick="@(async () => await JSRuntime.OpenUrl (Book.Url2))" Icon="@Icons.Material.Filled.Link" />
                     </MudStack>
                 </td>
-                <td><MudTextField T="string" @bind-Value="Book.Url2" /></td>
+                <td><MudTextField T="string" @bind-Value="Book.Url2" Validation="(Func<string, string>) ValidateUri" /></td>
             </tr>
             <tr>
                 <td>@(Book.Label [nameof (Book.Status)])</td>
@@ -159,7 +159,7 @@
             <MudIconButton Disabled="_busy || !IsDirty" OnClick="RevertAsync" Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
         <MudTooltip Arrow="true" Text="保存">
-            <MudIconButton Disabled="_busy || !IsDirty" OnClick="SaveAsync" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
+            <MudIconButton Disabled="_busy || !IsDirty || !NovelsDataSet.EntityIsValid (editingItem)" OnClick="SaveAsync" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
         <MudSpacer />
         <MudTooltip Arrow="true">

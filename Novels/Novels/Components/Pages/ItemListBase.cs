@@ -120,20 +120,25 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     }
 
     /// <summary>編集完了</summary>
-    protected virtual async Task Commit (object obj) {
+    protected virtual async Task<bool> Commit (object obj) {
+        var saved = false;
         var item = GetT (obj);
-        if (NovelsDataSet.EntityIsValid (item) && !backupedItem.Equals (item)) {
+        if (!NovelsDataSet.EntityIsValid (item)) {
+            Snackbar.Add ($"{T.TableLabel}に不備があります。", Severity.Error);
+        } else if (!backupedItem.Equals (item)) {
             item.Modifier = UserIdentifier;
             var result = await DataSet.UpdateAsync (item);
             if (result.IsSuccess) {
                 await ReloadAndFocus (item.Id);
+                editingItem = null;
+                StateHasChanged ();
                 Snackbar.Add ($"{T.TableLabel}を更新しました。", Severity.Normal);
+                saved = true;
             } else {
                 Snackbar.Add ($"{T.TableLabel}を更新できませんでした。", Severity.Error);
             }
         }
-        editingItem = null;
-        StateHasChanged ();
+        return saved;
     }
 
     /// <summary>編集取消</summary>
@@ -376,8 +381,9 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     protected async Task SaveAsync () {
         if (editingItem is not null) {
             SetBusy ();
-            await Commit (editingItem);
-            StartEdit ();
+            if (await Commit (editingItem)) {
+                StartEdit ();
+            }
             SetIdle ();
         }
     }

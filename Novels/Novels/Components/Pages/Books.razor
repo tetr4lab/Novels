@@ -217,7 +217,7 @@
     protected async Task AddBook () {
         var url = "";
         try {
-            url = await JSRuntime.InvokeAsync<string> ("getClipboardText");
+            url = await JSRuntime.GetClipboardText ();
             // urlを修正する機会を与えるダイアログを表示
             var dialogResult = await (await DialogService.OpenAddItemDialog<Book> (
                 message: $"取得先URLを確認して{Book.TableLabel}の追加を完了してください。",

@@ -15,6 +15,9 @@ namespace Novels.Components.Pages;
 
 public partial class Issue : ItemListBase<Book> {
 
+    /// <summary>URI“ü—Í‚ÌŒŸØ</summary>
+    protected string ValidateUri (string uri) => uri != "" && IsInvalidUri (uri) ? "bad uri" : "";
+
     /// <summary>–³Œø‚ÈURI</summary>
     protected bool IsInvalidUri (string? url) => !Uri.IsWellFormedUriString (url, UriKind.Absolute);
 

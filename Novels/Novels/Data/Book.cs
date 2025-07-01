@@ -112,7 +112,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <inheritdoc/>
     public static string UniqueKeysSql => "";
 
-    [Column ("url1")] public string Url1 { get; set; } = "";
+    [Column ("url1"), Required] public string Url1 { get; set; } = "";
     [Column ("url2")] public string Url2 { get; set; } = "";
     [Column ("html")] public string? _html { get; set; } = null;
     [Column ("site")] public Site _site { get; set; } = Site.NotSet;
