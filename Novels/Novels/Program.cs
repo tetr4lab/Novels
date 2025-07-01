@@ -21,7 +21,7 @@ builder.Services.AddRazorComponents ()
 
 // MudBlazor
 builder.Services.AddMudServices (config => {
-    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopLeft;
     config.SnackbarConfiguration.PreventDuplicates = false;
     config.SnackbarConfiguration.NewestOnTop = false;
     config.SnackbarConfiguration.ShowCloseIcon = true;
