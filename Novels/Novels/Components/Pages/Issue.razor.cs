@@ -160,7 +160,7 @@ public partial class Issue : ItemListBase<Book> {
                 if (Book.Id != result.Value.book.Id) { throw new InvalidOperationException ($"id mismatch {Book.Id} -> {result.Value.book.Id}"); }
                 await ReLoadAsync ();
                 if (Book is not null) {
-                    await ChangeCurrentBookAsync (Book);
+                    ChangeCurrentBook (Book);
                 }
                 return true;
             }

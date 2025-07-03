@@ -10,7 +10,7 @@
     if (items.Count > 0) {
         <MudDataGrid T="Book" Items="items" ReadOnly="false" Dense Hover Elevation="0" Breakpoint="Breakpoint.None" @ref="_dataGrid"
             SortMode="SortMode.None" ColumnResizeMode="ResizeMode.Column" FixedHeader Virtualize
-            QuickFilter="FilterFunc" RowClick="OnRowClickAsync"
+            QuickFilter="FilterFunc" RowClick="OnRowClick"
             Height="calc(100vh - var(--mud-appbar-height) * 2 - 1em)" ItemSize="@RowSize"
         >
             <Columns>
@@ -148,9 +148,9 @@
     public static readonly double ViewportHeightRatio = 1.25d;
 
     /// <summary>行がクリックされた</summary>
-    protected async Task OnRowClickAsync (DataGridRowClickEventArgs<Book> context) {
+    protected void OnRowClick (DataGridRowClickEventArgs<Book> context) {
         if (context.Item is Book book) {
-            await ChangeCurrentBookAsync (book);
+            ChangeCurrentBook (book);
         }
     }
 
@@ -167,7 +167,7 @@
 
     /// <summary>フィルター切り替え</summary>
     protected async Task ChangeFilter (string filter, Book book) {
-        await ChangeCurrentBookAsync (book);
+        ChangeCurrentBook (book);
         await ChangeFilter (filter);
     }
 
@@ -185,7 +185,7 @@
     protected async Task OpenUrl (Book book) {
         await SetBusyAsync ();
         await JSRuntime.OpenUrl (book.Url);
-        await ChangeCurrentBookAsync (book);
+        ChangeCurrentBook (book);
         await SetIdleAsync ();
     }
 
@@ -199,7 +199,7 @@
     /// <summary>書籍を発行</summary>
     protected async Task IsshueBook (Book book) {
         await SetBusyAsync ();
-        await ChangeCurrentBookAsync (book);
+        ChangeCurrentBook (book);
         await SetAppMode (AppMode.Issue);
         await SetIdleAsync ();
     }
@@ -207,7 +207,7 @@
     /// <summary>書籍を開く</summary>
     protected async Task OpenBook (Book book) {
         await SetBusyAsync ();
-        await ChangeCurrentBookAsync (book);
+        ChangeCurrentBook (book);
         await SetAppMode (AppMode.Contents);
         await SetIdleAsync ();
     }
@@ -229,7 +229,7 @@
                 var existingBook = items?.FirstOrDefault (x => x.Url1 == newUrl || x.Url2 == newUrl);
                 if (existingBook is not null) {
                     Snackbar.Add ($"既存の{Book.TableLabel}: 『{existingBook.Title}』", Severity.Warning);
-                    await ChangeCurrentBookAsync (existingBook);
+                    ChangeCurrentBook (existingBook);
                     await ScrollToCurrentAsync ();
                     return;
                 }
@@ -243,7 +243,7 @@
                 if (result.IsSuccess) {
                     var newBook = result.Value.book;
                     lastCreatedId = newBook.Id;
-                    await ChangeCurrentBookAsync (newBook);
+                    ChangeCurrentBook (newBook);
                     // Issueページへ移動する
                     await IsshueBook (newBook);
                 } else {

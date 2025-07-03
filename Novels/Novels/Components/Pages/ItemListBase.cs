@@ -101,14 +101,12 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
     }
 
     //// <summary>着目書籍の変更</summary>
-    protected async Task ChangeCurrentBookAsync (Book book) {
+    protected void ChangeCurrentBook (Book book) {
         if (book is T item) {
             selectedItem = item;
         }
         if (AppModeService.CurrentBookId != book.Id) {
             AppModeService.SetCurrentBookId (book.Id, 1);
-            // 反映を待機(セットが完了しても子孫要素に伝播するのに間がある)
-            await TaskEx.DelayUntil (() => AppModeService.CurrentBookId == book.Id);
         }
     }
 
@@ -344,7 +342,7 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
                         // 現選択アイテムが結果にないなら最初のアイテムを選択
                         selectedItem = filtered [0];
                         if (selectedItem is Book book) {
-                            await ChangeCurrentBookAsync (book);
+                            ChangeCurrentBook (book);
                         }
                     }
                 }
