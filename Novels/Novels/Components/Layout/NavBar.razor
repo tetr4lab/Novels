@@ -104,7 +104,7 @@
 
     /// <summary>検索ボタンが押された</summary>
     public async Task OnClickAsync () {
-        if (FilterText != _filterText) {
+        if (AppModeService.FilterText != _filterText) {
             await OnSearchAsync (_filterText);
         }
     }
@@ -114,10 +114,11 @@
         if (_isFilterLocked) { return; }
         _isFilterLocked = true;
         UiState.Lock ();
+        await InvokeAsync (StateHasChanged);
         await searchField.BlurAsync ();
-        SetFilterText (filter);
-        await TaskEx.DelayUntil (() => FilterText == filter);
+        AppModeService.SetFilterText (filter);
         UiState.Unlock ();
+        await InvokeAsync (StateHasChanged);
         _isFilterLocked = false;
     }
     protected bool _isFilterLocked;

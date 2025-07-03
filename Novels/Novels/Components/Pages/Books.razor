@@ -17,17 +17,17 @@
                 <TemplateColumn HeaderClass="px-1" CellClass="py-1 pl-0 pr-1" HeaderStyle="width:3.8em;" CellStyle="text-align:right;">
                     <HeaderTemplate>
                         <MudTooltip Text="@($"着目中の{Book.TableLabel}へ")" Placement="Placement.Right" Arrow Duration="1000">
-                            <MudLink Disabled="_busy" OnClick="ScrollToCurrent" Typo="Typo.inherit" Color="Color.Default" Underline="Underline.None">@(Book.Label [nameof (Book.Id)])</MudLink>
+                            <MudLink Disabled="UiState.IsLocked" OnClick="ScrollToCurrent" Typo="Typo.inherit" Color="Color.Default" Underline="Underline.None">@(Book.Label [nameof (Book.Id)])</MudLink>
                         </MudTooltip>
                     </HeaderTemplate>
                     <CellTemplate>
                         <a id="@($"{typeof (Book).Name}-{context.Item.Id}")" />
                         <MudStack Row Spacing="0" Class="align-center">
-                            <MudIcon Icon="@(context.Item.Id == CurrentBookId ? Icons.Material.Filled.DoubleArrow : null)" />
+                            <MudIcon Icon="@(context.Item.Id == AppModeService.CurrentBookId ? Icons.Material.Filled.DoubleArrow : null)" />
                             <MudSpacer />
                             @(context.Item.Id)
-                            <MudIconButton Disabled="_busy" OnClick="@(async () => await IsshueBook (context.Item))" Style="margin-left: 2px;" Icon="@(context.Item.IsEmpty ? Icons.Material.Filled.Download : context.Item.IsUpdatable && !context.Item.IsErrorForNumberOfSheets ? Icons.Material.Filled.Refresh : context.Item.IsUpToDateWithIssued && !context.Item.IsIssuable ? Icons.Material.Filled.Sync : Icons.Material.Filled.Publish)" Size="Size.Small" />
-                            <MudIconButton Disabled="_busy" OnClick="@(async () => await OpenBook (context.Item))" Style="margin-right: -6px;" Icon="@Icons.Material.Filled.ViewHeadline" Size="Size.Small" />
+                            <MudIconButton Disabled="UiState.IsLocked" OnClick="@(async () => await IsshueBook (context.Item))" Style="margin-left: 2px;" Icon="@(context.Item.IsEmpty ? Icons.Material.Filled.Download : context.Item.IsUpdatable && !context.Item.IsErrorForNumberOfSheets ? Icons.Material.Filled.Refresh : context.Item.IsUpToDateWithIssued && !context.Item.IsIssuable ? Icons.Material.Filled.Sync : Icons.Material.Filled.Publish)" Size="Size.Small" />
+                            <MudIconButton Disabled="UiState.IsLocked" OnClick="@(async () => await OpenBook (context.Item))" Style="margin-right: -6px;" Icon="@Icons.Material.Filled.ViewHeadline" Size="Size.Small" />
                         </MudStack>
                     </CellTemplate>
                 </TemplateColumn>
@@ -56,19 +56,19 @@
                 <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" CellStyle="max-width: 5em; text-overflow: ellipsis;" Title="@(Book.Label [nameof (Book.Author)])">
                     <CellTemplate>
                         @{ var author = context.Item.Author.Replace (' ', '\u2423'); }
-                        <MudLink Disabled="_busy" OnClick="@(async () => await ChangeFilter (author, context.Item))" title="@($"「{author}」で絞り込み")" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Item.Author)</MudLink>
+                        <MudLink Disabled="UiState.IsLocked" OnClick="@(async () => await ChangeFilter (author, context.Item))" title="@($"「{author}」で絞り込み")" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Item.Author)</MudLink>
                     </CellTemplate>
                 </TemplateColumn>
                 <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" CellStyle="max-width: 8em; text-overflow: ellipsis;" Title="@(Book.Label [nameof (Book.SeriesTitle)])">
                     <CellTemplate>
                         @{ var series = context.Item.SeriesTitle.Replace (' ', '\u2423'); }
-                        <MudLink Disabled="_busy" OnClick="@(async () => await ChangeFilter (series, context.Item))" title="@($"「{series}」で絞り込み")" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Item.SeriesTitle)</MudLink>
+                        <MudLink Disabled="UiState.IsLocked" OnClick="@(async () => await ChangeFilter (series, context.Item))" title="@($"「{series}」で絞り込み")" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Item.SeriesTitle)</MudLink>
                     </CellTemplate>
                 </TemplateColumn>
                 <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 text-nowrap" HeaderStyle="width:2em;" CellStyle="text-align: center; max-width: 7em;" Title="@(Book.Label [nameof (Book.Site)])">
                     <CellTemplate>
                     <MudTooltip Text="@($"{Book.Label[nameof(Book.Site)]}を開く")" Arrow Duration="1000">
-                        <MudChip Disabled="_busy" OnClick="@(async () => await OpenUrl (context.Item))" Target="_blank" T="string" Label="true" Size="Size.Small" Variant="Variant.Outlined" Class="mx-0">@(context.Item.Site)</MudChip>
+                        <MudChip Disabled="UiState.IsLocked" OnClick="@(async () => await OpenUrl (context.Item))" Target="_blank" T="string" Label="true" Size="Size.Small" Variant="Variant.Outlined" Class="mx-0">@(context.Item.Site)</MudChip>
                     </MudTooltip>
                     </CellTemplate>
                 </TemplateColumn>
@@ -109,33 +109,33 @@
     }
     <MudAppBar Class="backdrop-blur pb-2" Color="Color.Transparent" Dense Bottom="true" Fixed="true">
         <MudTooltip Text="設定" Duration="1000">
-            <MudFab Disabled="_busy" OnClick="Settings" StartIcon="@Icons.Material.Outlined.Settings" Size="Size.Small" Class="mr-4" />
+            <MudFab Disabled="UiState.IsLocked" OnClick="Settings" StartIcon="@Icons.Material.Outlined.Settings" Size="Size.Small" Class="mr-4" />
         </MudTooltip>
         <MudTooltip Text="@($"着目中の{Book.TableLabel}へ")" Arrow Duration="1000">
-            <MudFab Disabled="_busy" OnClick="ScrollToCurrent" Size="Size.Small" StartIcon="@Icons.Material.Filled.DoubleArrow" Class="mr-2" />
+            <MudFab Disabled="UiState.IsLocked" OnClick="ScrollToCurrent" Size="Size.Small" StartIcon="@Icons.Material.Filled.DoubleArrow" Class="mr-2" />
         </MudTooltip>
         <MudTooltip Text="上端へ" Arrow Duration="1000">
-            <MudFab Disabled="_busy" OnClick="ScrollToTopAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.VerticalAlignTop" Class="mr-2" />
+            <MudFab Disabled="UiState.IsLocked" OnClick="ScrollToTopAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.VerticalAlignTop" Class="mr-2" />
         </MudTooltip>
         <MudTooltip Text="下端へ" Arrow Duration="1000">
-            <MudFab Disabled="_busy" OnClick="ScrollToBottomAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.VerticalAlignBottom" Class="mr-2" />
+            <MudFab Disabled="UiState.IsLocked" OnClick="ScrollToBottomAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.VerticalAlignBottom" Class="mr-2" />
         </MudTooltip>
         <MudSpacer />
         <MudTooltip Text="発行済み/未発行を絞り込み" Duration="1000">
-            <MudFab Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_issued_", "_not_issued_"))" StartIcon="@Icons.Material.Outlined.PublishedWithChanges" Size="Size.Small" Class="mr-2" />
+            <MudFab Disabled="UiState.IsLocked" OnClick="@(async () => await ChangeFilter ("_is_issued_", "_not_issued_"))" StartIcon="@Icons.Material.Outlined.PublishedWithChanges" Size="Size.Small" Class="mr-2" />
         </MudTooltip>
         <MudTooltip Text="既読/未読を絞り込み" Duration="1000">
-            <MudFab Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_readed_", "_not_readed_"))" StartIcon="@Icons.Material.Outlined.Visibility" Size="Size.Small" Class="mr-2" />
+            <MudFab Disabled="UiState.IsLocked" OnClick="@(async () => await ChangeFilter ("_is_readed_", "_not_readed_"))" StartIcon="@Icons.Material.Outlined.Visibility" Size="Size.Small" Class="mr-2" />
         </MudTooltip>
         <MudTooltip Text="お気に入りを絞り込み" Duration="1000">
-            <MudFab Disabled="_busy" OnClick="@(async () => await ChangeFilter ("_is_wished_", "_not_wished_"))" StartIcon="@Icons.Material.Outlined.StarRate" Size="Size.Small" Class="mr-2" />
+            <MudFab Disabled="UiState.IsLocked" OnClick="@(async () => await ChangeFilter ("_is_wished_", "_not_wished_"))" StartIcon="@Icons.Material.Outlined.StarRate" Size="Size.Small" Class="mr-2" />
         </MudTooltip>
         <MudTooltip Text="未着手を絞り込み" Duration="1000">
-            <MudFab Disabled="_busy" OnClick="@(async () => await ChangeFilter ("=_not_readed_ =%0."))" StartIcon="@Icons.Material.Outlined.FiberNew" Size="Size.Small" Class="mr-2" />
+            <MudFab Disabled="UiState.IsLocked" OnClick="@(async () => await ChangeFilter ("=_not_readed_ =%0."))" StartIcon="@Icons.Material.Outlined.FiberNew" Size="Size.Small" Class="mr-2" />
         </MudTooltip>
         <MudSpacer />
         <MudTooltip Arrow="true" Text="@($"{Book.TableLabel}を追加")">
-            <MudFab Disabled="_busy" OnClick="AddBook" StartIcon="@Icons.Material.Outlined.Add" Size="Size.Small" />
+            <MudFab Disabled="UiState.IsLocked" OnClick="AddBook" StartIcon="@Icons.Material.Outlined.Add" Size="Size.Small" />
         </MudTooltip>
     </MudAppBar>
 }
@@ -156,12 +156,12 @@
 
     /// <summary>フィルター切り替え (トライステート)</summary>
     protected async Task ChangeFilter (string on, string off) {
-        var newText = FilterText == on ? off : FilterText == off ? "" : on;
+        var newText = AppModeService.FilterText == on ? off : AppModeService.FilterText == off ? "" : on;
         await SetFilter (newText);
     }
     /// <summary>フィルター切り替え</summary>
     protected async Task ChangeFilter (string filter) {
-        var newText = FilterText == filter ? "" : filter;
+        var newText = AppModeService.FilterText == filter ? "" : filter;
         await SetFilter (newText);
     }
 
@@ -173,44 +173,43 @@
 
     /// <summary>フィルター設定</summary>
     protected async Task SetFilter (string filter) {
-        SetBusy ();
-        SetFilterText (filter);
-        await TaskEx.DelayUntil (() => FilterText == filter);
+        await SetBusyAsync ();
+        AppModeService.SetFilterText (filter);
         if (filter == string.Empty) {
             await ScrollToCurrentAsync ();
         }
-        SetIdle ();
+        await SetIdleAsync ();
     }
 
     /// <summary>Urlを開く</summary>
     protected async Task OpenUrl (Book book) {
-        SetBusy ();
+        await SetBusyAsync ();
         await JSRuntime.OpenUrl (book.Url);
         await ChangeCurrentBookAsync (book);
-        SetIdle ();
+        await SetIdleAsync ();
     }
 
     /// <summary>設定</summary>
     protected async Task Settings () {
-        SetBusy ();
+        await SetBusyAsync ();
         await SetAppMode (AppMode.Settings);
-        SetIdle ();
+        await SetIdleAsync ();
     }
 
     /// <summary>書籍を発行</summary>
     protected async Task IsshueBook (Book book) {
-        SetBusy ();
+        await SetBusyAsync ();
         await ChangeCurrentBookAsync (book);
         await SetAppMode (AppMode.Issue);
-        SetIdle ();
+        await SetIdleAsync ();
     }
 
     /// <summary>書籍を開く</summary>
     protected async Task OpenBook (Book book) {
-        SetBusy ();
+        await SetBusyAsync ();
         await ChangeCurrentBookAsync (book);
         await SetAppMode (AppMode.Contents);
-        SetIdle ();
+        await SetIdleAsync ();
     }
 
     /// <summary>書籍を追加する</summary>
@@ -235,7 +234,7 @@
                     return;
                 }
                 // オーバーレイ
-                SetBusy ();
+                await SetBusyAsync ();
                 // 入力されたurlからあたらしいBookに情報を取得、DBへ追加・選択する
                 var result = await DataSet.UpdateBookFromSiteAsync (HttpClient, newUrl, UserIdentifier);
                 foreach (var issue in result.Value.issues) {
@@ -256,7 +255,7 @@
             Snackbar.Add ($"Exception: {ex.Message}", Severity.Error);
         }
         finally {
-            SetIdle ();
+            await SetIdleAsync ();
         }
     }
 }

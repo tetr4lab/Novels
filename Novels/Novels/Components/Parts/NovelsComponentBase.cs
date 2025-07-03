@@ -21,12 +21,6 @@ public abstract class NovelsComponentBase : ComponentBase, IDisposable {
     /// <summary>ユーザ識別子</summary>
     protected virtual string UserIdentifier => Identity?.Identifier ?? "unknown";
 
-    /// <summary>検索文字列</summary>
-    protected string FilterText => AppModeService.FilterText;
-
-    /// <summary>検索文字列設定</summary>
-    protected Action<string> SetFilterText => AppModeService.SetFilterText;
-
     /// <summary>アプリモードが変化した</summary>
     protected virtual async void OnAppModeChanged (object? sender, PropertyChangedEventArgs e) {
         await OnAppModeChangedAsync (sender, e);
@@ -62,13 +56,4 @@ public abstract class NovelsComponentBase : ComponentBase, IDisposable {
         UiState.PropertyChanged -= OnAppLockChanged;
         AppModeService.PropertyChanged -= OnAppModeChanged;
     }
-
-    /// <summary>排他制御兼オーバーレイの表示</summary>
-    protected bool _busy => UiState.IsLocked;
-
-    /// <summary>状態の変化</summary>
-    protected void SetBusy () => UiState.Lock ();
-
-    /// <summary>状態の変化</summary>
-    protected void SetIdle () => UiState.Unlock ();
 }

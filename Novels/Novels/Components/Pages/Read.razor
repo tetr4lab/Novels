@@ -6,13 +6,13 @@
     <MudAlert Severity="Severity.Error" Elevation="3">Unable to connect to any of the specified database management hosts.</MudAlert>
 } else if (DataSet.IsReady && Book is null) {
     <MudText>No book selected or found.</MudText>
-    <MudButton Class="ma-3" Disabled="_busy" OnClick="@(async () => await SetAppMode (AppMode.Books))" StartIcon="@Icons.Material.Filled.LibraryBooks" Variant="Variant.Filled">go home</MudButton>
+    <MudButton Class="ma-3" Disabled="UiState.IsLocked" OnClick="@(async () => await SetAppMode (AppMode.Books))" StartIcon="@Icons.Material.Filled.LibraryBooks" Variant="Variant.Filled">go home</MudButton>
 } else if (items is null || Book is null) {
     <MudProgressCircular Indeterminate="true" />
 } else if (items.Count > 0) {
     if (Book is not null) {
         if (Sheet is not null) {
-            <NumberNavigationBar Disabled="_busy" Number="@(CurrentSheetIndex)" Min="1" Max="@(items.Count)" OnChangeNumber="OnChageSheetAsync" />
+            <NumberNavigationBar Disabled="UiState.IsLocked" Number="@(AppModeService.CurrentSheetIndex)" Min="1" Max="@(items.Count)" OnChangeNumber="OnChageSheetAsync" />
             @if (!string.IsNullOrEmpty (Sheet.Preface)) {
                 <MudPaper Class="ma-4 pa-2" Elevation="1">
                     <MudText Typo="Typo.caption">@((MarkupString) Sheet.Preface)</MudText>
@@ -51,13 +51,13 @@
             </MudSimpleTable>
             <MudStack Row Class="mt-5 justify-center">
                 <MudTooltip Arrow="true" Text="復旧">
-                    <MudIconButton Disabled="_busy || !IsDirty" OnClick="RevertAsync" Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" />
+                    <MudIconButton Disabled="UiState.IsLocked || !IsDirty" OnClick="RevertAsync" Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" />
                 </MudTooltip>
                 <MudTooltip Arrow="true" Text="保存">
-                    <MudIconButton Disabled="_busy || !IsDirty" OnClick="SaveAsync" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
+                    <MudIconButton Disabled="UiState.IsLocked || !IsDirty" OnClick="SaveAsync" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
                 </MudTooltip>
             </MudStack>
-            <NumberNavigationBar Number="@(CurrentSheetIndex)" Min="1" Max="@(items.Count)" OnChangeNumber="OnChageSheetAsync" />
+            <NumberNavigationBar Number="@(AppModeService.CurrentSheetIndex)" Min="1" Max="@(items.Count)" OnChangeNumber="OnChageSheetAsync" />
             <MudScrollToTop TopOffset="1000">
                 <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowCircleUp" />
             </MudScrollToTop>
@@ -83,30 +83,30 @@
     protected Sheet? Sheet { get; set; } = null;
 
     /// <summary>シート番号に依存した設定</summary>
-    protected void SetSheetAsync (int index) {
+    protected async Task SetSheetAsync (int index) {
         if (Book is not null) {
-            SetBusy ();
+            await SetBusyAsync ();
             index = Book.Sheets.Count > 0 ? Math.Clamp (index, 1, Book.Sheets.Count) : 1;
-            SetCurrentBookId (Book.Id, index);
+            AppModeService.SetCurrentSheetIndex (index);
             if (editingItem is not null) {
                 Cancel (editingItem);
             }
             if (Book.Sheets.Count > 0) {
                 Sheet = Book.Sheets [index - 1];
                 selectedItem = Sheet;
-                SetSectionTitle ($"<span style=\"font-size:80%;\"><a href=\"{Sheet.Url}\" target=\"_blank\" style=\"text-decoration: none;\">『{Book.Title}』 {Book.Author}</a></span>\n{Sheet.OriginalChapterTitle} {Sheet.ChapterSubTitle}");
+                AppModeService.SetSectionTitle ($"<span style=\"font-size:80%;\"><a href=\"{Sheet.Url}\" target=\"_blank\" style=\"text-decoration: none;\">『{Book.Title}』 {Book.Author}</a></span>\n{Sheet.OriginalChapterTitle} {Sheet.ChapterSubTitle}");
                 StartEdit ();
             }
-            SetIdle ();
+            await SetIdleAsync ();
         } else {
-            SetSectionTitle ("Read");
+            AppModeService.SetSectionTitle ("Read");
         }
     }
 
     /// <summary>シート変更</summary>
     protected async Task OnChageSheetAsync (int index) {
-        if (CurrentSheetIndex != index && await ConfirmCancelEditAsync ()) {
-            SetSheetAsync (index);
+        if (AppModeService.CurrentSheetIndex != index && await ConfirmCancelEditAsync ()) {
+            await SetSheetAsync (index);
             // ページトップへスクロール
             await JsRuntime.ScrollToTop ();
         }
@@ -115,6 +115,6 @@
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
     protected override async Task OnInitializedAsync() {
         await base.OnInitializedAsync ();
-        SetSheetAsync (CurrentSheetIndex);
+        await SetSheetAsync (AppModeService.CurrentSheetIndex);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Net;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -12,7 +13,7 @@ using Tetr4lab;
 
 namespace Novels.Components.Pages;
 
-public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseModel<T>, INovelsBaseModel, new() {
+public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : NovelsBaseModel<T>, INovelsBaseModel, new() {
 
     /// <summary>ページング機能の有効性</summary>
     protected const bool AllowPaging = true;
@@ -20,13 +21,25 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     /// <summary>列挙する最大数</summary>
     protected const int MaxListingNumber = int.MaxValue;
 
-    [Inject] protected NavigationManager NavManager { get; set; } = null!;
+    [Inject] protected NovelsDataSet DataSet { get; set; } = null!;
     [Inject] protected IDialogService DialogService { get; set; } = null!;
     [Inject] protected ISnackbar Snackbar { get; set; } = null!;
     [Inject] protected IAuthorizationService AuthorizationService { get; set; } = null!;
     [Inject] protected IScrollManager ScrollManager { get; set; } = null!;
     [Inject] protected IBrowserViewportService BrowserViewportService { get; set; } = null!;
     [Inject] protected IJSRuntime JSRuntime { get; set; } = null!;
+
+    /// <summary>状態の変化</summary>
+    protected async Task SetBusyAsync () {
+        UiState.Lock ();
+        await InvokeAsync (StateHasChanged);
+    }
+
+    /// <summary>状態の変化</summary>
+    protected async Task SetIdleAsync () {
+        UiState.Unlock ();
+        await InvokeAsync (StateHasChanged);
+    }
 
     /// <summary>項目一覧</summary>
     protected List<T>? items => DataSet.IsReady ? DataSet.GetList<T> () : null;
@@ -43,16 +56,16 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     /// <summary>初期化</summary>
     protected override async Task OnInitializedAsync () {
         await base.OnInitializedAsync ();
-        SetSectionTitle ($"{typeof (T).Name}s");
+        AppModeService.SetSectionTitle ($"{typeof (T).Name}s");
         newItem = NewEditItem;
         if (Book is not null && Book is T item) {
             selectedItem = item;
         } else if (typeof (T) == typeof (Sheet)) {
-            if (CurrentSheetIndex <= 0) {
+            if (AppModeService.CurrentSheetIndex <= 0) {
                 AppModeService.SetCurrentSheetIndex (1);
             }
-            if (items?.Count >= CurrentSheetIndex) {
-                selectedItem = items [CurrentSheetIndex - 1];
+            if (items?.Count >= AppModeService.CurrentSheetIndex) {
+                selectedItem = items [AppModeService.CurrentSheetIndex - 1];
             }
         } else if (typeof (T) == typeof (Setting)) {
             if (items?.Count > 0) {
@@ -92,10 +105,10 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
         if (book is T item) {
             selectedItem = item;
         }
-        if (CurrentBookId != book.Id) {
-            SetCurrentBookId (book.Id, 1);
+        if (AppModeService.CurrentBookId != book.Id) {
+            AppModeService.SetCurrentBookId (book.Id, 1);
             // 反映を待機(セットが完了しても子孫要素に伝播するのに間がある)
-            await TaskEx.DelayUntil (() => CurrentBookId == book.Id);
+            await TaskEx.DelayUntil (() => AppModeService.CurrentBookId == book.Id);
         }
     }
 
@@ -184,17 +197,17 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     /// <param name="focusedId">書誌ID</param>
     /// <param name="focusedIndex">シートインデックス</param>
     protected virtual async Task ScrollToCurrentAsync (long focusedId = 0, int focusedIndex = 0) {
-        if (focusedId <= 0) { focusedId = CurrentBookId; }
-        if (focusedIndex <= 0) { focusedIndex = CurrentSheetIndex; }
+        if (focusedId <= 0) { focusedId = AppModeService.CurrentBookId; }
+        if (focusedIndex <= 0) { focusedIndex = AppModeService.CurrentSheetIndex; }
         var viewportHeightRatio = 0.0d;
         if (items is not null) {
             var index = 0;
             if (typeof (T) == typeof (Book)) {
-                var list = string.IsNullOrEmpty (FilterText) || _dataGrid is null ? items : _dataGrid.FilteredItems.ToList ();
+                var list = AppModeService.FilterText == "" || _dataGrid is null ? items : _dataGrid.FilteredItems.ToList ();
                 index = list.FindIndex (x => x.Id == focusedId);
                 viewportHeightRatio = Books.ViewportHeightRatio;
             } else if (typeof (T) == typeof (Sheet)) {
-                index = CurrentSheetIndex - 1;
+                index = AppModeService.CurrentSheetIndex - 1;
                 viewportHeightRatio = Sheets.ViewportHeightRatio;
             } else {
                 return;
@@ -209,23 +222,23 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
 
     /// <summary>着目へ</summary>
     protected async Task ScrollToCurrent () {
-        SetBusy ();
+        await SetBusyAsync ();
         await ScrollToCurrentAsync ();
-        SetIdle ();
+        await SetIdleAsync ();
     }
 
     /// <summary>リストの上端へスクロール</summary>
     protected virtual async Task ScrollToTopAsync () {
-        SetBusy ();
+        await SetBusyAsync ();
         await ScrollManager.ScrollToTopAsync (".mud-table-container", ScrollBehavior.Auto);
-        SetIdle ();
+        await SetIdleAsync ();
     }
 
     /// <summary>リストの下端へスクロール</summary>
     protected virtual async Task ScrollToBottomAsync () {
-        SetBusy ();
+        await SetBusyAsync ();
         await ScrollManager.ScrollToBottomAsync (".mud-table-container", ScrollBehavior.Auto);
-        SetIdle ();
+        await SetIdleAsync ();
     }
 
     /// <summary>リロードして元の位置へ戻る</summary>
@@ -260,8 +273,8 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
 
     /// <summary>全ての検索語に対して対象列のどれかが真であれば真を返す</summary>
     protected bool FilterFunc (T item) {
-        if (item != null && FilterText != null) {
-            foreach (var word in FilterText.Split ([' ', '　', '\t', '\n'])) {
+        if (item != null) {
+            foreach (var word in AppModeService.FilterText.Split ([' ', '　', '\t', '\n'])) {
                 if (!string.IsNullOrEmpty (word) && !Any (item.SearchTargets, word)) { return false; }
             }
             return true;
@@ -344,10 +357,10 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     /// <summary>アプリモード遷移実施</summary>
     protected virtual async Task SetAppMode (AppMode appMode) {
         if (AppModeService.CurrentMode != appMode && await ConfirmCancelEditAsync ()) {
-            SetBusy ();
-            if (DataSet.CurrentBookId != CurrentBookId) {
+            await SetBusyAsync ();
+            if (DataSet.CurrentBookId != AppModeService.CurrentBookId) {
                 // 遅延読み込み
-                await DataSet.SetCurrentBookIdAsync (CurrentBookId);
+                await DataSet.SetCurrentBookIdAsync (AppModeService.CurrentBookId);
             }
             AppModeService.SetMode (appMode);
         }
@@ -380,11 +393,11 @@ public class ItemListBase<T> : NovelsPageBase, IDisposable where T : NovelsBaseM
     /// <summary>保存</summary>
     protected async Task SaveAsync () {
         if (editingItem is not null) {
-            SetBusy ();
+            await SetBusyAsync ();
             if (await Commit (editingItem)) {
                 StartEdit ();
             }
-            SetIdle ();
+            await SetIdleAsync ();
         }
     }
 

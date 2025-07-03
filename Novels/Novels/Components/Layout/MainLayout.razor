@@ -5,7 +5,7 @@
 
 @implements IDisposable
 @inject ProtectedLocalStorage Storage
-@inject IAppLockState AppLockState
+@inject IAppLockState UiState
 @inject NovelsAppModeService AppModeService
 
 <PageTitle>Novels</PageTitle>
@@ -46,7 +46,7 @@
         </NotAuthorized>
     </AuthorizeView>
 </div>
-<AppLockOverlay IsOverlayed="AppLockState.IsLocked" OverlayValue="AppLockState.CurrentProgressValue" OverlayMin="0" OverlayMax="AppLockState.TotalProgressValue" OverlayLabel="@AppLockState.Reason" />
+<AppLockOverlay IsOverlayed="UiState.IsLocked" OverlayValue="UiState.CurrentProgressValue" OverlayMin="0" OverlayMax="UiState.TotalProgressValue" OverlayLabel="@UiState.Reason" />
 <MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
@@ -91,8 +91,7 @@
     protected async void OnAppModeChanged (object? sender, PropertyChangedEventArgs e) {
         if (e.PropertyName == "FilterText") { // 検索文字列
             _drawerOpen = false;
-        }
-        if (e.PropertyName == "SectionTitle") { // セクションタイトル
+        } else if (e.PropertyName == "SectionTitle") { // セクションタイトル
             await InvokeAsync (StateHasChanged);
         }
     }
@@ -105,13 +104,13 @@
     /// <summary>初期化 購読開始</summary>
     protected override void OnInitialized () {
         base.OnInitialized ();
-        AppLockState.PropertyChanged += OnAppLockChanged;
+        UiState.PropertyChanged += OnAppLockChanged;
         AppModeService.PropertyChanged += OnAppModeChanged;
     }
 
     /// <summary>購読終了</summary>
     public void Dispose () {
-        AppLockState.PropertyChanged -= OnAppLockChanged;
+        UiState.PropertyChanged -= OnAppLockChanged;
         AppModeService.PropertyChanged -= OnAppModeChanged;
     }
 }

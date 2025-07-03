@@ -4,7 +4,7 @@
     <MudAlert Severity="Severity.Error" Elevation="3">Unable to connect to any of the specified database management hosts.</MudAlert>
 } else if (DataSet.IsReady && Book is null) {
     <MudText>No book selected or found.</MudText>
-    <MudButton Class="ma-3" Disabled="_busy" OnClick="@(async () => await SetAppMode (AppMode.Books))" StartIcon="@Icons.Material.Filled.LibraryBooks" Variant="Variant.Filled">go home</MudButton>
+    <MudButton Class="ma-3" Disabled="UiState.IsLocked" OnClick="@(async () => await SetAppMode (AppMode.Books))" StartIcon="@Icons.Material.Filled.LibraryBooks" Variant="Variant.Filled">go home</MudButton>
 } else if (items is null || Book is null || !DataSet.IsReady) {
     <MudProgressCircular Indeterminate="true" />
 } else {
@@ -24,24 +24,24 @@
                 <TemplateColumn HeaderClass="px-1" CellClass="py-1 pl-0 pr-1" HeaderStyle="width:1em;">
                     <HeaderTemplate>
                         <MudTooltip Text="@($"{Book.Label [nameof (Data.Book.Bookmark)]}へ着目")" Arrow Duration="1000">
-                            <MudIconButton Disabled="_busy" OnClick="ScrollToMarkedAsync" Icon="@Icons.Material.Filled.BookmarkAdded" Size="Size.Small" />
+                            <MudIconButton Disabled="UiState.IsLocked" OnClick="ScrollToMarkedAsync" Icon="@Icons.Material.Filled.BookmarkAdded" Size="Size.Small" />
                         </MudTooltip>
                     </HeaderTemplate>
                     <CellTemplate>
                         @{ var marked = Book.Bookmark == context.Item.Id; }
                         <a id="@($"{typeof (Sheet).Name}-{context.Item.Id}")" />
-                        <MudIconButton Disabled="_busy" OnClick="@(async () => await ChangeBookmarkAsync (context.Item.Id))" Icon="@(marked ? Icons.Material.Filled.Bookmark : Icons.Material.Filled.BookmarkBorder)" Size="Size.Small" />
+                        <MudIconButton Disabled="UiState.IsLocked" OnClick="@(async () => await ChangeBookmarkAsync (context.Item.Id))" Icon="@(marked ? Icons.Material.Filled.Bookmark : Icons.Material.Filled.BookmarkBorder)" Size="Size.Small" />
                     </CellTemplate>
                 </TemplateColumn>
                 <TemplateColumn HeaderClass="px-1" CellClass="py-1 pl-0 pr-1" HeaderStyle="width:3.8em;" CellStyle="text-align:right;">
                     <HeaderTemplate>
                         <MudTooltip Text="@($"着目中の{Sheet.TableLabel}へ")" Arrow Duration="1000">
-                            <MudLink Disabled="_busy" OnClick="ScrollToCurrent" Color="Color.Inherit" Underline="Underline.None">@(Sheet.Label [nameof (Sheet.NovelNumber)])</MudLink>
+                            <MudLink Disabled="UiState.IsLocked" OnClick="ScrollToCurrent" Color="Color.Inherit" Underline="Underline.None">@(Sheet.Label [nameof (Sheet.NovelNumber)])</MudLink>
                         </MudTooltip>
                     </HeaderTemplate>
                     <CellTemplate>
                         <MudStack Row Spacing="0" Class="align-center">
-                            <MudIcon Icon="@(items is not null && items.IndexOf (context.Item) + 1 == CurrentSheetIndex ? Icons.Material.Filled.DoubleArrow : null)" />
+                            <MudIcon Icon="@(items is not null && items.IndexOf (context.Item) + 1 == AppModeService.CurrentSheetIndex ? Icons.Material.Filled.DoubleArrow : null)" />
                             <MudSpacer />
                             <MudLink Href="@context.Item.Url" Target="_blank" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">
                                 @(context.Item.NovelNumber)
@@ -59,7 +59,7 @@
                 }
                 <TemplateColumn HeaderClass="px-0" CellClass="py-1 px-0 text-nowrap" HeaderStyle="width: 1em;">
                     <CellTemplate>
-                        <MudIconButton Disabled="_busy" OnClick="@(async () => await ReadSheetAsync (context.Item))" Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" />
+                        <MudIconButton Disabled="UiState.IsLocked" OnClick="@(async () => await ReadSheetAsync (context.Item))" Icon="@Icons.Material.Filled.MenuBook" Size="Size.Small" />
                     </CellTemplate>
                 </TemplateColumn>
                 <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" CellStyle="min-width: 10em; max-width: 10em; text-overflow: ellipsis;" Title="@(Sheet.Label[nameof(Sheet.SheetTitle)])">
@@ -92,16 +92,16 @@
     }
     <MudAppBar Class="backdrop-blur pb-2" Color="Color.Transparent" Dense Bottom="true" Fixed="true">
         <MudTooltip Text="@($"{Book.Label [nameof (Data.Book.Bookmark)]}へ着目")" Arrow Duration="1000">
-            <MudFab Disabled="_busy" OnClick="ScrollToMarkedAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.BookmarkAdded" Class="mr-2" />
+            <MudFab Disabled="UiState.IsLocked" OnClick="ScrollToMarkedAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.BookmarkAdded" Class="mr-2" />
         </MudTooltip>
         <MudTooltip Text="@($"着目中の{Sheet.TableLabel}へ")" Arrow Duration="1000">
-            <MudFab Disabled="_busy" OnClick="ScrollToCurrent" Size="Size.Small" StartIcon="@Icons.Material.Filled.DoubleArrow" Class="mr-2" />
+            <MudFab Disabled="UiState.IsLocked" OnClick="ScrollToCurrent" Size="Size.Small" StartIcon="@Icons.Material.Filled.DoubleArrow" Class="mr-2" />
         </MudTooltip>
         <MudTooltip Text="上端へ" Arrow Duration="1000">
-            <MudFab Disabled="_busy" OnClick="ScrollToTopAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.VerticalAlignTop" Class="mr-2" />
+            <MudFab Disabled="UiState.IsLocked" OnClick="ScrollToTopAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.VerticalAlignTop" Class="mr-2" />
         </MudTooltip>
         <MudTooltip Text="下端へ" Arrow Duration="1000">
-            <MudFab Disabled="_busy" OnClick="ScrollToBottomAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.VerticalAlignBottom" Class="mr-2" />
+            <MudFab Disabled="UiState.IsLocked" OnClick="ScrollToBottomAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.VerticalAlignBottom" Class="mr-2" />
         </MudTooltip>
         <MudSpacer />
         <MudText Class="align-self-start mt-1" Typo="Typo.caption">@(Book.Label [nameof (Book.LastUpdate)]): @(Book.LastUpdate.ToString ("yyyy/MM/dd HH:mm"))</MudText>
@@ -127,8 +127,8 @@
         if (items is not null) {
             selectedItem = sheet;
             var index = items.IndexOf (sheet) + 1;
-            if (CurrentSheetIndex != index) {
-                SetCurrentBookId (CurrentBookId, index);
+            if (AppModeService.CurrentSheetIndex != index) {
+                AppModeService.SetCurrentSheetIndex (index);
                 await SetAppMode (AppMode.Contents);
             }
         }
@@ -138,8 +138,8 @@
     protected async Task ReadSheetAsync (Sheet context) {
         if (Book is not null && items is not null) {
             var index = items.IndexOf (context) + 1;
-            SetCurrentBookId (CurrentBookId, index);
-            await TaskEx.DelayUntil (() => CurrentSheetIndex == index);
+            AppModeService.SetCurrentSheetIndex (index);
+            await TaskEx.DelayUntil (() => AppModeService.CurrentSheetIndex == index);
             await SetAppMode (AppMode.Read);
         }
     }
@@ -163,7 +163,7 @@
 
     /// <summary>栞へ</summary>
     protected async Task ScrollToMarkedAsync () {
-        if (items is not null && Book?.Bookmark is not null && string.IsNullOrEmpty (FilterText)) {
+        if (items is not null && Book?.Bookmark is not null && AppModeService.FilterText == "") {
             var markedItem = items.Find (s => s.Id == Book.Bookmark);
             if (markedItem is not null) {
                 await ChangeCurrentSheetAsync (markedItem);
@@ -176,6 +176,6 @@
     protected override async Task OnInitializedAsync() {
         // 基底クラスで着目書籍オブジェクトを取得
         await base.OnInitializedAsync ();
-        SetSectionTitle (Book is null ? "Contents" : $"<span style=\"font-size:80%;\"><a href=\"{Book?.Url}\" target=\"_blank\" style=\"text-decoration: none;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</a></span>");
+        AppModeService.SetSectionTitle (Book is null ? "Contents" : $"<span style=\"font-size:80%;\"><a href=\"{Book?.Url}\" target=\"_blank\" style=\"text-decoration: none;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</a></span>");
     }
 }

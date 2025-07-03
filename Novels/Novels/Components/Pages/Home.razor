@@ -1,6 +1,8 @@
 ﻿@using System.ComponentModel
 
-@inherits NovelsPageBase
+@inherits NovelsComponentBase
+
+@inject NovelsDataSet DataSet
 
 @page "/"
 
@@ -51,9 +53,9 @@
     protected async Task ReLoadAsync () {
         // リロード完了待機
         await DataSet.LoadAsync ();
-        if (CurrentBookId > 0 && DataSet.IsInitialized) {
+        if (AppModeService.CurrentBookId > 0 && DataSet.IsInitialized) {
             // 着目書籍オブジェクトを取得
-            Book = DataSet.Books.Find (s => s.Id == CurrentBookId);
+            Book = DataSet.Books.Find (s => s.Id == AppModeService.CurrentBookId);
         }
     }
 
@@ -64,8 +66,8 @@
             try {
                 // DB初期化
                 await DataSet.InitializeAsync ();
-                if (CurrentBookId <= 0) {
-                    SetCurrentBookId (DataSet.CurrentBookId, CurrentSheetIndex);
+                if (AppModeService.CurrentBookId <= 0) {
+                    AppModeService.SetCurrentBookId (DataSet.CurrentBookId);
                 }
                 await TaskEx.DelayUntil (() => DataSet.IsReady);
                 AppModeService.SetMode (AppMode.Books);

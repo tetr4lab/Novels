@@ -87,10 +87,10 @@
     </MudSimpleTable>
     <MudStack Row Class="mt-5 justify-center">
         <MudTooltip Arrow="true" Text="復旧">
-            <MudIconButton Disabled="_busy || !IsDirty" OnClick="RevertAsync" Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" />
+            <MudIconButton Disabled="UiState.IsLocked || !IsDirty" OnClick="RevertAsync" Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
         <MudTooltip Arrow="true" Text="保存">
-            <MudIconButton Disabled="_busy || !IsDirty || _cookieField?.Error != false" OnClick="SaveAsync" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
+            <MudIconButton Disabled="UiState.IsLocked || !IsDirty || _cookieField?.Error != false" OnClick="SaveAsync" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
     </MudStack>
 } else {
