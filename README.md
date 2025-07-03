@@ -160,6 +160,7 @@ CREATE TABLE `settings` (
   `user_agent` VARCHAR(255) NOT NULL DEFAULT 'Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko',
   `access_interval_time` INT(11) NOT NULL DEFAULT 1000,
   `default_cookies` LONGTEXT NOT NULL DEFAULT '{ "over18": "yes" }',
+  `include_image` bit(1) NOT NULL DEFAULT b'0',
   `remarks` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

@@ -36,6 +36,7 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
         { nameof (UserAgent), "HTTP-UA" },
         { nameof (AccessIntervalTime), "アクセス間隔(ms)" },
         { nameof (DefaultCookiesJson), "クッキー(json)" },
+        { nameof (IncludeImage), "画像を含める" },
         { nameof (Remarks), "備考" },
     };
 
@@ -59,6 +60,7 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
     [Column ("user_agent")] public string UserAgent { get; set; } = "Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko";
     [Column ("access_interval_time")] public int AccessIntervalTime { get; set; } = 1000;
     [Column ("default_cookies")] public string DefaultCookiesJson { get; set; } = "{ \"over18\": \"yes\" }";
+    [Column ("include_image")] public bool IncludeImage { get; set; } = false;
 
     /// <summary>デフォルトクッキーの辞書表現</summary>
     public Dictionary<string, string> DefaultCookies {
@@ -95,6 +97,7 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
         item.UserAgent = UserAgent;
         item.AccessIntervalTime = AccessIntervalTime;
         item.DefaultCookiesJson = DefaultCookiesJson;
+        item.IncludeImage = IncludeImage;
         return item;
     }
 
@@ -114,6 +117,7 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
         destination.UserAgent = UserAgent;
         destination.AccessIntervalTime = AccessIntervalTime;
         destination.DefaultCookiesJson = DefaultCookiesJson;
+        destination.IncludeImage = IncludeImage;
         return base.CopyTo (destination);
     }
 
@@ -135,15 +139,16 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
         && UserAgent == other.UserAgent
         && AccessIntervalTime == other.AccessIntervalTime
         && DefaultCookiesJson == other.DefaultCookiesJson
+        && IncludeImage == other.IncludeImage
         && Remarks == other.Remarks
     ;
 
     /// <inheritdoc/>
     public override int GetHashCode () => HashCode.Combine (
         HashCode.Combine (PersonalDocumentLimitSize, SmtpMailAddress, SmtpServer, SmtpPort, SmtpUserName, SmtpPassword, SmtpMailto, SmtpCc),
-        HashCode.Combine (SmtpBcc, SmtpSubject, SmtpBody, Remarks, UserAgent, AccessIntervalTime, DefaultCookiesJson),
+        HashCode.Combine (SmtpBcc, SmtpSubject, SmtpBody, Remarks, UserAgent, AccessIntervalTime, DefaultCookiesJson, IncludeImage),
         base.GetHashCode ());
 
     /// <inheritdoc/>
-    public override string ToString () => $"{TableLabel} {Id}: {PersonalDocumentLimitSize}, {SmtpMailAddress}, {SmtpServer}, {SmtpPort}, {SmtpUserName}, {SmtpMailto}, {SmtpCc}, {SmtpBcc}, {SmtpSubject}, {SmtpBody}, \"{Remarks}\"";
+    public override string ToString () => $"{TableLabel} {Id}: {PersonalDocumentLimitSize}, {SmtpMailAddress}, {SmtpServer}, {SmtpPort}, {SmtpUserName}, {SmtpMailto}, {SmtpCc}, {SmtpBcc}, {SmtpSubject}, {SmtpBody}, {(IncludeImage ? "withImage" : "withoutImage")}, \"{Remarks}\"";
 }

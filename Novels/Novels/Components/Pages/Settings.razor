@@ -77,6 +77,10 @@
                 <td><MudTextField T="string" Validation="@(new Func<string, bool> (CookiesValidate))" @bind-Value="selectedItem.DefaultCookiesJson" @ref="_cookieField" /></td>
             </tr>
             <tr>
+                <td>@(Setting.Label [nameof (Setting.IncludeImage)])</td>
+                <td><MudCheckBox @bind-Value="selectedItem.IncludeImage" /></td>
+            </tr>
+            <tr>
                 <td>@(Setting.Label [nameof (Setting.Remarks)])</td>
                 <td>
                     <style>.horizontal-scroll textarea { overflow-x: auto; white-space: nowrap; }</style>
