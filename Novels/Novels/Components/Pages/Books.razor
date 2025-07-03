@@ -175,9 +175,6 @@
     protected async Task SetFilter (string filter) {
         await SetBusyAsync ();
         AppModeService.SetFilterText (filter);
-        if (filter == string.Empty) {
-            await ScrollToCurrentAsync ();
-        }
         await SetIdleAsync ();
     }
 

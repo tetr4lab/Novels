@@ -23,11 +23,6 @@ public abstract class NovelsComponentBase : ComponentBase, IDisposable {
 
     /// <summary>アプリモードが変化した</summary>
     protected virtual async void OnAppModeChanged (object? sender, PropertyChangedEventArgs e) {
-        await OnAppModeChangedAsync (sender, e);
-    }
-
-    /// <summary>アプリモード変化時の画面更新</summary>
-    protected virtual async Task OnAppModeChangedAsync (object? sender, PropertyChangedEventArgs e) {
         if (e.PropertyName != "RequestedMode") {
             await InvokeAsync (StateHasChanged);
         }

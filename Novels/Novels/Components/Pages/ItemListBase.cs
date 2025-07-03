@@ -29,16 +29,18 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
     [Inject] protected IBrowserViewportService BrowserViewportService { get; set; } = null!;
     [Inject] protected IJSRuntime JSRuntime { get; set; } = null!;
 
-    /// <summary>状態の変化</summary>
+    /// <summary>UIロック</summary>
     protected async Task SetBusyAsync () {
         UiState.Lock ();
-        await InvokeAsync (StateHasChanged);
+        StateHasChanged ();
+        await TaskEx.DelayOneFrame;
     }
 
-    /// <summary>状態の変化</summary>
+    /// <summary>UIアンロック</summary>
     protected async Task SetIdleAsync () {
         UiState.Unlock ();
-        await InvokeAsync (StateHasChanged);
+        StateHasChanged ();
+        await TaskEx.DelayOneFrame;
     }
 
     /// <summary>項目一覧</summary>
@@ -326,8 +328,6 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
     /// <summary>アプリモードが変化した</summary>
     protected override async void OnAppModeChanged (object? sender, PropertyChangedEventArgs e) {
         if (sender is NovelsAppModeService service) {
-            // あらかじめ反映を促す
-            await OnAppModeChangedAsync (sender, e);
             if (e.PropertyName == "RequestedMode") {
                 // アプリモード遷移の要求があった
                 if (service.RequestedMode != AppMode.None) {
@@ -339,7 +339,8 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
             } else if (e.PropertyName == "FilterText") {
                 // 検索文字列の変化
                 if (_dataGrid is not null && service.FilterText != "") {
-                    await TaskEx.DelayOneFrame; // 検索結果を待つ
+                    await InvokeAsync (StateHasChanged); // 反映を促す
+                    await TaskEx.DelayOneFrame; // 反映を待つ
                     var filtered = _dataGrid.FilteredItems.ToList ();
                     if (filtered.Count > 0 && !filtered.Contains (selectedItem)) {
                         // 現選択アイテムが結果にないなら最後のアイテムを選択

@@ -93,8 +93,8 @@
     protected override async void OnAppModeChanged (object? sender, PropertyChangedEventArgs e) {
         if (e.PropertyName == "FilterText" && sender is NovelsAppModeService service) {
             _filterText = service.FilterText;
+            await InvokeAsync (StateHasChanged);
         }
-        await OnAppModeChangedAsync (sender, e);
     }
 
     /// <summary>フィールドクリアボタンが押された</summary>
