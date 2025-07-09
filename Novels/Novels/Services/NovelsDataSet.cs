@@ -10,7 +10,7 @@ using System.Data;
 namespace Novels.Services;
 
 /// <summary></summary>
-public sealed class NovelsDataSet : BasicDataSet {
+public sealed class NovelsDataSet : MySqlDataSet {
 
     /// <summary>コンストラクタ</summary>
     public NovelsDataSet (Database database) : base (database) { }
