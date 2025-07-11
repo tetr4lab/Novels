@@ -116,13 +116,7 @@
             <MudFab Disabled="UiState.IsLocked" OnClick="ScrollToTopAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.VerticalAlignTop" Class="mr-2" />
         </MudTooltip>
         <MudTooltip Text="下端へ" Arrow Duration="1000">
-            <MudFab Disabled="UiState.IsLocked" OnClick="ScrollToBottomAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.VerticalAlignBottom" Class="mr-6" />
-        </MudTooltip>
-        <MudTooltip Text="@($"前の{Book.TableLabel}へ着目")" Arrow Duration="1000">
-            <MudFab Disabled="UiState.IsLocked || IsDirty" OnClick="PrevBook" Size="Size.Small" StartIcon="@Icons.Material.Filled.ArrowUpward" Class="mr-2" />
-        </MudTooltip>
-        <MudTooltip Text="@($"次の{Book.TableLabel}へ着目")" Arrow Duration="1000">
-            <MudFab Disabled="UiState.IsLocked || IsDirty" OnClick="NextBook" Size="Size.Small" StartIcon="@Icons.Material.Filled.ArrowDownward" Class="mr-2" />
+            <MudFab Disabled="UiState.IsLocked" OnClick="ScrollToBottomAsync" Size="Size.Small" StartIcon="@Icons.Material.Filled.VerticalAlignBottom" Class="mr-2" />
         </MudTooltip>
         <MudSpacer />
         <MudTooltip Text="発行済み/未発行を絞り込み" Duration="1000">
@@ -152,9 +146,9 @@
     public static readonly double ViewportHeightRatio = 1.25d;
 
     /// <summary>行がクリックされた</summary>
-    protected async Task OnRowClick (DataGridRowClickEventArgs<Book> context) {
+    protected void OnRowClick (DataGridRowClickEventArgs<Book> context) {
         if (context.Item is Book book) {
-            await ChangeCurrentBook (book);
+            ChangeCurrentBook (book);
         }
     }
 
@@ -171,7 +165,7 @@
 
     /// <summary>フィルター切り替え</summary>
     protected async Task ChangeFilter (string filter, Book book) {
-        await ChangeCurrentBook (book);
+        ChangeCurrentBook (book);
         await ChangeFilter (filter);
     }
 
@@ -186,7 +180,7 @@
     protected async Task OpenUrl (Book book) {
         await SetBusyAsync ();
         await JSRuntime.OpenUrl (book.Url);
-        await ChangeCurrentBook (book);
+        ChangeCurrentBook (book);
         await SetIdleAsync ();
     }
 
@@ -200,7 +194,7 @@
     /// <summary>書籍を発行</summary>
     protected async Task IsshueBook (Book book) {
         await SetBusyAsync ();
-        await ChangeCurrentBook (book);
+        ChangeCurrentBook (book);
         await SetAppMode (AppMode.Issue);
         await SetIdleAsync ();
     }
@@ -208,7 +202,7 @@
     /// <summary>書籍を開く</summary>
     protected async Task OpenBook (Book book) {
         await SetBusyAsync ();
-        await ChangeCurrentBook (book);
+        ChangeCurrentBook (book);
         await SetAppMode (AppMode.Contents);
         await SetIdleAsync ();
     }
