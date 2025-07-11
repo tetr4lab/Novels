@@ -103,13 +103,14 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
     }
 
     //// <summary>着目書籍の変更</summary>
-    protected void ChangeCurrentBook (Book book) {
+    protected virtual Task ChangeCurrentBook (Book book) {
         if (book is T item) {
             selectedItem = item;
         }
         if (AppModeService.CurrentBookId != book.Id) {
             AppModeService.SetCurrentBookId (book.Id, 1);
         }
+        return Task.CompletedTask;
     }
 
     /// <summary>データグリッド</summary>
@@ -346,7 +347,7 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
                         // 現選択アイテムが結果にないなら最後のアイテムを選択
                         selectedItem = filtered.Last ();
                         if (selectedItem is Book book) {
-                            ChangeCurrentBook (book);
+                            await ChangeCurrentBook (book);
                         }
                     }
                 }

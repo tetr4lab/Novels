@@ -15,13 +15,25 @@ using Tetr4lab;
 
 namespace Novels.Components.Pages;
 
-public partial class Issue : ItemListBase<Book> {
+public partial class Issue : BookListBase {
 
     /// <summary>URI“ü—Í‚ÌŒŸØ</summary>
     protected string ValidateUri (string uri) => uri != "" && IsInvalidUri (uri) ? "bad uri" : "";
 
     /// <summary>–³Œø‚ÈURI</summary>
     protected bool IsInvalidUri (string? url) => !Uri.IsWellFormedUriString (url, UriKind.Absolute);
+
+    //// <summary>’…–Ú‘Ğ‚Ì•ÏX</summary>
+    protected override async Task ChangeCurrentBook (Book book) {
+        await SetBusyAsync ();
+        await base.ChangeCurrentBook (book);
+        Book = book;
+        if (DataSet.CurrentBookId != AppModeService.CurrentBookId) {
+            await DataSet.SetCurrentBookIdAsync (AppModeService.CurrentBookId);
+        }
+        SetAndEdit ();
+        await SetIdleAsync ();
+    }
 
     /// <summary>‘Ğ‚Ìíœ (ƒz[ƒ€‚Ö‘JˆÚ)</summary>
     protected async Task DeleteBook (MouseEventArgs eventArgs) {
@@ -162,7 +174,7 @@ public partial class Issue : ItemListBase<Book> {
                 if (Book.Id != result.Value.book.Id) { throw new InvalidOperationException ($"id mismatch {Book.Id} -> {result.Value.book.Id}"); }
                 await ReLoadAsync ();
                 if (Book is not null) {
-                    ChangeCurrentBook (Book);
+                    await ChangeCurrentBook (Book);
                 }
                 return true;
             }
