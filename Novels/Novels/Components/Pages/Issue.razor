@@ -37,7 +37,7 @@
                                     <MudText Typo="Typo.inherit">@Book.Site</MudText>
                                 </MudTooltip>
                                 <span> : </span>
-                                @if (Book.IsUpToDateWithIssued) {
+                                @if (!Book.IsUpToDateWithIssued) {
                                     <MudTooltip Arrow Duration="1000" Text="@(Book.Label [nameof (Book.NumberOfIsshued)])">
                                         <MudText Color="@(Book.NumberOfIsshued < Book.NumberOfRelatedSheets && Book.NumberOfIsshued < Book.NumberOfSheets ? Color.Warning : Color.Inherit)">@(Book.NumberOfIsshued)</MudText>
                                     </MudTooltip>
