@@ -163,8 +163,10 @@ public sealed class NovelsDataSet : MySqlDataSet {
     /// <param name="url">対象の書籍のURL</param>
     /// <param name="userIdentifier">ユーザ識別子</param>
     /// <param name="withSheets">シートを含めるか</param>
+    /// <param name="fullUpdate"></param>
+    /// <param name="progress"></param>
     /// <returns>書籍と問題のリスト</returns>
-    public async Task<Result<(Book book, List<string> issues)>> UpdateBookFromSiteAsync (HttpClient client, string url, string userIdentifier, bool withSheets = false, Action<int, int>? progress = null) {
+    public async Task<Result<(Book book, List<string> issues)>> UpdateBookFromSiteAsync (HttpClient client, string url, string userIdentifier, bool withSheets = false, bool fullUpdate = false, Action<int, int>? progress = null) {
         var issues = new List<string> ();
         var status = Status.Unknown;
         if (Valid) {
@@ -175,9 +177,7 @@ public sealed class NovelsDataSet : MySqlDataSet {
                 book.Modifier = userIdentifier;
             }
             try {
-                // 取得日時を記録
                 client.DefaultRequestHeaders.Add ("User-Agent", Setting.UserAgent);
-                var lastTime = DateTime.Now;
                 using (var message = await client.GetWithCookiesAsync (book.Url, Setting.DefaultCookies)) {
                     if (message.IsSuccessStatusCode && message.StatusCode == System.Net.HttpStatusCode.OK) {
                         var htmls = new List<string> { await message.Content.ReadAsStringAsync (), };
@@ -220,6 +220,10 @@ public sealed class NovelsDataSet : MySqlDataSet {
                             status = Status.Unknown;
                             for (var index = 0; index < book.SheetUrls.Count; index++) {
                                 string sheetUrl = book.SheetUrls [index];
+                                var sheet = book.Sheets.FirstOrDefault (s => s.Url == sheetUrl);
+                                if (!fullUpdate && sheet?.SheetUpdatedAt > book.SheetUpdateDates [index]) {
+                                    continue;
+                                }
                                 await Task.Delay (Setting.AccessIntervalTime);
                                 if (string.IsNullOrEmpty (sheetUrl)) {
                                     issues.Add ($"Invalid Sheet URL: {url} + {sheetUrl}");
@@ -228,7 +232,6 @@ public sealed class NovelsDataSet : MySqlDataSet {
                                 using (var message3 = await client.GetWithCookiesAsync (sheetUrl, Setting.DefaultCookies)) {
                                     if (message3.IsSuccessStatusCode && message3.StatusCode == System.Net.HttpStatusCode.OK) {
                                         var sheetHtml = await message3.Content.ReadAsStringAsync ();
-                                        var sheet = book.Sheets.FirstOrDefault (s => s.Url == sheetUrl);
                                         if (sheet == default) {
                                             sheet = new Sheet () { BookId = book.Id, Url = sheetUrl, Book = book, Creator = userIdentifier, Modifier = userIdentifier, };
                                         } else {

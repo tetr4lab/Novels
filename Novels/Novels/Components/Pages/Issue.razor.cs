@@ -90,14 +90,15 @@ public partial class Issue : BookListBase {
     protected async Task<bool> ConfirmUpdateBookAsync (MouseEventArgs eventArgs) {
         if (Book is not null && !IsDirty) {
             var withSheets = !eventArgs.CtrlKey;
-            var operation =  Book.IsEmpty ? "取得" : "更新";
+            var fullUpdate = eventArgs.ShiftKey;
+            var operation = Book.IsEmpty ? "取得" : $"{(withSheets && fullUpdate ? "完全" : "")}更新";
             var target = $"{Book.TableLabel}{(withSheets ? $"と{Sheet.TableLabel}" : "のみ")}";
-            var dialogResult = await DialogService.Confirmation ([$"『{Book.Title}』の{target}を{Book.Site}から{operation}します。", withSheets ? $"{Book.TableLabel}と{Sheet.TableLabel}全てを更新します。" : $"{Book.TableLabel}のみを更新し、{Sheet.TableLabel}は更新しません。"], title: $"{target}の{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: withSheets ? Color.Success : Color.Primary, acceptionIcon: Icons.Material.Filled.Download);
+            var dialogResult = await DialogService.Confirmation ([$"『{Book.Title}』の{target}を{Book.Site}から{operation}します。", withSheets ? $"{Book.TableLabel}と{(fullUpdate? "全ての" : "新しい")}{Sheet.TableLabel}を更新します。" : $"{Book.TableLabel}のみを更新し、{Sheet.TableLabel}は更新しません。"], title: $"{target}の{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: withSheets ? Color.Success : Color.Primary, acceptionIcon: Icons.Material.Filled.Download);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 // オーバーレイ
                 await SetBusyAsync ();
                 Snackbar.Add ($"{target}の{operation}を開始しました。", Severity.Normal);
-                if (await UpdateBookFromSiteAsync (withSheets)) {
+                if (await UpdateBookFromSiteAsync (withSheets, fullUpdate)) {
                     Snackbar.Add ($"{target}を{operation}しました。", Severity.Normal);
                 } else {
                     Snackbar.Add ($"{target}の{operation}に失敗しました。", Severity.Error);
@@ -150,9 +151,9 @@ public partial class Issue : BookListBase {
     }
 
     /// <summary>取得・更新</summary>
-    protected async Task<bool> UpdateBookFromSiteAsync (bool withSheets) {
+    protected async Task<bool> UpdateBookFromSiteAsync (bool withSheets, bool fullUpdate) {
         if (Book is not null) {
-            var result = await DataSet.UpdateBookFromSiteAsync (HttpClient, Book.Url, UserIdentifier, withSheets, 
+            var result = await DataSet.UpdateBookFromSiteAsync (HttpClient, Book.Url, UserIdentifier, withSheets, fullUpdate, 
                 (value, max) => {
                     if (value == 0) {
                         UiState.Lock (max);
