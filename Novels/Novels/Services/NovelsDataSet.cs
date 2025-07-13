@@ -66,13 +66,23 @@ public sealed class NovelsDataSet : MySqlDataSet {
     /// <summary>着目中の書籍</summary>
     public Book CurrentBook => GetItemById<Book> (CurrentBookId);
 
-    /// <summary>IDからBookを得る</summary>
+    /// <summary>IDからItemを得る</summary>
     private T GetItemById<T> (long id) where T : NovelsBaseModel<T>, INovelsBaseModel, new () {
-        var id2item = new Dictionary<long, T> ();
         if (typeof (T) == typeof (Book)) {
             return (_id2Book.TryGetValue (id, out var item) ? item : null) as T ?? new ();
         } else if (typeof (T) == typeof (Sheet)) {
             return (_id2Sheet.TryGetValue (id, out var item) ? item : null) as T ?? new ();
+        } else {
+            throw new ArgumentException ($"The type param must be {nameof (Book)} or {nameof (Sheet)}", nameof (T));
+        }
+    }
+
+    /// <summary>新しいIDとItemを登録</summary>
+    private void SetItemById<T> (T item) where T : BaseModel<T>, new() {
+        if (item is Book book) {
+            _id2Book [book.Id] = book;
+        } else if (item is Sheet sheet) {
+            _id2Sheet [sheet.Id] = sheet;
         } else {
             throw new ArgumentException ($"The type param must be {nameof (Book)} or {nameof (Sheet)}", nameof (T));
         }
@@ -158,6 +168,16 @@ public sealed class NovelsDataSet : MySqlDataSet {
         return false;
     }
 
+    /// <inheritdoc/>
+    /// <remarks>Idからの変換辞書に登録</remarks>
+    public override async Task<Result<T>> AddAsync<T> (T item) {
+        var result = await base.AddAsync (item);
+        if (result.IsSuccess) {
+            SetItemById (item);
+        }
+        return result;
+    }
+
     /// <summary>書籍の更新</summary>
     /// <param name="client">HTTPクライアント</param>
     /// <param name="url">対象の書籍のURL</param>
@@ -199,7 +219,6 @@ public sealed class NovelsDataSet : MySqlDataSet {
                         if (book.Id == 0) {
                             var result = await AddAsync (book);
                             if (result.IsSuccess) {
-                                _id2Book [book.Id] = book;
                                 status = Status.Success;
                             } else {
                                 issues.Add ($"Failed to add: {book.Url} {result.Status}");
@@ -243,9 +262,7 @@ public sealed class NovelsDataSet : MySqlDataSet {
                                         sheet.SheetUpdatedAt = DateTime.Now;
                                         if (sheet.Id == 0) {
                                             var result = await AddAsync (sheet);
-                                            if (result.IsSuccess) {
-                                                _id2Sheet [sheet.Id] = sheet;
-                                            } else {
+                                            if (result.IsFailure) {
                                                 issues.Add ($"Failed to add: {sheetUrl} {result.Status}");
                                                 throw new Exception ("aborted");
                                             }
