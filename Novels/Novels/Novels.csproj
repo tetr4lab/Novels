@@ -46,11 +46,11 @@
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="git branch --show-current &gt; $(ProjectDir)revision.info&#xD;&#xA;git rev-parse --short HEAD &gt;&gt; $(ProjectDir)revision.info&#xD;&#xA;" />
+    <Exec Command="git branch --show-current &gt; $(ProjectDir)revision.info&#xD;&#xA;git rev-parse --short HEAD &gt;&gt; $(ProjectDir)revision.info&#xD;&#xA;" Condition="Exists('$(ProjectDir)/../../.git/')" />
   </Target>
 
   <Target Name="CustomAfterPublish" AfterTargets="Publish">
-    <Exec Command="powershell -File $(ProjectDir)deploy.ps1" Condition="Exists('$(ProjectDir)deploy.ps1')" />
+    <Exec Command="powershell -File $(ProjectDir)deploy.ps1 $(ProjectName)" Condition="Exists('$(ProjectDir)deploy.ps1')" />
   </Target>
 
 </Project>
