@@ -193,50 +193,12 @@ public partial class Issue : BookListBase {
                 doc.AddTitle ();
                 doc.AddChapter (null, null, "概要", book.Explanation);
                 foreach (var sheet in book.Sheets) {
-                    var honbun = sheet.SheetHonbun;
                     // Add image resources
-                    var parser = new HtmlParser ();
-                    var document = parser.ParseDocument (sheet.SheetHonbun);
-                    var images = document.QuerySelectorAll ("img");
-                    if (images is not null) {
-                        if (DataSet.Setting.IncludeImage) {
-                            foreach (var image in images) {
-                                var src = image.GetAttribute ("src");
-                                if (!string.IsNullOrEmpty (src)) {
-                                    var imageUrl = new Uri (new Uri (sheet.Url), src);
-                                    try {
-                                        HttpClient.DefaultRequestHeaders.Add ("User-Agent", DataSet.Setting.UserAgent);
-                                        using (var response = await HttpClient.GetAsync (imageUrl, HttpCompletionOption.ResponseHeadersRead)) {
-                                            response.EnsureSuccessStatusCode (); // HTTPエラーコードが返された場合に例外をスロー
-                                            var contentType = response.Content.Headers.ContentType?.MediaType ?? string.Empty;
-                                            var resourceType = contentType switch {
-                                                "image/jpeg" => EpubResourceType.JPEG,
-                                                "image/png" => EpubResourceType.PNG,
-                                                "image/gif" => EpubResourceType.GIF,
-                                                "image/ttf" => EpubResourceType.TTF,
-                                                "image/otf" => EpubResourceType.OTF,
-                                                "image/svg+xml" => EpubResourceType.SVG,
-                                                _ => EpubResourceType.JPEG,
-                                            };
-                                            var fileName = $"img_{Guid.NewGuid ().ToString ("N")}.{resourceType.ToString ().ToLower ()}"; // ユニークな名前を生成
-                                            using (var stream = await response.Content.ReadAsStreamAsync ()) {
-                                                doc.AddResource (fileName, resourceType, stream, true);
-                                                image.SetAttribute ("src", fileName);
-                                            }
-                                        }
-                                    }
-                                    catch (Exception ex) {
-                                        System.Diagnostics.Debug.WriteLine ($"Exception: {imageUrl} - {ex.Message}\n{ex.StackTrace}");
-                                        Snackbar.Add ($"Exception: {ex.Message}", Severity.Warning);
-                                    }
-                                }
-                            }
-                        }
-                        honbun = (document.Body?.InnerHtml ?? "").Replace ("<br>", "<br/>");
-                        honbun = new Regex (@"(<img\b(?![^>]*?\/[>])[^>]*?)>").Replace (honbun, "$1/>");
-                    }
+                    var honbun = await ProcessHtmlForEpub (doc, sheet.SheetHonbun, sheet.Url);
+                    var preface = await ProcessHtmlForEpub (doc, sheet.Preface, sheet.Url);
+                    var afterword = await ProcessHtmlForEpub (doc, sheet.Afterword, sheet.Url);
                     // Add sheet
-                    doc.AddChapter (sheet.ChapterTitle, sheet.ChapterSubTitle, sheet.SheetTitle, honbun, sheet.Afterword, sheet.Preface);
+                    doc.AddChapter (sheet.ChapterTitle, sheet.ChapterSubTitle, sheet.SheetTitle, honbun, afterword, preface);
                 }
                 // Add the CSS file referenced in the HTML content
                 using (var cssStream = new FileStream ("Services/book-style.css", FileMode.Open)) {
@@ -291,6 +253,56 @@ public partial class Issue : BookListBase {
             }
         }
     }
+
+    /// <summary>HTMLをEPUB用に加工し画像を加える</summary>
+    /// <param name="doc">EPUB document</param>
+    /// <param name="innerHtml">元のHTML</param>
+    /// <param name="url">シートのURL</param>
+    /// <returns>処理済みのHTML</returns>
+    protected async Task<string> ProcessHtmlForEpub (Epub doc, string innerHtml, string url) {
+        var parser = new HtmlParser ();
+        var document = parser.ParseDocument (innerHtml);
+        var images = document.QuerySelectorAll ("img");
+        if (images is not null) {
+            if (DataSet.Setting.IncludeImage) {
+                foreach (var image in images) {
+                    var src = image.GetAttribute ("src");
+                    if (!string.IsNullOrEmpty (src)) {
+                        var imageUrl = new Uri (new Uri (url), src);
+                        try {
+                            HttpClient.DefaultRequestHeaders.Add ("User-Agent", DataSet.Setting.UserAgent);
+                            using (var response = await HttpClient.GetAsync (imageUrl, HttpCompletionOption.ResponseHeadersRead)) {
+                                response.EnsureSuccessStatusCode (); // HTTPエラーコードが返された場合に例外をスロー
+                                var contentType = response.Content.Headers.ContentType?.MediaType ?? string.Empty;
+                                var resourceType = contentType switch {
+                                    "image/jpeg" => EpubResourceType.JPEG,
+                                    "image/png" => EpubResourceType.PNG,
+                                    "image/gif" => EpubResourceType.GIF,
+                                    "image/ttf" => EpubResourceType.TTF,
+                                    "image/otf" => EpubResourceType.OTF,
+                                    "image/svg+xml" => EpubResourceType.SVG,
+                                    _ => EpubResourceType.JPEG,
+                                };
+                                var fileName = $"img_{Guid.NewGuid ().ToString ("N")}.{resourceType.ToString ().ToLower ()}"; // ユニークな名前を生成
+                                using (var stream = await response.Content.ReadAsStreamAsync ()) {
+                                    doc.AddResource (fileName, resourceType, stream, true);
+                                    image.SetAttribute ("src", fileName);
+                                }
+                            }
+                        }
+                        catch (Exception ex) {
+                            System.Diagnostics.Debug.WriteLine ($"Exception: {imageUrl} - {ex.Message}\n{ex.StackTrace}");
+                            Snackbar.Add ($"Exception: {ex.Message}", Severity.Warning);
+                        }
+                    }
+                }
+            }
+            innerHtml = (document.Body?.InnerHtml ?? "").Replace ("<br>", "<br/>");
+            innerHtml = new Regex (@"(<img\b(?![^>]*?\/[>])[^>]*?)>").Replace (innerHtml, "$1/>");
+        }
+        return innerHtml;
+    }
+
 
     /// <summary>Kindleへ送信</summary>
     protected bool SendToKindle (string epubPath, string title) {
