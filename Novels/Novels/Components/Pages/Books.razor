@@ -146,9 +146,9 @@
     public static readonly double ViewportHeightRatio = 1.25d;
 
     /// <summary>行がクリックされた</summary>
-    protected void OnRowClick (DataGridRowClickEventArgs<Book> context) {
+    protected async Task OnRowClick (DataGridRowClickEventArgs<Book> context) {
         if (context.Item is Book book) {
-            ChangeCurrentBook (book);
+            await ChangeCurrentBookAsync (book);
         }
     }
 
@@ -165,7 +165,7 @@
 
     /// <summary>フィルター切り替え</summary>
     protected async Task ChangeFilter (string filter, Book book) {
-        ChangeCurrentBook (book);
+        await ChangeCurrentBookAsync (book);
         await ChangeFilter (filter);
     }
 
@@ -180,7 +180,7 @@
     protected async Task OpenUrl (Book book) {
         await SetBusyAsync ();
         await JSRuntime.OpenUrl (book.Url);
-        ChangeCurrentBook (book);
+        await ChangeCurrentBookAsync (book);
         await SetIdleAsync ();
     }
 
@@ -194,7 +194,7 @@
     /// <summary>書籍を発行</summary>
     protected async Task IsshueBook (Book book) {
         await SetBusyAsync ();
-        ChangeCurrentBook (book);
+        await ChangeCurrentBookAsync (book);
         await SetAppMode (AppMode.Issue);
         await SetIdleAsync ();
     }
@@ -202,7 +202,7 @@
     /// <summary>書籍を開く</summary>
     protected async Task OpenBook (Book book) {
         await SetBusyAsync ();
-        ChangeCurrentBook (book);
+        await ChangeCurrentBookAsync (book);
         await SetAppMode (AppMode.Contents);
         await SetIdleAsync ();
     }

@@ -15,7 +15,7 @@ public class BookListBase : ItemListBase<Book> {
         var index = items.IndexOf (Book);
         if (index > 0) {
             await SetBusyAsync ();
-            ChangeCurrentBook (items [index - 1]);
+            await ChangeCurrentBookAsync (items [index - 1]);
             await ScrollToCurrentAsync ();
             await SetIdleAsync ();
         }
@@ -27,7 +27,7 @@ public class BookListBase : ItemListBase<Book> {
         var index = items.IndexOf (Book);
         if (index < items.Count - 1) {
             await SetBusyAsync ();
-            ChangeCurrentBook (items [index + 1]);
+            await ChangeCurrentBookAsync (items [index + 1]);
             await ScrollToCurrentAsync ();
             await SetIdleAsync ();
         }
@@ -50,7 +50,7 @@ public class BookListBase : ItemListBase<Book> {
                 var existingBook = books?.FirstOrDefault (x => x.Url1 == newUrl || x.Url2 == newUrl);
                 if (existingBook is not null) {
                     Snackbar.Add ($"既存の{Book.TableLabel}: 『{existingBook.Title}』", Severity.Warning);
-                    ChangeCurrentBook (existingBook);
+                    await ChangeCurrentBookAsync (existingBook);
                     await ScrollToCurrentAsync ();
                     return;
                 }
@@ -64,7 +64,7 @@ public class BookListBase : ItemListBase<Book> {
                 if (result.IsSuccess) {
                     var newBook = result.Value.book;
                     lastCreatedId = newBook.Id;
-                    ChangeCurrentBook (newBook);
+                    await ChangeCurrentBookAsync (newBook);
                     // Issueページへ移動する
                     await SetAppMode (AppMode.Issue);
                 } else {

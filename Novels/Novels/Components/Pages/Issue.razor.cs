@@ -24,8 +24,8 @@ public partial class Issue : BookListBase {
     protected bool IsInvalidUri (string? url) => !Uri.IsWellFormedUriString (url, UriKind.Absolute);
 
     //// <summary>’…–Ú‘Ğ‚Ì•ÏX</summary>
-    protected override void ChangeCurrentBook (Book book) {
-        base.ChangeCurrentBook (book);
+    protected override async Task ChangeCurrentBookAsync (Book book) {
+        await base.ChangeCurrentBookAsync (book);
         SetAndEdit ();
     }
 
@@ -169,7 +169,7 @@ public partial class Issue : BookListBase {
                 if (Book.Id != result.Value.book.Id) { throw new InvalidOperationException ($"id mismatch {Book.Id} -> {result.Value.book.Id}"); }
                 await ReLoadAsync ();
                 if (Book is not null) {
-                    ChangeCurrentBook (Book);
+                    await ChangeCurrentBookAsync (Book);
                 }
                 return true;
             }
