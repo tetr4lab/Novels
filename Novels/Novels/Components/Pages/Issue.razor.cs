@@ -218,7 +218,7 @@ public partial class Issue : BookListBase {
                                                 "image/svg+xml" => EpubResourceType.SVG,
                                                 _ => EpubResourceType.JPEG,
                                             };
-                                            var fileName = $"image_{Guid.NewGuid ().ToString ("N")}"; // ユニークな名前を生成
+                                            var fileName = $"img_{Guid.NewGuid ().ToString ("N")}.{resourceType.ToString ().ToLower ()}"; // ユニークな名前を生成
                                             using (var stream = await response.Content.ReadAsStreamAsync ()) {
                                                 doc.AddResource (fileName, resourceType, stream, true);
                                                 image.SetAttribute ("src", fileName);
