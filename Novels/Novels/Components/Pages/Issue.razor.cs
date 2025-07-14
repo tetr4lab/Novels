@@ -90,7 +90,7 @@ public partial class Issue : BookListBase {
     protected async Task<bool> ConfirmUpdateBookAsync (MouseEventArgs eventArgs) {
         if (Book is not null && !IsDirty) {
             var withSheets = !eventArgs.CtrlKey;
-            var fullUpdate = eventArgs.ShiftKey;
+            var fullUpdate = eventArgs.ShiftKey || Book.IsEmpty;
             var operation = Book.IsEmpty ? "取得" : $"{(withSheets && fullUpdate ? "完全" : "")}更新";
             var target = $"{Book.TableLabel}{(withSheets ? $"と{Sheet.TableLabel}" : "のみ")}";
             var dialogResult = await DialogService.Confirmation ([$"『{Book.Title}』の{target}を{Book.Site}から{operation}します。", withSheets ? $"{Book.TableLabel}と{(fullUpdate? "全ての" : "新しい")}{Sheet.TableLabel}を更新します。" : $"{Book.TableLabel}のみを更新し、{Sheet.TableLabel}は更新しません。"], title: $"{target}の{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: withSheets ? Color.Success : Color.Primary, acceptionIcon: Icons.Material.Filled.Download);
