@@ -145,9 +145,13 @@
             <MudTooltip Arrow="true">
                 <TooltipContent>
                     生成･発行<br />
-                    <span style="writing-mode: vertical-rl;">（</span><br />
-                    <span style="border: 1px solid;border-radius: 10%;">Ctrl</span><br />
-                    <span style="writing-mode: vertical-rl;">で生成のみ）</span>
+                    @if (Book.IsUpToDateWithIssued) {
+                        <span style="writing-mode: vertical-rl;">（再発行には記録の抹消が必要）</span>
+                    } else {
+                        <span style="writing-mode: vertical-rl;">（</span><br />
+                        <span style="border: 1px solid;border-radius: 10%;">Ctrl</span><br />
+                        <span style="writing-mode: vertical-rl;">で生成のみ）</span>
+                    }
                 </TooltipContent>
                 <ChildContent>
                     <MudIconButton Disabled="UiState.IsLocked || Book.IsEmpty || Book.IsUpToDateWithIssued || IsDirty" OnClick="ConfirmIssueBookAsync" Color="Color.Tertiary" Icon="@Icons.Material.Filled.Publish" Variant="Variant.Outlined" Size="Size.Large" />

@@ -240,7 +240,7 @@ public sealed class NovelsDataSet : MySqlDataSet {
                             for (var index = 0; index < book.SheetUrls.Count; index++) {
                                 string sheetUrl = book.SheetUrls [index];
                                 var sheet = book.Sheets.FirstOrDefault (s => s.Url == sheetUrl);
-                                if (!fullUpdate && sheet?.SheetUpdatedAt > book.SheetUpdateDates [index]) {
+                                if (!fullUpdate && book.SheetUpdateDates.Count > index && sheet?.SheetUpdatedAt > book.SheetUpdateDates [index]) {
                                     continue;
                                 }
                                 await Task.Delay (Setting.AccessIntervalTime);
