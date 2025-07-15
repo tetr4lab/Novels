@@ -104,6 +104,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (Remarks), "備考" },
         { nameof (LastUpdate), "最終更新" },
         { nameof (Bookmark), "栞" },
+        { nameof (CoverUrls), "表紙画像" },
     };
 
     /// <inheritdoc/>
@@ -562,6 +563,48 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         }
     }
     protected int __lastPage = 0;
+
+    /// <summary>表紙画像URL</summary>
+    public List<string> CoverUrls {
+        get {
+            if (__coverUrls is null && !string.IsNullOrEmpty (_html) && Document is not null) {
+                __coverUrls = new ();
+                var images = Document.QuerySelectorAll ("img");
+                foreach (var image in images) {
+                    var width = image.GetAttribute ("width");
+                    var alt = image.GetAttribute ("alt");
+                    if (alt is not null && alt.Contains ("表紙") || width is not null && int.TryParse (width, out var w) && w >= 400) {
+                        var src = image.GetAttribute ("src");
+                        if (!string.IsNullOrEmpty (src)) {
+                            __coverUrls.Add (new Uri (new Uri (Url), src).AbsoluteUri);
+                        }
+                    }
+                }
+            }
+            return __coverUrls ?? new ();
+        }
+    }
+    protected List<string>? __coverUrls = null;
+
+    /// <summary>カバー選択</summary>
+    public int? CoverSelection {
+        get => __coverSelection;
+        set {
+            if (value is null) {
+                // nop
+            } else if (__coverUrls is null || __coverUrls.Count == 0) {
+                value = 0;
+            } else if (value >= __coverUrls.Count) {
+                value %= __coverUrls.Count;
+            } else {
+                while (value < 0) {
+                    value += __coverUrls.Count;
+                }
+            }
+            __coverSelection = value;
+        }
+    }
+    protected int? __coverSelection = 0;
 
     /// <summary>名前の標準化</summary>
     /// <param name="name">名前</param>

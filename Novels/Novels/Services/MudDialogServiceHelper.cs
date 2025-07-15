@@ -19,5 +19,23 @@ public static class MudDialogServiceHelper {
         return await service.ShowAsync<InputUrlDialog> ($"{TItem.TableLabel}生成", parameters, options);
     }
 
+    /// <summary>発行確認ダイアログを開く</summary>
+    public static async Task<IDialogReference> OpenIssueConfirmationDialog (this IDialogService service, Book? book, string title, string message, Color color, string label, string icon) {
+        var options = new DialogOptions {
+            MaxWidth = MaxWidth.Small,
+            Position = DialogPosition.BottomCenter,
+            CloseOnEscapeKey = false,
+            BackdropClick = false,
+        };
+        var parameters = new DialogParameters {
+            ["Book"] = book,
+            ["Message"] = message,
+            ["AcceptColor"] = color,
+            ["AcceptLabel"] = label,
+            ["AcceptIcon"] = icon,
+        };
+        return await service.ShowAsync<IssueConfirmationDialog> (title, parameters, options);
+    }
+
 }
 

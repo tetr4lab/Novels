@@ -1,0 +1,59 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.body1" Class="mb-2">@Message</MudText>
+        @if (Book is not null && Book.CoverUrls.Count > 0) {
+            <MudStack Row Class="align-center">
+                <MudIconButton OnClick="PrevCover" Icon="@Icons.Material.Filled.KeyboardArrowLeft" Size="Size.Large" />
+                <MudSpacer />
+                <MudTooltip Disabled="@(Book.CoverUrls.Count < 2)" Text="表紙候補(非保存)" Arrow Duration="1000">
+                    <MudLink OnClick="NextCover" Color="Color.Inherit" Underline="Underline.None">
+                        @if (Book.CoverSelection is null) {
+                            <MudIcon Icon="@Icons.Material.Filled.ImageNotSupported" Size="Size.Large" Class="my-8" />
+                        } else {
+                            <MudImage Src="@(Book.CoverUrls [Book.CoverSelection.Value])" Style="max-width: 90%;" />
+                        }
+                    </MudLink>
+                </MudTooltip>
+                <MudSpacer />
+                <MudIconButton OnClick="NextCover" Icon="@Icons.Material.Filled.KeyboardArrowRight" Size="Size.Large" />
+            </MudStack>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudSpacer />
+        <MudButton OnClick="Cancel" StartIcon="@Icons.Material.Filled.Cancel" Size="Size.Large">Cancel</MudButton>
+        <MudButton OnClick="Accept" Color="@AcceptColor" StartIcon="@AcceptIcon" Size="Size.Large">@AcceptLabel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = null!;
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Message { get; set; } = string.Empty;
+    [Parameter] public Book? Book { get; set; }
+    [Parameter] public Color AcceptColor { get; set; }
+    [Parameter] public string AcceptLabel { get; set; } = string.Empty;
+    [Parameter] public string AcceptIcon { get; set; } = Icons.Material.Filled.Add;
+    protected void PrevCover () {
+        if (Book is null) { return; }
+        if (Book.CoverSelection is null) {
+            Book.CoverSelection = Book.CoverUrls.Count - 1;
+        } else if (Book.CoverSelection == 0) {
+            Book.CoverSelection = null;
+        } else {
+            Book.CoverSelection--;
+        }
+    }
+    protected void NextCover () {
+        if (Book is null) { return; }
+        if (Book.CoverSelection is null) {
+            Book.CoverSelection = 0;
+        } else if (Book.CoverSelection == Book.CoverUrls.Count - 1) {
+            Book.CoverSelection = null;
+        } else {
+            Book.CoverSelection++;
+        }
+    }
+    protected void Cancel () => MudDialog.Cancel ();
+    protected void Accept () => MudDialog.Close (DialogResult.Ok (true));
+}

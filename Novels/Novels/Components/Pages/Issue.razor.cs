@@ -116,9 +116,13 @@ public partial class Issue : BookListBase {
         if (Book is not null && !IsDirty) {
             var issue = !eventArgs.CtrlKey;
             var operation = issue ? "発行" : "生成";
-            var dialogResult = await DialogService.Confirmation ([
-                $"『{Book.MainTitle}.epub』を{(issue ? $"<{DataSet.Setting.SmtpMailto}>へ発行": "生成してダウンロード")}します。",
-            ], title: $"『{Book.MainTitle}.epub』{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: issue ? Color.Success : Color.Primary, acceptionIcon: issue ? Icons.Material.Filled.Publish : Icons.Material.Filled.FileDownload);
+            var dialogResult = await (await DialogService.OpenIssueConfirmationDialog (DataSet.Setting.IncludeImage ? Book : null,
+                $"『{Book.MainTitle}.epub』{operation}",
+                $"『{Book.MainTitle}.epub』を{(issue ? $"<{DataSet.Setting.SmtpMailto}>へ発行" : "生成してダウンロード")}します。",
+                issue ? Color.Success : Color.Primary,
+                operation,
+                issue ? Icons.Material.Filled.Publish : Icons.Material.Filled.FileDownload
+            )).Result;
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 await SetBusyAsync ();
                 await IssueBookAsync (Book, issue);
@@ -191,6 +195,10 @@ public partial class Issue : BookListBase {
                 doc.IsLeftToRight = false;
                 // Adding sections of HTML content
                 doc.AddTitle ();
+                if (DataSet.Setting.IncludeImage && book.CoverUrls.Count > 0 && book.CoverSelection is not null) {
+                    // 表紙
+                    await doc.AddImageResource (HttpClient, new Uri (book.CoverUrls [book.CoverSelection.Value]), DataSet.Setting.UserAgent);
+                }
                 doc.AddChapter (null, null, "概要", book.Explanation);
                 foreach (var sheet in book.Sheets) {
                     // Add image resources
@@ -268,30 +276,12 @@ public partial class Issue : BookListBase {
                 foreach (var image in images) {
                     var src = image.GetAttribute ("src");
                     if (!string.IsNullOrEmpty (src)) {
-                        var imageUrl = new Uri (new Uri (url), src);
                         try {
-                            HttpClient.DefaultRequestHeaders.Add ("User-Agent", DataSet.Setting.UserAgent);
-                            using (var response = await HttpClient.GetAsync (imageUrl, HttpCompletionOption.ResponseHeadersRead)) {
-                                response.EnsureSuccessStatusCode (); // HTTPエラーコードが返された場合に例外をスロー
-                                var contentType = response.Content.Headers.ContentType?.MediaType ?? string.Empty;
-                                var resourceType = contentType switch {
-                                    "image/jpeg" => EpubResourceType.JPEG,
-                                    "image/png" => EpubResourceType.PNG,
-                                    "image/gif" => EpubResourceType.GIF,
-                                    "image/ttf" => EpubResourceType.TTF,
-                                    "image/otf" => EpubResourceType.OTF,
-                                    "image/svg+xml" => EpubResourceType.SVG,
-                                    _ => EpubResourceType.JPEG,
-                                };
-                                var fileName = $"img_{Guid.NewGuid ().ToString ("N")}.{resourceType.ToString ().ToLower ()}"; // ユニークな名前を生成
-                                using (var stream = await response.Content.ReadAsStreamAsync ()) {
-                                    doc.AddResource (fileName, resourceType, stream, true);
-                                    image.SetAttribute ("src", fileName);
-                                }
-                            }
+                            var fileName = await doc.AddImageResource (HttpClient, new Uri (new Uri (url), src), DataSet.Setting.UserAgent);
+                            image.SetAttribute ("src", fileName);
                         }
                         catch (Exception ex) {
-                            System.Diagnostics.Debug.WriteLine ($"Exception: {imageUrl} - {ex.Message}\n{ex.StackTrace}");
+                            System.Diagnostics.Debug.WriteLine ($"Exception: {url} - {ex.Message}\n{ex.StackTrace}");
                             Snackbar.Add ($"Exception: {ex.Message}", Severity.Warning);
                         }
                     }
@@ -302,7 +292,6 @@ public partial class Issue : BookListBase {
         }
         return innerHtml;
     }
-
 
     /// <summary>Kindleへ送信</summary>
     protected bool SendToKindle (string epubPath, string title) {
