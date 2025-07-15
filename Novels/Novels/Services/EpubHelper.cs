@@ -54,7 +54,7 @@ namespace QuickEPUB {
         /// <param name="doc">EPUB</param>
         /// <param name="imageUri">画像URL</param>
         /// <returns>画像のファイル名</returns>
-        public static async Task<string> AddImageResource (this Epub doc, HttpClient HttpClient, Uri imageUri, string userAgent) {
+        public static async Task<string> AddImageResource (this Epub doc, HttpClient HttpClient, Uri imageUri, string userAgent, bool isCover = false) {
             HttpClient.DefaultRequestHeaders.Add ("User-Agent", userAgent);
             using (var response = await HttpClient.GetAsync (imageUri, HttpCompletionOption.ResponseHeadersRead)) {
                 response.EnsureSuccessStatusCode (); // HTTPエラーコードが返された場合に例外をスロー
@@ -70,7 +70,7 @@ namespace QuickEPUB {
                 };
                 var fileName = $"img_{Guid.NewGuid ().ToString ("N")}.{resourceType.ToString ().ToLower ()}"; // ユニークな名前を生成
                 using (var stream = await response.Content.ReadAsStreamAsync ()) {
-                    doc.AddResource (fileName, resourceType, stream, true);
+                    doc.AddResource (fileName, resourceType, stream, isCover);
                 }
                 return fileName;
             }

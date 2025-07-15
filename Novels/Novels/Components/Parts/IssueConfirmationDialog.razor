@@ -1,14 +1,14 @@
 ﻿<MudDialog>
     <DialogContent>
         <MudText Typo="Typo.body1" Class="mb-2">@Message</MudText>
-        @if (Book is not null && Book.CoverUrls.Count > 0) {
-            <MudStack Row Class="align-center">
+        <MudStack Row Class="align-center">
+            @if (Book is not null && Book.CoverUrls.Count > 0) {
                 <MudIconButton OnClick="PrevCover" Icon="@Icons.Material.Filled.KeyboardArrowLeft" Size="Size.Large" />
                 <MudSpacer />
                 <MudTooltip Disabled="@(Book.CoverUrls.Count < 2)" Text="表紙候補(非保存)" Arrow Duration="1000">
                     <MudLink OnClick="NextCover" Color="Color.Inherit" Underline="Underline.None">
                         @if (Book.CoverSelection is null) {
-                            <MudIcon Icon="@Icons.Material.Filled.ImageNotSupported" Size="Size.Large" Class="my-8" />
+                            <MudImage Src="cover.jpg" Style="max-width: 90%;" />
                         } else {
                             <MudImage Src="@(Book.CoverUrls [Book.CoverSelection.Value])" Style="max-width: 90%;" />
                         }
@@ -16,8 +16,12 @@
                 </MudTooltip>
                 <MudSpacer />
                 <MudIconButton OnClick="NextCover" Icon="@Icons.Material.Filled.KeyboardArrowRight" Size="Size.Large" />
-            </MudStack>
-        }
+            } else {
+                <MudSpacer />
+                <MudImage Src="cover.jpg" Style="max-width: 90%;" />
+                <MudSpacer />
+            }
+        </MudStack>
     </DialogContent>
     <DialogActions>
         <MudSpacer />

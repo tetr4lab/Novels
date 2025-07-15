@@ -195,9 +195,15 @@ public partial class Issue : BookListBase {
                 doc.IsLeftToRight = false;
                 // Adding sections of HTML content
                 doc.AddTitle ();
-                if (DataSet.Setting.IncludeImage && book.CoverUrls.Count > 0 && book.CoverSelection is not null) {
+                if (DataSet.Setting.IncludeImage) {
                     // •\Ž†
-                    await doc.AddImageResource (HttpClient, new Uri (book.CoverUrls [book.CoverSelection.Value]), DataSet.Setting.UserAgent);
+                    if (book.CoverUrls.Count > 0 && book.CoverSelection is not null) {
+                        await doc.AddImageResource (HttpClient, new Uri (book.CoverUrls [book.CoverSelection.Value]), DataSet.Setting.UserAgent, true);
+                    } else {
+                        using (var jpgStream = new FileStream ("wwwroot/cover.jpg", FileMode.Open)) {
+                            doc.AddResource ("cover.jpeg", EpubResourceType.JPEG, jpgStream, true);
+                        }
+                    }
                 }
                 doc.AddChapter (null, null, "ŠT—v", book.Explanation);
                 foreach (var sheet in book.Sheets) {
