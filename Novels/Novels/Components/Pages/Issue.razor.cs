@@ -27,64 +27,63 @@ public partial class Issue : BookListBase {
     //// <summary>着目書籍の変更</summary>
     protected override async Task ChangeCurrentBookAsync (Book book) {
         await base.ChangeCurrentBookAsync (book);
-        SetAndEdit ();
+        SetTitle ();
+        StartEdit (true);
     }
 
     /// <summary>書籍の削除 (ホームへ遷移)</summary>
     protected async Task DeleteBook (MouseEventArgs eventArgs) {
-        if (SelectedItem is not null) {
-            var complete = !eventArgs.CtrlKey;
-            if (!complete && SelectedItem.IsEmpty) {
-                Snackbar.Add ($"削除すべきシートがありません。", Severity.Warning);
-                return;
-            }
+        var complete = !eventArgs.CtrlKey;
+        if (!complete && SelectedItem.IsEmpty) {
+            Snackbar.Add ($"削除すべきシートがありません。", Severity.Warning);
+            return;
+        }
+        await SetBusyAsync ();
+        var target = complete ? $"{Book.TableLabel}と{Sheet.TableLabel}" : $"{Sheet.TableLabel}のみ";
+        var dialogResult = await DialogService.Confirmation ([
+            $"以下の{target}を完全に削除します。",
+            SelectedItem.ToString (),
+        ], title: $"{target}の削除", position: DialogPosition.BottomCenter, acceptionLabel: complete ? "完全削除" : "シートのみ削除", acceptionColor: complete ? Color.Error : Color.Secondary, acceptionIcon: Icons.Material.Filled.Delete, onOpend: SetIdleAsync);
+        if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
             await SetBusyAsync ();
-            var target = complete ? $"{Book.TableLabel}と{Sheet.TableLabel}" : $"{Sheet.TableLabel}のみ";
-            var dialogResult = await DialogService.Confirmation ([
-                $"以下の{target}を完全に削除します。",
-                SelectedItem.ToString (),
-            ], title: $"{target}の削除", position: DialogPosition.BottomCenter, acceptionLabel: complete ? "完全削除" : "シートのみ削除", acceptionColor: complete ? Color.Error : Color.Secondary, acceptionIcon: Icons.Material.Filled.Delete, onOpend: SetIdleAsync);
-            if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
-                await SetBusyAsync ();
-                if (complete) {
-                    var result = await DataSet.RemoveAsync (SelectedItem);
-                    if (result.IsSuccess) {
-                        if (AppModeService.CurrentBookId == SelectedItem.Id) {
-                            AppModeService.SetCurrentBookId (0, 1);
-                        }
-                        StateHasChanged ();
-                        Snackbar.Add ($"{target}を削除しました。", Severity.Normal);
-                        await SetAppMode (AppMode.Books);
-                    } else {
-                        Snackbar.Add ($"{target}の削除に失敗しました。", Severity.Error);
+            if (complete) {
+                var result = await DataSet.RemoveAsync (SelectedItem);
+                if (result.IsSuccess) {
+                    if (AppModeService.CurrentBookId == SelectedItem.Id) {
+                        AppModeService.SetCurrentBookId (0, 1);
                     }
+                    StateHasChanged ();
+                    Snackbar.Add ($"{target}を削除しました。", Severity.Normal);
+                    await SetAppMode (AppMode.Books);
                 } else {
-                    try {
-                        // 元リストは要素が削除されるので複製でループする
-                        var sheets = new List<Sheet> (SelectedItem.Sheets);
-                        var success = 0;
-                        var count = 0;
-                        UiState.Lock (sheets.Count);
-                        foreach (var sheet in sheets) {
-                            UiState.UpdateProgress (++count);
-                            if ((await DataSet.RemoveAsync (sheet)).IsSuccess) {
-                                success++;
-                            }
-                        }
-                        await ReLoadAsync ();
-                        if (success == sheets.Count) {
-                            Snackbar.Add ($"{target}を削除しました。", Severity.Normal);
-                        } else {
-                            Snackbar.Add ($"{target}の一部({success}/{sheets.Count})を削除しました。", Severity.Error);
+                    Snackbar.Add ($"{target}の削除に失敗しました。", Severity.Error);
+                }
+            } else {
+                try {
+                    // 元リストは要素が削除されるので複製でループする
+                    var sheets = new List<Sheet> (SelectedItem.Sheets);
+                    var success = 0;
+                    var count = 0;
+                    UiState.Lock (sheets.Count);
+                    foreach (var sheet in sheets) {
+                        UiState.UpdateProgress (++count);
+                        if ((await DataSet.RemoveAsync (sheet)).IsSuccess) {
+                            success++;
                         }
                     }
-                    catch (Exception e) {
-                        System.Diagnostics.Debug.WriteLine ($"Exception: {e.Message}\n{e.StackTrace}");
-                        Snackbar.Add ($"Exception: {e.Message}", Severity.Error);
+                    await ReloadAndFocus (editing: true);
+                    if (success == sheets.Count) {
+                        Snackbar.Add ($"{target}を削除しました。", Severity.Normal);
+                    } else {
+                        Snackbar.Add ($"{target}の一部({success}/{sheets.Count})を削除しました。", Severity.Error);
                     }
                 }
-                await SetIdleAsync ();
+                catch (Exception e) {
+                    System.Diagnostics.Debug.WriteLine ($"Exception: {e.Message}\n{e.StackTrace}");
+                    Snackbar.Add ($"Exception: {e.Message}", Severity.Error);
+                }
             }
+            await SetIdleAsync ();
         }
     }
 
@@ -171,10 +170,8 @@ public partial class Issue : BookListBase {
         UiState.Unlock ();
         if (result.IsSuccess) {
             if (SelectedItem.Id != result.Value.book.Id) { throw new InvalidOperationException ($"id mismatch {SelectedItem.Id} -> {result.Value.book.Id}"); }
-            await ReLoadAsync ();
-            if (SelectedItem is not null) {
-                await ChangeCurrentBookAsync (SelectedItem);
-            }
+            await ReloadAndFocus (SelectedItem.Id, editing: true);
+            await ChangeCurrentBookAsync (SelectedItem);
             return true;
         }
         return false;
@@ -353,22 +350,22 @@ public partial class Issue : BookListBase {
     }
 
     /// <summary>再読み込み</summary>
-    protected async Task ReLoadAsync () {
-        await DataSet.LoadAsync ();
-        SetAndEdit ();
+    protected override async Task ReloadAndFocus (long focusedId = 0L, bool editing = true, bool force = false) {
+        await base.ReloadAndFocus (focusedId != 0L ? focusedId : AppModeService.CurrentBookId, force: true);
+        SetTitle ();
     }
 
-    /// <summary>タイトルを設定して編集を開始</summary>
-    protected void SetAndEdit () {
+    /// <summary>セクションタイトルを設定</summary>
+    protected void SetTitle () {
         AppModeService.SetSectionTitle (SelectedItem is null ? "Issue" : $"<span style=\"font-size:80%;\">『{SelectedItem?.Title ?? ""}』 {SelectedItem?.Author ?? ""}</span>");
-        StartEdit (true);
     }
 
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
     protected override async Task OnInitializedAsync () {
         await base.OnInitializedAsync ();
         // 基底クラスで着目書籍オブジェクトを取得済み
-        SetAndEdit ();
+        SetTitle ();
+        StartEdit (true);
     }
 
     /// <summary>画像サイズ制限</summary>
@@ -405,7 +402,6 @@ public partial class Issue : BookListBase {
 
     /// <summary>前の表紙候補</summary>
     protected void PrevCover () {
-        if (SelectedItem is null) { return; }
         if (SelectedItem.CoverSelection is null) {
             SelectedItem.CoverSelection = SelectedItem.CoverUrls.Count - 1;
         } else if (SelectedItem.CoverSelection == 0) {
@@ -417,13 +413,59 @@ public partial class Issue : BookListBase {
 
     /// <summary>次の表紙候補</summary>
     protected void NextCover () {
-        if (SelectedItem is null) { return; }
         if (SelectedItem.CoverSelection is null) {
             SelectedItem.CoverSelection = 0;
         } else if (SelectedItem.CoverSelection == SelectedItem.CoverUrls.Count - 1) {
             SelectedItem.CoverSelection = null;
         } else {
             SelectedItem.CoverSelection++;
+        }
+    }
+
+    /// <summary>選択中の表紙候補をダウンロード</summary>
+    protected async Task DownloadCoverAsync () {
+        if (SelectedItem.CoverUrls.Count < 1 || SelectedItem.CoverSelection is null) { return; }
+        await SetBusyAsync ();
+        var imageUrl = SelectedItem.CoverUrls [SelectedItem.CoverSelection.Value];
+        try {
+            HttpClient.DefaultRequestHeaders.Add ("User-Agent", DataSet.Setting.UserAgent);
+            using (var response = await HttpClient.GetAsync (imageUrl, HttpCompletionOption.ResponseHeadersRead)) {
+                response.EnsureSuccessStatusCode (); // HTTPエラーコードが返された場合に例外をスロー
+                using (var stream = await response.Content.ReadAsStreamAsync ())
+                using (var memoryStream = new MemoryStream ()) {
+                    await stream.CopyToAsync (memoryStream);
+                    SelectedItem.CoverImage = memoryStream.ToArray ();
+                }
+            }
+        }
+        catch (Exception ex) {
+            System.Diagnostics.Debug.WriteLine ($"Exception: {ex.Message}\n{ex.StackTrace}");
+            Snackbar.Add ("画像の取得に失敗しました。", Severity.Warning);
+        }
+        await SetIdleAsync ();
+    }
+
+    /// <summary>前の書籍へ</summary>
+    protected virtual async Task PrevBook () {
+        if (items is null) { return; }
+        var index = items.IndexOf (SelectedItem);
+        if (index > 0) {
+            await SetBusyAsync ();
+            await ChangeCurrentBookAsync (items [index - 1]);
+            await ScrollToCurrentAsync ();
+            await SetIdleAsync ();
+        }
+    }
+
+    /// <summary>次の書籍へ</summary>
+    protected virtual async Task NextBook () {
+        if (items is null) { return; }
+        var index = items.IndexOf (SelectedItem);
+        if (index < items.Count - 1) {
+            await SetBusyAsync ();
+            await ChangeCurrentBookAsync (items [index + 1]);
+            await ScrollToCurrentAsync ();
+            await SetIdleAsync ();
         }
     }
 

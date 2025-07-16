@@ -101,12 +101,18 @@
                         </MudFileUpload>
                         @if (SelectedItem.CoverImage is not null) {
                             <MudTooltip Text="@($"{label}を削除")" Arrow Duration="1000">
-                                <MudIconButton OnClick="DeleteFile" Size="Size.Small" Icon="@Icons.Material.Filled.DeleteForever" />
+                                <MudIconButton OnClick="DeleteFile" Icon="@Icons.Material.Filled.DeleteForever" Size="Size.Large" Class="my-4" />
                             </MudTooltip>
                         } else if (SelectedItem.CoverUrls.Count > 0) {
-                            <MudStack Row Class="my-4">
+                            <MudStack Row Class="my-4 align-center">
                                 <MudIconButton OnClick="PrevCover" Icon="@Icons.Material.Filled.KeyboardArrowLeft" Size="Size.Large" />
                                 <MudSpacer />
+                                @if (SelectedItem.CoverSelection is not null) {
+                                    <MudTooltip Text="@($"{label}としてダウンロード")" Arrow Duration="1000">
+                                        <MudIconButton OnClick="DownloadCoverAsync" Icon="@Icons.Material.Filled.SaveAlt" Size="Size.Medium" />
+                                    </MudTooltip>
+                                    <MudSpacer />
+                                }
                                 <MudIconButton OnClick="NextCover" Icon="@Icons.Material.Filled.KeyboardArrowRight" Size="Size.Large" />
                             </MudStack>
                         }

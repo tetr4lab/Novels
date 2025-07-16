@@ -195,9 +195,18 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
     }
 
     /// <summary>リロードして元の位置へ戻る</summary>
-    protected virtual async Task ReloadAndFocus (long focusedId, bool editing = false) {
+    protected virtual async Task ReloadAndFocus (long focusedId, bool editing = false, bool force = false) {
         await DataSet.LoadAsync ();
-        await ScrollToCurrentAsync (focusedId: focusedId);
+        var item = DataSet.GetList<T> ().Find (item => item.Id == focusedId);
+        if (item is not null) {
+            SelectedItem = item;
+        }
+        if (editing || force) {
+            StartEdit (force);
+        }
+        if (_dataGrid is not null) {
+            await ScrollToCurrentAsync (focusedId: focusedId);
+        }
     }
 
     /// <summary>全ての検索語に対して対象列のどれかが真であれば真を返す</summary>

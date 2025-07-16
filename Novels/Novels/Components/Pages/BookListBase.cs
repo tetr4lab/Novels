@@ -10,30 +10,6 @@ namespace Novels.Components.Pages;
 public class BookListBase : ItemListBase<Book> {
     [Inject] protected HttpClient HttpClient { get; set; } = null!;
 
-    /// <summary>前の書籍へ</summary>
-    protected virtual async Task PrevBook () {
-        if (items is null || SelectedItem is null) { return; }
-        var index = items.IndexOf (SelectedItem);
-        if (index > 0) {
-            await SetBusyAsync ();
-            await ChangeCurrentBookAsync (items [index - 1]);
-            await ScrollToCurrentAsync ();
-            await SetIdleAsync ();
-        }
-    }
-
-    /// <summary>次の書籍へ</summary>
-    protected virtual async Task NextBook () {
-        if (items is null || SelectedItem is null) { return; }
-        var index = items.IndexOf (SelectedItem);
-        if (index < items.Count - 1) {
-            await SetBusyAsync ();
-            await ChangeCurrentBookAsync (items [index + 1]);
-            await ScrollToCurrentAsync ();
-            await SetIdleAsync ();
-        }
-    }
-
     /// <summary>書籍を追加する</summary>
     protected virtual async Task AddBook () {
         if (IsDirty || items is not List<Book> books) { return; }
