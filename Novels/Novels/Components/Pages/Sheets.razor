@@ -125,7 +125,7 @@
     /// <summary>着目シートの変更</summary>
     protected async Task ChangeCurrentSheetAsync (Sheet sheet) {
         if (items is not null) {
-            selectedItem = sheet;
+            SelectedItem = sheet;
             var index = items.IndexOf (sheet) + 1;
             if (AppModeService.CurrentSheetIndex != index) {
                 AppModeService.SetCurrentSheetIndex (index);

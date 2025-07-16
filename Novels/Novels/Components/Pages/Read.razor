@@ -93,7 +93,7 @@
             }
             if (Book.Sheets.Count > 0) {
                 Sheet = Book.Sheets [index - 1];
-                selectedItem = Sheet;
+                SelectedItem = Sheet;
                 AppModeService.SetSectionTitle ($"<span style=\"font-size:80%;\"><a href=\"{Sheet.Url}\" target=\"_blank\" style=\"text-decoration: none;\">『{Book.Title}』 {Book.Author}</a></span>\n{Sheet.OriginalChapterTitle} {Sheet.ChapterSubTitle}");
                 StartEdit ();
             }

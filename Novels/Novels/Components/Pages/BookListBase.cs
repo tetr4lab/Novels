@@ -12,8 +12,8 @@ public class BookListBase : ItemListBase<Book> {
 
     /// <summary>前の書籍へ</summary>
     protected virtual async Task PrevBook () {
-        if (items is null || selectedItem is null) { return; }
-        var index = items.IndexOf (selectedItem);
+        if (items is null || SelectedItem is null) { return; }
+        var index = items.IndexOf (SelectedItem);
         if (index > 0) {
             await SetBusyAsync ();
             await ChangeCurrentBookAsync (items [index - 1]);
@@ -24,8 +24,8 @@ public class BookListBase : ItemListBase<Book> {
 
     /// <summary>次の書籍へ</summary>
     protected virtual async Task NextBook () {
-        if (items is null || selectedItem is null) { return; }
-        var index = items.IndexOf (selectedItem);
+        if (items is null || SelectedItem is null) { return; }
+        var index = items.IndexOf (SelectedItem);
         if (index < items.Count - 1) {
             await SetBusyAsync ();
             await ChangeCurrentBookAsync (items [index + 1]);

@@ -21,89 +21,89 @@
                     <td>@(Book.Label[nameof(Book.Id)])</td>
                     <td colspan="2">
                         <MudStack Row Spacing="1" Class="align-center">
-                            <MudText Typo="Typo.inherit">@selectedItem.Id</MudText>
+                            <MudText Typo="Typo.inherit">@SelectedItem.Id</MudText>
                             <MudSpacer />
-                            @if (selectedItem.IssuedAt is not null) {
+                            @if (SelectedItem.IssuedAt is not null) {
                                 <MudChip T="string" Variant="Variant.Outlined">
-                                    @(Book.Label [nameof (Book.IssuedAt)]): @(selectedItem.IssuedAt.Value.ToString ("yyyy/MM/dd HH:mm"))
+                                    @(Book.Label [nameof (Book.IssuedAt)]): @(SelectedItem.IssuedAt.Value.ToString ("yyyy/MM/dd HH:mm"))
                                     <MudIconButton Disabled="UiState.IsLocked" OnClick="ConfirmUnIssueBookAsync" Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
                                 </MudChip>
                             }
                             <MudSpacer />
                             <MudText>
                                 <MudTooltip Arrow Duration="1000" Text="@(Book.Label [nameof (Book.Site)])">
-                                    <MudText Typo="Typo.inherit">@selectedItem.Site</MudText>
+                                    <MudText Typo="Typo.inherit">@SelectedItem.Site</MudText>
                                 </MudTooltip>
                                 <span> : </span>
-                                @if (!selectedItem.IsUpToDateWithIssued) {
+                                @if (!SelectedItem.IsUpToDateWithIssued) {
                                     <MudTooltip Arrow Duration="1000" Text="@(Book.Label [nameof (Book.NumberOfIsshued)])">
-                                        <MudText Color="@(selectedItem.NumberOfIsshued < selectedItem.NumberOfRelatedSheets && selectedItem.NumberOfIsshued < selectedItem.NumberOfSheets ? Color.Warning : Color.Inherit)">@(selectedItem.NumberOfIsshued)</MudText>
+                                        <MudText Color="@(SelectedItem.NumberOfIsshued < SelectedItem.NumberOfRelatedSheets && SelectedItem.NumberOfIsshued < SelectedItem.NumberOfSheets ? Color.Warning : Color.Inherit)">@(SelectedItem.NumberOfIsshued)</MudText>
                                     </MudTooltip>
                                     <span> / </span>
                                 }
                                 <MudTooltip Arrow Duration="1000" Text="@(Book.Label [nameof (Book.NumberOfRelatedSheets)])">
-                                    <MudText Color="@(selectedItem.NumberOfRelatedSheets<selectedItem.NumberOfSheets? Color.Warning : Color.Inherit)">@(selectedItem.NumberOfRelatedSheets)</MudText>
+                                    <MudText Color="@(SelectedItem.NumberOfRelatedSheets<SelectedItem.NumberOfSheets? Color.Warning : Color.Inherit)">@(SelectedItem.NumberOfRelatedSheets)</MudText>
                                 </MudTooltip>
                                 <span> / </span>
-                                <MudTooltip Arrow Duration="1000" Text="@(Book.Label [nameof (Book.NumberOfSheets)])">@(selectedItem.NumberOfSheets)</MudTooltip>
+                                <MudTooltip Arrow Duration="1000" Text="@(Book.Label [nameof (Book.NumberOfSheets)])">@(SelectedItem.NumberOfSheets)</MudTooltip>
                             </MudText>
                         </MudStack>
                     </td>
                 </tr>
                 <tr>
                     <td>@(Book.Label [nameof (Book.SeriesTitle)])</td>
-                    <td colspan="2">@selectedItem.SeriesTitle</td>
+                    <td colspan="2">@SelectedItem.SeriesTitle</td>
                 </tr>
                 <tr>
                     <td>@(Book.Label [nameof (Book.Title)])</td>
-                    <td colspan="2">@selectedItem.Title</td>
+                    <td colspan="2">@SelectedItem.Title</td>
                 </tr>
                 <tr>
                     <td>@(Book.Label [nameof (Book.Author)])</td>
-                    <td colspan="2">@selectedItem.Author</td>
+                    <td colspan="2">@SelectedItem.Author</td>
                 </tr>
                 <tr>
                     <td>
                         <MudStack Row Spacing="1" Class="align-center">
                             @(Book.Label [nameof (Book.Url1)])
                             <MudSpacer />
-                            <MudIconButton Disabled="@(UiState.IsLocked || IsInvalidUri (selectedItem.Url1))" OnClick="@(async () => await JSRuntime.OpenUrl (selectedItem.Url1))" Icon="@Icons.Material.Filled.Link" />
+                            <MudIconButton Disabled="@(UiState.IsLocked || IsInvalidUri (SelectedItem.Url1))" OnClick="@(async () => await JSRuntime.OpenUrl (SelectedItem.Url1))" Icon="@Icons.Material.Filled.Link" />
                         </MudStack>
                     </td>
-                    <td><MudTextField T="string" @bind-Value="selectedItem.Url1" Validation="(Func<string, string>) ValidateUri" Required /></td>
+                    <td><MudTextField T="string" @bind-Value="SelectedItem.Url1" Validation="(Func<string, string>) ValidateUri" Required /></td>
                     <td rowspan="7" width="440" style="text-align: center; border-left: rgb(224,224,224) 1px solid; border-bottom: 0px none;">
                         @{ var label = Book.Label [nameof (Book.CoverImage)]; }
                         <MudFileUpload T="IBrowserFile" Accept=".jpg,.jpeg,.png" FilesChanged="async file => await UploadFileAsync (file)">
                             <ActivatorContent>
                                 <MudButton Color="Color.Tertiary" Disabled="@(UiState.IsLocked)" Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Filled.CloudUpload">
-                                    <MudTooltip Disabled="selectedItem.CoverImage is null && selectedItem.CoverUrls.Count < 1" Arrow Duration="1000">
+                                    <MudTooltip Disabled="SelectedItem.CoverImage is null && SelectedItem.CoverUrls.Count < 1" Arrow Duration="1000">
                                         <TooltipContent>
-                                            @(selectedItem.CoverImage is null ? $"{label}{(selectedItem.CoverSelection is null ? "なし" : $"候補{selectedItem.CoverSelection + 1}")} (選択は非保存)" : label)
+                                            @(SelectedItem.CoverImage is null ? $"{label}{(SelectedItem.CoverSelection is null ? "なし" : $"候補{SelectedItem.CoverSelection + 1}")} (選択は非保存)" : label)
                                         </TooltipContent>
                                         <ChildContent>
-                                            @if (selectedItem.CoverImage is null) {
-                                                if (selectedItem.CoverUrls.Count > 0) {
-                                                    if (selectedItem.CoverSelection is null) {
+                                            @if (SelectedItem.CoverImage is null) {
+                                                if (SelectedItem.CoverUrls.Count > 0) {
+                                                    if (SelectedItem.CoverSelection is null) {
                                                         <MudIcon Icon="@Icons.Material.Filled.ImageNotSupported" Size="Size.Large" Class="my-8" />
                                                     } else {
-                                                        <MudImage Width="400" ObjectFit="ObjectFit.Cover" Src="@(selectedItem.CoverUrls [selectedItem.CoverSelection.Value])" />
+                                                        <MudImage Width="400" ObjectFit="ObjectFit.Cover" Src="@(SelectedItem.CoverUrls [SelectedItem.CoverSelection.Value])" />
                                                     }
                                                 } else {
                                                     @($"{label}をアップロード")
                                                 }
                                             } else {
-                                                <MudImage Width="400" ObjectFit="ObjectFit.Cover" Src="@(selectedItem.GetCoverImageSource ())" />
+                                                <MudImage Width="400" ObjectFit="ObjectFit.Cover" Src="@(SelectedItem.GetCoverImageSource ())" />
                                             }
                                         </ChildContent>
                                     </MudTooltip>
                                 </MudButton>
                             </ActivatorContent>
                         </MudFileUpload>
-                        @if (selectedItem.CoverImage is not null) {
+                        @if (SelectedItem.CoverImage is not null) {
                             <MudTooltip Text="@($"{label}を削除")" Arrow Duration="1000">
                                 <MudIconButton OnClick="DeleteFile" Size="Size.Small" Icon="@Icons.Material.Filled.DeleteForever" />
                             </MudTooltip>
-                        } else if (selectedItem.CoverUrls.Count > 0) {
+                        } else if (SelectedItem.CoverUrls.Count > 0) {
                             <MudStack Row Class="my-4">
                                 <MudIconButton OnClick="PrevCover" Icon="@Icons.Material.Filled.KeyboardArrowLeft" Size="Size.Large" />
                                 <MudSpacer />
@@ -117,22 +117,22 @@
                         <MudStack Row Spacing="1" Class="align-center">
                             @(Book.Label [nameof (Book.Url2)])
                             <MudSpacer />
-                            <MudIconButton Disabled="@(UiState.IsLocked || IsInvalidUri (selectedItem.Url2))" OnClick="@(async () => await JSRuntime.OpenUrl (selectedItem.Url2))" Icon="@Icons.Material.Filled.Link" />
+                            <MudIconButton Disabled="@(UiState.IsLocked || IsInvalidUri (SelectedItem.Url2))" OnClick="@(async () => await JSRuntime.OpenUrl (SelectedItem.Url2))" Icon="@Icons.Material.Filled.Link" />
                         </MudStack>
                     </td>
-                    <td><MudTextField T="string" @bind-Value="selectedItem.Url2" Validation="(Func<string, string>) ValidateUri" /></td>
+                    <td><MudTextField T="string" @bind-Value="SelectedItem.Url2" Validation="(Func<string, string>) ValidateUri" /></td>
                 </tr>
                 <tr>
                     <td>@(Book.Label [nameof (Book.Status)])</td>
                     <td>
                         <MudStack Row Spacing="5" Class="align-center">
-                            <MudSelect @bind-Value="selectedItem.Status" Typo="Typo.inherit" AdornmentIcon="@Icons.Material.Filled.ArrowDropDown" AdornmentColor="selectedItem.StatusBgColor" Dense FitContent>
+                            <MudSelect @bind-Value="SelectedItem.Status" Typo="Typo.inherit" AdornmentIcon="@Icons.Material.Filled.ArrowDropDown" AdornmentColor="SelectedItem.StatusBgColor" Dense FitContent>
                                 @foreach (BookStatus status in Enum.GetValues (typeof (BookStatus))) {
                                     <MudSelectItem T="BookStatus" Value="@status">@(status.ToJString ())</MudSelectItem>
                                 }
                             </MudSelect>
                             <MudSpacer />
-                            @(Book.Label [nameof (Book.LastUpdate)]): @(selectedItem.LastUpdate.ToString ("yyyy/MM/dd HH:mm"))
+                            @(Book.Label [nameof (Book.LastUpdate)]): @(SelectedItem.LastUpdate.ToString ("yyyy/MM/dd HH:mm"))
                         </MudStack>
                     </td>
                 </tr>
@@ -140,8 +140,8 @@
                     <td>@(Book.Label [nameof (Book.Readed)])</td>
                     <td>
                         <MudStack Row Spacing="1" Class="align-center">
-                            <MudCheckBox @bind-Value="selectedItem.Readed" />
-                            <MudTextField Placeholder="@(Book.Label [nameof (Book.ReadedMemo)])" T="string" @bind-Value="selectedItem.ReadedMemo" />
+                            <MudCheckBox @bind-Value="SelectedItem.Readed" />
+                            <MudTextField Placeholder="@(Book.Label [nameof (Book.ReadedMemo)])" T="string" @bind-Value="SelectedItem.ReadedMemo" />
                         </MudStack>
                     </td>
                 </tr>
@@ -149,7 +149,7 @@
                     <td>@(Book.Label [nameof (Book.Wish)])</td>
                     <td>
                         <MudStack Row Spacing="1" Class="align-center">
-                            <MudCheckBox @bind-Value="selectedItem.Wish" />
+                            <MudCheckBox @bind-Value="SelectedItem.Wish" />
                             <MudSpacer />
                         </MudStack>
                     </td>
@@ -160,30 +160,30 @@
                             @(Book.Label [nameof (Book.Errata)])
                         </MudTooltip>
                     </td>
-                    <td><MudTextField T="string" Placeholder="@($"error1{Book.Separator}correct1{Book.Terminator}error2{Book.Separator}correct2{Book.Terminator}  :")" @bind-Value="selectedItem.Errata" Lines="10" /></td>
+                    <td><MudTextField T="string" Placeholder="@($"error1{Book.Separator}correct1{Book.Terminator}error2{Book.Separator}correct2{Book.Terminator}  :")" @bind-Value="SelectedItem.Errata" Lines="10" /></td>
                 </tr>
                 <tr>
                     <td>@(Book.Label [nameof (Book.Remarks)])</td>
-                    <td><MudTextField T="string" @bind-Value="selectedItem.Remarks" Lines="10" /></td>
+                    <td><MudTextField T="string" @bind-Value="SelectedItem.Remarks" Lines="10" /></td>
                 </tr>
             </tbody>
         </MudSimpleTable>
         <MudStack Row Class="mt-5 justify-center">
             <MudTooltip Arrow="true">
                 <TooltipContent>
-                    @(selectedItem.IsEmpty ? "取得" : "更新")<br />
+                    @(SelectedItem.IsEmpty ? "取得" : "更新")<br />
                     <span style="writing-mode: vertical-rl;">（</span><br />
                     <span style="border: 1px solid;border-radius: 10%;">Ctrl</span><br />
                     <span style="writing-mode: vertical-rl;">で@(Sheet.TableLabel)を含めない）</span>
                 </TooltipContent>
                 <ChildContent>
-                    <MudIconButton Disabled="@(UiState.IsLocked || IsDirty || selectedItem.Status == BookStatus.Disappeared)" OnClick="ConfirmUpdateBookAsync" Color="Color.Primary" Icon="@(selectedItem.IsEmpty? Icons.Material.Filled.Download : Icons.Material.Filled.Refresh)" Variant="Variant.Outlined" Size="Size.Large" />
+                    <MudIconButton Disabled="@(UiState.IsLocked || IsDirty || SelectedItem.Status == BookStatus.Disappeared)" OnClick="ConfirmUpdateBookAsync" Color="Color.Primary" Icon="@(SelectedItem.IsEmpty? Icons.Material.Filled.Download : Icons.Material.Filled.Refresh)" Variant="Variant.Outlined" Size="Size.Large" />
                 </ChildContent>
             </MudTooltip>
             <MudTooltip Arrow="true">
                 <TooltipContent>
                     生成･発行<br />
-                    @if (selectedItem.IsUpToDateWithIssued) {
+                    @if (SelectedItem.IsUpToDateWithIssued) {
                         <span style="writing-mode: vertical-rl;">（再発行には記録の抹消が必要）</span>
                     } else {
                         <span style="writing-mode: vertical-rl;">（</span><br />
@@ -192,7 +192,7 @@
                     }
                 </TooltipContent>
                 <ChildContent>
-                    <MudIconButton Disabled="UiState.IsLocked || selectedItem.IsEmpty || selectedItem.IsUpToDateWithIssued || IsDirty" OnClick="ConfirmIssueBookAsync" Color="Color.Tertiary" Icon="@Icons.Material.Filled.Publish" Variant="Variant.Outlined" Size="Size.Large" />
+                    <MudIconButton Disabled="UiState.IsLocked || SelectedItem.IsEmpty || SelectedItem.IsUpToDateWithIssued || IsDirty" OnClick="ConfirmIssueBookAsync" Color="Color.Tertiary" Icon="@Icons.Material.Filled.Publish" Variant="Variant.Outlined" Size="Size.Large" />
                 </ChildContent>
             </MudTooltip>
             <MudSpacer />
@@ -200,7 +200,7 @@
                 <MudIconButton Disabled="UiState.IsLocked || !IsDirty" OnClick="RevertAsync" Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" />
             </MudTooltip>
             <MudTooltip Arrow="true" Text="保存">
-                <MudIconButton Disabled="UiState.IsLocked || !IsDirty || !NovelsDataSet.EntityIsValid (selectedItem)" OnClick="SaveAsync" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
+                <MudIconButton Disabled="UiState.IsLocked || !IsDirty || !NovelsDataSet.EntityIsValid (SelectedItem)" OnClick="SaveAsync" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
             </MudTooltip>
             <MudSpacer />
             <MudTooltip Arrow="true">
