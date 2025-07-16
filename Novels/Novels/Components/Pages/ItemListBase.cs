@@ -59,7 +59,6 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
     protected override async Task OnInitializedAsync () {
         await base.OnInitializedAsync ();
         AppModeService.SetSectionTitle ($"{typeof (T).Name}s");
-        newItem = NewEditItem;
         if (Book is not null && Book is T item) {
             selectedItem = item;
         } else if (typeof (T) == typeof (Sheet)) {
@@ -96,12 +95,6 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
         }
     }
 
-    /// <summary>表示の更新と反映待ち</summary>
-    protected async Task StateHasChangedAsync () {
-        StateHasChanged ();
-        await TaskEx.DelayOneFrame;
-    }
-
     //// <summary>着目書籍の変更</summary>
     protected virtual async Task ChangeCurrentBookAsync (Book book) {
         if (book is T item) {
@@ -124,14 +117,6 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
 
     /// <summary>型チェック</summary>
     protected T GetT (object obj) => obj as T ?? throw new ArgumentException ($"The type of the argument '{obj.GetType ()}' does not match the expected type '{typeof (T)}'.");
-
-    /// <summary>編集開始</summary>
-    protected virtual void Edit (object obj) {
-        var item = GetT (obj);
-        backupedItem = item.Clone ();
-        editingItem = item;
-        StateHasChanged ();
-    }
 
     /// <summary>編集完了</summary>
     protected virtual async Task<bool> Commit (object obj) {
@@ -164,35 +149,6 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
         editingItem = null;
         StateHasChanged ();
     }
-
-    /// <summary>項目追加</summary>
-    protected virtual async Task AddItem () {
-        if (isAdding || items == null) { return; }
-        isAdding = true;
-        await StateHasChangedAsync ();
-        if (NovelsDataSet.EntityIsValid (newItem)) {
-            var result = await DataSet.AddAsync (newItem);
-            if (result.IsSuccess) {
-                lastCreatedId = result.Value.Id;
-                await ReloadAndFocus (lastCreatedId, editing: true);
-                Snackbar.Add ($"{T.TableLabel}を追加しました。", Severity.Normal);
-            } else {
-                lastCreatedId = 0;
-                Snackbar.Add ($"{T.TableLabel}を追加できませんでした。", Severity.Error);
-            }
-            newItem = NewEditItem;
-        }
-        isAdding = false;
-    }
-
-    /// <summary>項目追加の排他制御</summary>
-    protected bool isAdding;
-
-    /// <summary>追加対象の事前編集</summary>
-    protected T newItem = default!;
-
-    /// <summary>最後に追加された項目Id</summary>
-    protected long lastCreatedId;
 
     /// <summary>リストの着目項目へスクロール</summary>
     /// <param name="focusedId">書誌ID</param>
@@ -246,30 +202,6 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
     protected virtual async Task ReloadAndFocus (long focusedId, bool editing = false) {
         await ReLoadAsync.InvokeAsync ();
         await ScrollToCurrentAsync (focusedId: focusedId);
-    }
-
-    /// <summary>新規生成用の新規アイテム生成</summary>
-    protected virtual T NewEditItem => new () {
-        DataSet = DataSet,
-        Creator = UserIdentifier,
-        Modifier = UserIdentifier,
-    };
-
-    /// <summary>項目削除</summary>
-    /// <param name="obj"></param>
-    protected virtual async Task DeleteItem (object obj) {
-        await SetBusyAsync ();
-        var item = GetT (obj);
-        var dialogResult = await DialogService.Confirmation ([$"以下の{T.TableLabel}を完全に削除します。", item.ToString ()], title: $"{T.TableLabel}削除", position: DialogPosition.BottomCenter, acceptionLabel: "Delete", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete, onOpend: SetIdleAsync);
-        if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
-            var result = await DataSet.RemoveAsync (item);
-            if (result.IsSuccess) {
-                StateHasChanged ();
-                Snackbar.Add ($"{T.TableLabel}を削除しました。", Severity.Normal);
-            } else {
-                Snackbar.Add ($"{T.TableLabel}を削除できませんでした。", Severity.Error);
-            }
-        }
     }
 
     /// <summary>全ての検索語に対して対象列のどれかが真であれば真を返す</summary>

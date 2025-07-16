@@ -41,12 +41,12 @@ public class BookListBase : ItemListBase<Book> {
         try {
             var url = await JSRuntime.GetClipboardText ();
             // urlを修正する機会を与えるダイアログを表示
-            var dialogResult = await (await DialogService.OpenAddItemDialog<Book> (
+            var dialogResult = await DialogService.OpenAddItemDialog<Book> (
                 message: $"取得先URLを確認して{Book.TableLabel}の追加を完了してください。",
                 label: "URL",
                 value: url,
                 onOpend: SetIdleAsync
-            )).Result;
+            );
             if (dialogResult is not null && !dialogResult.Canceled && dialogResult.Data is string newUrl && !string.IsNullOrEmpty (newUrl)) {
                 newUrl = newUrl.Trim ();
                 // 既存のURLと比較する
@@ -66,12 +66,11 @@ public class BookListBase : ItemListBase<Book> {
                 }
                 if (result.IsSuccess) {
                     var newBook = result.Value.book;
-                    lastCreatedId = newBook.Id;
                     await ChangeCurrentBookAsync (newBook);
                     // Issueページへ移動する
                     await SetAppMode (AppMode.Issue);
                 } else {
-                    Snackbar.Add ($"追加に失敗: {(books is null ? "null, " : "")}{lastCreatedId}\n{newItem}", Severity.Error);
+                    Snackbar.Add ($"{Book.TableLabel}の追加に失敗しました。", Severity.Error);
                 }
             }
         }

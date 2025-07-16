@@ -9,7 +9,7 @@ namespace Novels.Services;
 public static class MudDialogServiceHelper {
 
     /// <summary>アイテム追加ダイアログを開く</summary>
-    public static async Task<IDialogReference> OpenAddItemDialog<TItem> (this IDialogService service, string message, string label, string value, Func<Task>? onOpend = null)
+    public static async Task<DialogResult?> OpenAddItemDialog<TItem> (this IDialogService service, string message, string label, string value, Func<Task>? onOpend = null)
         where TItem : NovelsBaseModel<TItem>, INovelsBaseModel, new () {
         var options = new DialogOptions { MaxWidth = MaxWidth.Medium, CloseOnEscapeKey = true, };
         var parameters = new DialogParameters {
@@ -22,7 +22,7 @@ public static class MudDialogServiceHelper {
             // 開いた時点で必要な処理
             await onOpend ();
         }
-        return dialog;
+        return await dialog.Result;
     }
 
     /// <summary>汎用の確認</summary>
