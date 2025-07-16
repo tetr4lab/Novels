@@ -16,12 +16,13 @@
                 <tr>
                     <th style="width: 10em;"></th>
                     <th></th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td>@(Book.Label[nameof(Book.Id)])</td>
-                    <td>
+                    <td colspan="2">
                         <MudStack Row Spacing="1" Class="align-center">
                             <MudText Typo="Typo.inherit">@Book.Id</MudText>
                             <MudSpacer />
@@ -54,15 +55,15 @@
                 </tr>
                 <tr>
                     <td>@(Book.Label [nameof (Book.SeriesTitle)])</td>
-                    <td>@Book.SeriesTitle</td>
+                    <td colspan="2">@Book.SeriesTitle</td>
                 </tr>
                 <tr>
                     <td>@(Book.Label [nameof (Book.Title)])</td>
-                    <td>@Book.Title</td>
+                    <td colspan="2">@Book.Title</td>
                 </tr>
                 <tr>
                     <td>@(Book.Label [nameof (Book.Author)])</td>
-                    <td>@Book.Author</td>
+                    <td colspan="2">@Book.Author</td>
                 </tr>
                 <tr>
                     <td>
@@ -72,7 +73,47 @@
                             <MudIconButton Disabled="@(UiState.IsLocked || IsInvalidUri (Book.Url1))" OnClick="@(async () => await JSRuntime.OpenUrl (Book.Url1))" Icon="@Icons.Material.Filled.Link" />
                         </MudStack>
                     </td>
-                    <td><MudTextField T="string" @bind-Value="Book.Url1" Validation="(Func<string,string>) ValidateUri" Required /></td>
+                    <td><MudTextField T="string" @bind-Value="Book.Url1" Validation="(Func<string, string>) ValidateUri" Required /></td>
+                    <td rowspan="7" width="440" style="text-align: center; border-left: rgb(224,224,224) 1px solid; border-bottom: 0px none;">
+                        @{ var label = Book.Label [nameof (Book.CoverImage)]; }
+                        <MudFileUpload T="IBrowserFile" Accept=".jpg,.jpeg,.png" FilesChanged="async file => await UploadFileAsync (file)">
+                            <ActivatorContent>
+                                <MudButton Color="Color.Tertiary" Disabled="@(UiState.IsLocked)" Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Filled.CloudUpload">
+                                    <MudTooltip Disabled="Book.CoverImage is null && Book.CoverUrls.Count < 1" Arrow Duration="1000">
+                                        <TooltipContent>
+                                            @(Book.CoverImage is null ? $"{label}{(Book.CoverSelection is null ? "なし" : $"候補{Book.CoverSelection + 1}")} (選択は非保存)" : label)
+                                        </TooltipContent>
+                                        <ChildContent>
+                                            @if (Book.CoverImage is null) {
+                                                if (Book.CoverUrls.Count > 0) {
+                                                    if (Book.CoverSelection is null) {
+                                                        <MudIcon Icon="@Icons.Material.Filled.ImageNotSupported" Size="Size.Large" Class="my-8" />
+                                                    } else {
+                                                        <MudImage Width="400" ObjectFit="ObjectFit.Cover" Src="@(Book.CoverUrls [Book.CoverSelection.Value])" />
+                                                    }
+                                                } else {
+                                                    @($"{label}をアップロード")
+                                                }
+                                            } else {
+                                                <MudImage Width="400" ObjectFit="ObjectFit.Cover" Src="@(Book.GetCoverImageSource ())" />
+                                            }
+                                        </ChildContent>
+                                    </MudTooltip>
+                                </MudButton>
+                            </ActivatorContent>
+                        </MudFileUpload>
+                        @if (Book.CoverImage is not null) {
+                            <MudTooltip Text="@($"{label}を削除")" Arrow Duration="1000">
+                                <MudIconButton OnClick="DeleteFile" Size="Size.Small" Icon="@Icons.Material.Filled.DeleteForever" />
+                            </MudTooltip>
+                        } else if (Book.CoverUrls.Count > 0) {
+                            <MudStack Row Class="my-4">
+                                <MudIconButton OnClick="PrevCover" Icon="@Icons.Material.Filled.KeyboardArrowLeft" Size="Size.Large" />
+                                <MudSpacer />
+                                <MudIconButton OnClick="NextCover" Icon="@Icons.Material.Filled.KeyboardArrowRight" Size="Size.Large" />
+                            </MudStack>
+                        }
+                    </td>
                 </tr>
                 <tr>
                     <td>
@@ -177,6 +218,9 @@
                 </ChildContent>
             </MudTooltip>
         </MudStack>
+        <MudToolBar Dense Class="mb-4">
+            @*hidden spacer*@
+        </MudToolBar>
     } else {
         <MudText>No items found.</MudText>
     }

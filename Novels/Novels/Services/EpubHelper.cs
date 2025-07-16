@@ -75,5 +75,17 @@ namespace QuickEPUB {
                 return fileName;
             }
         }
+
+        /// <summary>指定された画像をリソースに加える</summary>
+        /// <param name="doc">EPUB</param>
+        /// <param name="image">画像</param>
+        /// <returns>画像のファイル名</returns>
+        public static async Task<string> AddImageResource (this Epub doc, byte [] image, string type, bool isCover = false) {
+            var fileName = $"img_{Guid.NewGuid ().ToString ("N")}.{type}"; // ユニークな名前を生成
+            using (var stream = new MemoryStream (image)) {
+                doc.AddResource (fileName, EpubResourceType.JPEG, stream, isCover);
+            }
+            return await Task.FromResult (fileName);
+        }
     }
 }

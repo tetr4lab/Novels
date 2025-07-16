@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using System.Text;
+using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Novels.Data;
 using Novels.Services;
@@ -36,13 +37,15 @@ public class BookListBase : ItemListBase<Book> {
     /// <summary>書籍を追加する</summary>
     protected virtual async Task AddBook () {
         if (IsDirty || items is not List<Book> books) { return; }
+        await SetBusyAsync ();
         try {
             var url = await JSRuntime.GetClipboardText ();
             // urlを修正する機会を与えるダイアログを表示
             var dialogResult = await (await DialogService.OpenAddItemDialog<Book> (
                 message: $"取得先URLを確認して{Book.TableLabel}の追加を完了してください。",
                 label: "URL",
-                value: url
+                value: url,
+                onOpend: SetIdleAsync
             )).Result;
             if (dialogResult is not null && !dialogResult.Canceled && dialogResult.Data is string newUrl && !string.IsNullOrEmpty (newUrl)) {
                 newUrl = newUrl.Trim ();
@@ -78,5 +81,15 @@ public class BookListBase : ItemListBase<Book> {
         finally {
             await SetIdleAsync ();
         }
+    }
+}
+
+/// <summary>書誌の拡張</summary>
+public static class BookHelper {
+    /// <summary>表紙のイメージsrc</summary>
+    public static string GetCoverImageSource (this Book book) {
+        if (book.CoverImage is null) { return string.Empty; }
+        var type = book.CoverImageType;
+        return book.CoverImage is null ? string.Empty : $"data:image/{book.CoverImageType};base64,{Convert.ToBase64String (book.CoverImage)}";
     }
 }

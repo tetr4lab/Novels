@@ -105,6 +105,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (LastUpdate), "最終更新" },
         { nameof (Bookmark), "栞" },
         { nameof (CoverUrls), "表紙画像" },
+        { nameof (CoverImage), "表紙画像" },
     };
 
     /// <inheritdoc/>
@@ -130,9 +131,35 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     [Column ("errata")] public string? _errata { get; set; } = null;
     [Column ("wish")] public bool Wish { get; set; } = false;
     [Column ("bookmark")] public long? Bookmark { get; set; } = null;
+    [Column ("cover_image")] public byte []? CoverImage { get; set; } = null;
 
     /// <summary>関係先シートの実数</summary>
     [Column ("number_of_related_sheets"), VirtualColumn] public int NumberOfRelatedSheets { get; set; } = 0;
+
+    /// <summary>表紙画像種別を判定</summary>
+    public string CoverImageType {
+        get {
+            if (CoverImage is not null) {
+                var header = BitConverter.ToString (CoverImage [0..8]).Replace ("-", "");
+                if (header == "89504E470D0A1A0A") {
+                    return "png";
+                }
+                if (header.StartsWith ("FFD8FFE") && header.Length >= 8 && "01238E".Contains (header [7])) {
+                    return "jpeg";
+                }
+                if (header.StartsWith ("474946383761") || header.StartsWith ("474946383961")) {
+                    return "gif";
+                }
+                if (header.StartsWith ("3C3F786D") || header.StartsWith ("3C737667")) {
+                    return "svg+xml";
+                }
+                if (header.StartsWith ("524946463A")) {
+                    return "webp";
+                }
+            }
+            return string.Empty;
+        }
+    }
 
     /// <summary>Urlの代表</summary>
     public string Url => Url1 ?? Url2 ?? "";
@@ -788,6 +815,8 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         __mainTitle = null;
         __subTitle = null;
         __explanation = null;
+        __coverUrls = null;
+        __coverSelection = 0;
         // 再パース
         _ = SheetUrls;
         _ = SheetUpdateDates;
@@ -845,6 +874,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         item._errata = _errata;
         item.Wish = Wish;
         item.Bookmark = Bookmark;
+        item.CoverImage = CoverImage;
         return item;
     }
 
@@ -865,6 +895,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         destination._errata = _errata;
         destination.Wish = Wish;
         destination.Bookmark = Bookmark;
+        destination.CoverImage = CoverImage;
         return base.CopyTo (destination);
     }
 
@@ -887,6 +918,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         && _errata == other._errata
         && Wish == other.Wish
         && Bookmark == other.Bookmark
+        && CoverImage == other.CoverImage
         && Remarks == other.Remarks
     ;
 
@@ -894,8 +926,9 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public override int GetHashCode () => HashCode.Combine (
         HashCode.Combine (Url1, Url2, _html, _site, _title, _author, NumberOfIsshued, IssuedAt),
         HashCode.Combine (Readed, ReadedMemo, _status, HtmlBackup, _errata, Wish, Bookmark, Remarks),
+        HashCode.Combine (CoverImage),
         base.GetHashCode ());
 
     /// <inheritdoc/>
-    public override string ToString () => $"{TableLabel} {Id}: {Url1}, {Url2}, {_site}, {_title}, {_author}, {_status}, {(Readed ? "Readed, " : "")}\"{ReadedMemo}\", {(Wish? "Wish, " : "")}{NumberOfIsshued}/{NumberOfSheets}, {IssuedAt}, {(Errata is null ? "" : string.Join (',', Errata.Split ('\n')) + ", ")}\"{Remarks}\"";
+    public override string ToString () => $"{TableLabel} {Id}: {Url1}, {Url2}, {_site}, {_title}, {_author}, {_status}, {(Readed ? "Readed, " : "")}\"{ReadedMemo}\", {(Wish? "Wish, " : "")}{NumberOfIsshued}/{NumberOfSheets}, {IssuedAt}{(CoverImage is null ? "" : ", has CoverImage")}, {(Errata is null ? "" : string.Join (',', Errata.Split ('\n')) + ", ")}\"{Remarks}\"";
 }

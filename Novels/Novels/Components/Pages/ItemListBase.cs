@@ -244,7 +244,7 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
 
     /// <summary>リロードして元の位置へ戻る</summary>
     protected virtual async Task ReloadAndFocus (long focusedId, bool editing = false) {
-        await DataSet.LoadAsync ();
+        await ReLoadAsync.InvokeAsync ();
         await ScrollToCurrentAsync (focusedId: focusedId);
     }
 
@@ -258,9 +258,9 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
     /// <summary>項目削除</summary>
     /// <param name="obj"></param>
     protected virtual async Task DeleteItem (object obj) {
+        await SetBusyAsync ();
         var item = GetT (obj);
-        // 確認ダイアログ
-        var dialogResult = await DialogService.Confirmation ([$"以下の{T.TableLabel}を完全に削除します。", item.ToString ()], title: $"{T.TableLabel}削除", position: DialogPosition.BottomCenter, acceptionLabel: "Delete", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
+        var dialogResult = await DialogService.Confirmation ([$"以下の{T.TableLabel}を完全に削除します。", item.ToString ()], title: $"{T.TableLabel}削除", position: DialogPosition.BottomCenter, acceptionLabel: "Delete", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete, onOpend: SetIdleAsync);
         if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
             var result = await DataSet.RemoveAsync (item);
             if (result.IsSuccess) {
@@ -371,7 +371,8 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
     /// <summary>編集内容破棄の確認</summary>
     protected virtual async Task<bool> ConfirmCancelEditAsync () {
         if (editingItem is not null && IsDirty) {
-            var dialogResult = await DialogService.Confirmation ([$"編集内容を破棄して編集前の状態を復元します。", "　", $"破棄される{editingItem}", "　⬇", $"復元される{backupedItem}",], title: $"{T.TableLabel}編集破棄", position: DialogPosition.BottomCenter, width: MaxWidth.Large, acceptionLabel: "破棄", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete);
+            await SetBusyAsync ();
+            var dialogResult = await DialogService.Confirmation ([$"編集内容を破棄して編集前の状態を復元します。", "　", $"破棄される{editingItem}", "　⬇", $"復元される{backupedItem}",], title: $"{T.TableLabel}編集破棄", position: DialogPosition.BottomCenter, width: MaxWidth.Large, acceptionLabel: "破棄", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete, onOpend: SetIdleAsync);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 Cancel (editingItem);
                 Snackbar.Add ($"{T.TableLabel}の編集内容を破棄して編集前の状態を復元しました。", Severity.Normal);
