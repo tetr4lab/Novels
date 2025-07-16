@@ -89,8 +89,8 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
     /// <summary>破棄</summary>
     public override void Dispose () {
         base.Dispose ();
-        if (editingItem != null) {
-            Cancel (editingItem);
+        if (IsEditing) {
+            Cancel ();
         }
     }
 
@@ -110,43 +110,39 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
     protected MudDataGrid<T>? _dataGrid;
 
     /// <summary>バックアップ</summary>
-    protected virtual T backupedItem { get; set; }  = new ();
+    protected virtual T? backupedItem { get; set; } = null;
 
-    /// <summary>編集対象アイテム</summary>
-    protected T? editingItem;
-
-    /// <summary>型チェック</summary>
-    protected T GetT (object obj) => obj as T ?? throw new ArgumentException ($"The type of the argument '{obj.GetType ()}' does not match the expected type '{typeof (T)}'.");
+    /// <summary>編集中</summary>
+    protected bool IsEditing => backupedItem is not null;
 
     /// <summary>編集完了</summary>
-    protected virtual async Task<bool> Commit (object obj) {
-        var saved = false;
-        var item = GetT (obj);
-        if (!NovelsDataSet.EntityIsValid (item)) {
-            Snackbar.Add ($"{T.TableLabel}に不備があります。", Severity.Error);
-        } else if (!backupedItem.Equals (item)) {
-            item.Modifier = UserIdentifier;
-            var result = await DataSet.UpdateAsync (item);
-            if (result.IsSuccess) {
-                await ReloadAndFocus (item.Id);
-                editingItem = null;
-                StateHasChanged ();
-                Snackbar.Add ($"{T.TableLabel}を更新しました。", Severity.Normal);
-                saved = true;
-            } else {
-                Snackbar.Add ($"{T.TableLabel}を更新できませんでした。", Severity.Error);
+    protected virtual async Task<bool> Commit () {
+        if (backupedItem is not null) {
+            if (!NovelsDataSet.EntityIsValid (selectedItem)) {
+                Snackbar.Add ($"{T.TableLabel}に不備があります。", Severity.Error);
+            } else if (!backupedItem.Equals (selectedItem)) {
+                selectedItem.Modifier = UserIdentifier;
+                var result = await DataSet.UpdateAsync (selectedItem);
+                if (result.IsSuccess) {
+                    await ReloadAndFocus (selectedItem.Id);
+                    backupedItem = null;
+                    StateHasChanged ();
+                    Snackbar.Add ($"{T.TableLabel}を更新しました。", Severity.Normal);
+                    return true;
+                } else {
+                    Snackbar.Add ($"{T.TableLabel}を更新できませんでした。", Severity.Error);
+                }
             }
         }
-        return saved;
+        return false;
     }
 
     /// <summary>編集取消</summary>
-    protected virtual void Cancel (object obj) {
-        var item = GetT (obj);
-        if (!backupedItem.Equals (item)) {
-            backupedItem.CopyTo (item);
+    protected virtual void Cancel () {
+        if (backupedItem?.Equals (selectedItem) == false) {
+            backupedItem.CopyTo (selectedItem);
         }
-        editingItem = null;
+        backupedItem = null;
         StateHasChanged ();
     }
 
@@ -251,9 +247,8 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
     }
 
     /// <summary>編集開始</summary>
-    protected virtual void StartEdit () {
-        if (editingItem is null) {
-            editingItem = selectedItem;
+    protected virtual void StartEdit (bool force = false) {
+        if (force || !IsEditing) {
             backupedItem = selectedItem.Clone ();
         }
     }
@@ -302,11 +297,11 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
 
     /// <summary>編集内容破棄の確認</summary>
     protected virtual async Task<bool> ConfirmCancelEditAsync () {
-        if (editingItem is not null && IsDirty) {
+        if (IsDirty) {
             await SetBusyAsync ();
-            var dialogResult = await DialogService.Confirmation ([$"編集内容を破棄して編集前の状態を復元します。", "　", $"破棄される{editingItem}", "　⬇", $"復元される{backupedItem}",], title: $"{T.TableLabel}編集破棄", position: DialogPosition.BottomCenter, width: MaxWidth.Large, acceptionLabel: "破棄", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete, onOpend: SetIdleAsync);
+            var dialogResult = await DialogService.Confirmation ([$"編集内容を破棄して編集前の状態を復元します。", "　", $"破棄される{selectedItem}", "　⬇", $"復元される{backupedItem}",], title: $"{T.TableLabel}編集破棄", position: DialogPosition.BottomCenter, width: MaxWidth.Large, acceptionLabel: "破棄", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete, onOpend: SetIdleAsync);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
-                Cancel (editingItem);
+                Cancel ();
                 Snackbar.Add ($"{T.TableLabel}の編集内容を破棄して編集前の状態を復元しました。", Severity.Normal);
             } else {
                 return false;
@@ -316,7 +311,7 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
     }
 
     /// <summary>編集されている</summary>
-    protected bool IsDirty => editingItem is not null && backupedItem is not null && !editingItem.Equals (backupedItem);
+    protected bool IsDirty => IsEditing && !selectedItem.Equals (backupedItem);
 
     /// <summary>復旧</summary>
     protected async Task RevertAsync () {
@@ -327,9 +322,9 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
 
     /// <summary>保存</summary>
     protected async Task SaveAsync () {
-        if (editingItem is not null) {
+        if (IsEditing) {
             await SetBusyAsync ();
-            if (await Commit (editingItem)) {
+            if (await Commit ()) {
                 StartEdit ();
             }
             await SetIdleAsync ();

@@ -88,8 +88,8 @@
             await SetBusyAsync ();
             index = Book.Sheets.Count > 0 ? Math.Clamp (index, 1, Book.Sheets.Count) : 1;
             AppModeService.SetCurrentSheetIndex (index);
-            if (editingItem is not null) {
-                Cancel (editingItem);
+            if (IsEditing) {
+                Cancel ();
             }
             if (Book.Sheets.Count > 0) {
                 Sheet = Book.Sheets [index - 1];

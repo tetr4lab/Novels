@@ -90,7 +90,7 @@ public partial class Issue : BookListBase {
 
     /// <summary>取得と更新の確認</summary>
     protected async Task<bool> ConfirmUpdateBookAsync (MouseEventArgs eventArgs) {
-        if (selectedItem is not null && !IsDirty) {
+        if (!IsDirty) {
             await SetBusyAsync ();
             var withSheets = !eventArgs.CtrlKey;
             var fullUpdate = eventArgs.ShiftKey || selectedItem.IsEmpty;
@@ -116,7 +116,7 @@ public partial class Issue : BookListBase {
 
     /// <summary>発行の確認</summary>
     protected async Task<bool> ConfirmIssueBookAsync (MouseEventArgs eventArgs) {
-        if (selectedItem is not null && !IsDirty) {
+        if (!IsDirty) {
             await SetBusyAsync ();
             var issue = !eventArgs.CtrlKey;
             var operation = issue ? "発行" : "生成";
@@ -136,7 +136,7 @@ public partial class Issue : BookListBase {
 
     /// <summary>発行抹消の確認</summary>
     protected async Task<bool> ConfirmUnIssueBookAsync () {
-        if (selectedItem is not null && selectedItem.IsUpToDateWithIssued && !IsDirty) {
+        if (selectedItem.IsUpToDateWithIssued && !IsDirty) {
             await SetBusyAsync ();
             var dialogResult = await DialogService.Confirmation ([$"{Book.TableLabel}の発行記録を抹消します。",], title: $"発行抹消", position: DialogPosition.BottomCenter, acceptionLabel: "抹消", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete, onOpend: SetIdleAsync);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
@@ -157,27 +157,25 @@ public partial class Issue : BookListBase {
 
     /// <summary>取得・更新</summary>
     protected async Task<bool> UpdateBookFromSiteAsync (bool withSheets, bool fullUpdate) {
-        if (selectedItem is not null) {
-            var result = await DataSet.UpdateBookFromSiteAsync (HttpClient, selectedItem.Url, UserIdentifier, withSheets, fullUpdate, 
-                (value, max) => {
-                    if (value == 0) {
-                        UiState.Lock (max);
-                    } else {
-                        UiState.UpdateProgress (value);
-                    }
-                });
-            foreach (var issue in result.Value.issues) {
-                Snackbar.Add (issue, Severity.Error);
-            }
-            UiState.Unlock ();
-            if (result.IsSuccess) {
-                if (selectedItem.Id != result.Value.book.Id) { throw new InvalidOperationException ($"id mismatch {selectedItem.Id} -> {result.Value.book.Id}"); }
-                await ReLoadAsync ();
-                if (selectedItem is not null) {
-                    await ChangeCurrentBookAsync (selectedItem);
+        var result = await DataSet.UpdateBookFromSiteAsync (HttpClient, selectedItem.Url, UserIdentifier, withSheets, fullUpdate, 
+            (value, max) => {
+                if (value == 0) {
+                    UiState.Lock (max);
+                } else {
+                    UiState.UpdateProgress (value);
                 }
-                return true;
+            });
+        foreach (var issue in result.Value.issues) {
+            Snackbar.Add (issue, Severity.Error);
+        }
+        UiState.Unlock ();
+        if (result.IsSuccess) {
+            if (selectedItem.Id != result.Value.book.Id) { throw new InvalidOperationException ($"id mismatch {selectedItem.Id} -> {result.Value.book.Id}"); }
+            await ReLoadAsync ();
+            if (selectedItem is not null) {
+                await ChangeCurrentBookAsync (selectedItem);
             }
+            return true;
         }
         return false;
     }
@@ -349,8 +347,7 @@ public partial class Issue : BookListBase {
     protected async Task<Result<int>> UpdateBookAsync (Book book) {
         var result = await DataSet.UpdateAsync (book);
         if (result.IsSuccess) {
-            editingItem = null;
-            StartEdit ();
+            StartEdit (true);
         }
         return result;
     }
@@ -364,9 +361,7 @@ public partial class Issue : BookListBase {
     /// <summary>タイトルを設定して編集を開始</summary>
     protected void SetAndEdit () {
         AppModeService.SetSectionTitle (selectedItem is null ? "Issue" : $"<span style=\"font-size:80%;\">『{selectedItem?.Title ?? ""}』 {selectedItem?.Author ?? ""}</span>");
-        // 強制
-        editingItem = null;
-        StartEdit ();
+        StartEdit (true);
     }
 
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
@@ -381,13 +376,13 @@ public partial class Issue : BookListBase {
 
     /// <summary>画像のアップロード</summary>
     protected async Task UploadFileAsync (IBrowserFile file) {
-        if (UiState.IsLocked || file is null || editingItem is null) { return; }
+        if (UiState.IsLocked || file is null || !IsEditing) { return; }
         await SetBusyAsync ();
         try {
             using (var fs = file.OpenReadStream (MAX_ALLOWED_IMAGE_SIZE))
             using (var ms = new MemoryStream ()) {
                 await fs.CopyToAsync (ms);
-                editingItem.CoverImage = ms.ToArray ();
+                selectedItem.CoverImage = ms.ToArray ();
             }
         }
         catch (System.IO.IOException ex) {
@@ -402,8 +397,8 @@ public partial class Issue : BookListBase {
 
     /// <summary>画像の抹消</summary>
     protected void DeleteFile () {
-        if (editingItem is not null) {
-            editingItem.CoverImage = null;
+        if (IsEditing) {
+            selectedItem.CoverImage = null;
             StateHasChanged ();
         }
     }
