@@ -49,18 +49,17 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
     /// <summary>選択項目</summary>
     protected T selectedItem { get; set; } = new ();
 
-    /// <summary>着目中の書籍</summary>
-    [Parameter] public Book? Book { get; set; } = null;
-
-    /// <summary>DataSetの再読み込み</summary>
-    [Parameter] public EventCallback ReLoadAsync { get; set; }
-
     /// <summary>初期化</summary>
     protected override async Task OnInitializedAsync () {
         await base.OnInitializedAsync ();
         AppModeService.SetSectionTitle ($"{typeof (T).Name}s");
-        if (Book is not null && Book is T item) {
-            selectedItem = item;
+        if (typeof (T) == typeof (Book)) {
+            if (items?.Count > 0) {
+                var item = items.Find (item => item.Id == AppModeService.CurrentBookId);
+                if (item is not null) {
+                    selectedItem = item;
+                }
+            }
         } else if (typeof (T) == typeof (Sheet)) {
             if (AppModeService.CurrentSheetIndex <= 0) {
                 AppModeService.SetCurrentSheetIndex (1);
@@ -103,7 +102,8 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
         if (AppModeService.CurrentBookId != book.Id) {
             AppModeService.SetCurrentBookId (book.Id, 1);
         }
-        await TaskEx.DelayUntil (() => Book?.Id == book.Id);
+        // ToDo: asyncを外す
+        await Task.Delay (0);
     }
 
     /// <summary>データグリッド</summary>
@@ -200,7 +200,7 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
 
     /// <summary>リロードして元の位置へ戻る</summary>
     protected virtual async Task ReloadAndFocus (long focusedId, bool editing = false) {
-        await ReLoadAsync.InvokeAsync ();
+        await DataSet.LoadAsync ();
         await ScrollToCurrentAsync (focusedId: focusedId);
     }
 

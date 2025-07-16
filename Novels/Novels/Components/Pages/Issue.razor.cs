@@ -32,9 +32,9 @@ public partial class Issue : BookListBase {
 
     /// <summary>書籍の削除 (ホームへ遷移)</summary>
     protected async Task DeleteBook (MouseEventArgs eventArgs) {
-        if (Book is not null) {
+        if (selectedItem is not null) {
             var complete = !eventArgs.CtrlKey;
-            if (!complete && Book.IsEmpty) {
+            if (!complete && selectedItem.IsEmpty) {
                 Snackbar.Add ($"削除すべきシートがありません。", Severity.Warning);
                 return;
             }
@@ -42,14 +42,14 @@ public partial class Issue : BookListBase {
             var target = complete ? $"{Book.TableLabel}と{Sheet.TableLabel}" : $"{Sheet.TableLabel}のみ";
             var dialogResult = await DialogService.Confirmation ([
                 $"以下の{target}を完全に削除します。",
-                Book.ToString (),
+                selectedItem.ToString (),
             ], title: $"{target}の削除", position: DialogPosition.BottomCenter, acceptionLabel: complete ? "完全削除" : "シートのみ削除", acceptionColor: complete ? Color.Error : Color.Secondary, acceptionIcon: Icons.Material.Filled.Delete, onOpend: SetIdleAsync);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 await SetBusyAsync ();
                 if (complete) {
-                    var result = await DataSet.RemoveAsync (Book);
+                    var result = await DataSet.RemoveAsync (selectedItem);
                     if (result.IsSuccess) {
-                        if (AppModeService.CurrentBookId == Book.Id) {
+                        if (AppModeService.CurrentBookId == selectedItem.Id) {
                             AppModeService.SetCurrentBookId (0, 1);
                         }
                         StateHasChanged ();
@@ -61,7 +61,7 @@ public partial class Issue : BookListBase {
                 } else {
                     try {
                         // 元リストは要素が削除されるので複製でループする
-                        var sheets = new List<Sheet> (Book.Sheets);
+                        var sheets = new List<Sheet> (selectedItem.Sheets);
                         var success = 0;
                         var count = 0;
                         UiState.Lock (sheets.Count);
@@ -90,13 +90,13 @@ public partial class Issue : BookListBase {
 
     /// <summary>取得と更新の確認</summary>
     protected async Task<bool> ConfirmUpdateBookAsync (MouseEventArgs eventArgs) {
-        if (Book is not null && !IsDirty) {
+        if (selectedItem is not null && !IsDirty) {
             await SetBusyAsync ();
             var withSheets = !eventArgs.CtrlKey;
-            var fullUpdate = eventArgs.ShiftKey || Book.IsEmpty;
-            var operation = Book.IsEmpty ? "取得" : $"{(withSheets && fullUpdate ? "完全" : "")}更新";
+            var fullUpdate = eventArgs.ShiftKey || selectedItem.IsEmpty;
+            var operation = selectedItem.IsEmpty ? "取得" : $"{(withSheets && fullUpdate ? "完全" : "")}更新";
             var target = $"{Book.TableLabel}{(withSheets ? $"と{Sheet.TableLabel}" : "のみ")}";
-            var dialogResult = await DialogService.Confirmation ([$"『{Book.Title}』の{target}を{Book.Site}から{operation}します。", withSheets ? $"{Book.TableLabel}と{(fullUpdate? "全ての" : "新しい")}{Sheet.TableLabel}を更新します。" : $"{Book.TableLabel}のみを更新し、{Sheet.TableLabel}は更新しません。"], title: $"{target}の{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: withSheets ? Color.Success : Color.Primary, acceptionIcon: Icons.Material.Filled.Download, onOpend: SetIdleAsync);
+            var dialogResult = await DialogService.Confirmation ([$"『{selectedItem.Title}』の{target}を{selectedItem.Site}から{operation}します。", withSheets ? $"{Book.TableLabel}と{(fullUpdate? "全ての" : "新しい")}{Sheet.TableLabel}を更新します。" : $"{Book.TableLabel}のみを更新し、{Sheet.TableLabel}は更新しません。"], title: $"{target}の{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: withSheets ? Color.Success : Color.Primary, acceptionIcon: Icons.Material.Filled.Download, onOpend: SetIdleAsync);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 // オーバーレイ
                 await SetBusyAsync ();
@@ -116,16 +116,16 @@ public partial class Issue : BookListBase {
 
     /// <summary>発行の確認</summary>
     protected async Task<bool> ConfirmIssueBookAsync (MouseEventArgs eventArgs) {
-        if (Book is not null && !IsDirty) {
+        if (selectedItem is not null && !IsDirty) {
             await SetBusyAsync ();
             var issue = !eventArgs.CtrlKey;
             var operation = issue ? "発行" : "生成";
             var dialogResult = await DialogService.Confirmation ([
-                $"『{Book.MainTitle}.epub』を{(issue ? $"<{DataSet.Setting.SmtpMailto}>へ発行": "生成してダウンロード")}します。",
-            ], title: $"『{Book.MainTitle}.epub』{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: issue ? Color.Success : Color.Primary, acceptionIcon: issue ? Icons.Material.Filled.Publish : Icons.Material.Filled.FileDownload, onOpend: SetIdleAsync);
+                $"『{selectedItem.MainTitle}.epub』を{(issue ? $"<{DataSet.Setting.SmtpMailto}>へ発行": "生成してダウンロード")}します。",
+            ], title: $"『{selectedItem.MainTitle}.epub』{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: issue ? Color.Success : Color.Primary, acceptionIcon: issue ? Icons.Material.Filled.Publish : Icons.Material.Filled.FileDownload, onOpend: SetIdleAsync);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 await SetBusyAsync ();
-                await IssueBookAsync (Book, issue);
+                await IssueBookAsync (selectedItem, issue);
                 await SetIdleAsync ();
             } else {
                 return false;
@@ -136,16 +136,16 @@ public partial class Issue : BookListBase {
 
     /// <summary>発行抹消の確認</summary>
     protected async Task<bool> ConfirmUnIssueBookAsync () {
-        if (Book is not null && Book.IsUpToDateWithIssued && !IsDirty) {
+        if (selectedItem is not null && selectedItem.IsUpToDateWithIssued && !IsDirty) {
             await SetBusyAsync ();
             var dialogResult = await DialogService.Confirmation ([$"{Book.TableLabel}の発行記録を抹消します。",], title: $"発行抹消", position: DialogPosition.BottomCenter, acceptionLabel: "抹消", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete, onOpend: SetIdleAsync);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 await SetBusyAsync ();
-                Book.NumberOfIsshued = null;
-                Book.IssuedAt = null;
+                selectedItem.NumberOfIsshued = null;
+                selectedItem.IssuedAt = null;
                 await SetIdleAsync ();
                 Snackbar.Add ($"{Book.TableLabel}の発行記録を抹消しました。", Severity.Normal);
-                if ((await UpdateBookAsync (Book)).IsFailure) {
+                if ((await UpdateBookAsync (selectedItem)).IsFailure) {
                     Snackbar.Add ($"{Book.TableLabel}の保存に失敗しました。", Severity.Normal);
                 }
             } else {
@@ -157,8 +157,8 @@ public partial class Issue : BookListBase {
 
     /// <summary>取得・更新</summary>
     protected async Task<bool> UpdateBookFromSiteAsync (bool withSheets, bool fullUpdate) {
-        if (Book is not null) {
-            var result = await DataSet.UpdateBookFromSiteAsync (HttpClient, Book.Url, UserIdentifier, withSheets, fullUpdate, 
+        if (selectedItem is not null) {
+            var result = await DataSet.UpdateBookFromSiteAsync (HttpClient, selectedItem.Url, UserIdentifier, withSheets, fullUpdate, 
                 (value, max) => {
                     if (value == 0) {
                         UiState.Lock (max);
@@ -171,10 +171,10 @@ public partial class Issue : BookListBase {
             }
             UiState.Unlock ();
             if (result.IsSuccess) {
-                if (Book.Id != result.Value.book.Id) { throw new InvalidOperationException ($"id mismatch {Book.Id} -> {result.Value.book.Id}"); }
+                if (selectedItem.Id != result.Value.book.Id) { throw new InvalidOperationException ($"id mismatch {selectedItem.Id} -> {result.Value.book.Id}"); }
                 await ReLoadAsync ();
-                if (Book is not null) {
-                    await ChangeCurrentBookAsync (Book);
+                if (selectedItem is not null) {
+                    await ChangeCurrentBookAsync (selectedItem);
                 }
                 return true;
             }
@@ -356,23 +356,17 @@ public partial class Issue : BookListBase {
     }
 
     /// <summary>再読み込み</summary>
-    protected new async Task ReLoadAsync () {
-        var oldBook = Book;
-        await base.ReLoadAsync.InvokeAsync ();
-        await TaskEx.DelayUntil (() => oldBook != Book);
-        if (Book is not null) {
-            selectedItem = Book;
-        }
+    protected async Task ReLoadAsync () {
+        await DataSet.LoadAsync ();
         SetAndEdit ();
     }
 
     /// <summary>タイトルを設定して編集を開始</summary>
     protected void SetAndEdit () {
-        AppModeService.SetSectionTitle (Book is null ? "Issue" : $"<span style=\"font-size:80%;\">『{Book?.Title ?? ""}』 {Book?.Author ?? ""}</span>");
+        AppModeService.SetSectionTitle (selectedItem is null ? "Issue" : $"<span style=\"font-size:80%;\">『{selectedItem?.Title ?? ""}』 {selectedItem?.Author ?? ""}</span>");
         // 強制
         editingItem = null;
         StartEdit ();
-        StateHasChanged ();
     }
 
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
@@ -416,25 +410,25 @@ public partial class Issue : BookListBase {
 
     /// <summary>前の表紙候補</summary>
     protected void PrevCover () {
-        if (Book is null) { return; }
-        if (Book.CoverSelection is null) {
-            Book.CoverSelection = Book.CoverUrls.Count - 1;
-        } else if (Book.CoverSelection == 0) {
-            Book.CoverSelection = null;
+        if (selectedItem is null) { return; }
+        if (selectedItem.CoverSelection is null) {
+            selectedItem.CoverSelection = selectedItem.CoverUrls.Count - 1;
+        } else if (selectedItem.CoverSelection == 0) {
+            selectedItem.CoverSelection = null;
         } else {
-            Book.CoverSelection--;
+            selectedItem.CoverSelection--;
         }
     }
 
     /// <summary>次の表紙候補</summary>
     protected void NextCover () {
-        if (Book is null) { return; }
-        if (Book.CoverSelection is null) {
-            Book.CoverSelection = 0;
-        } else if (Book.CoverSelection == Book.CoverUrls.Count - 1) {
-            Book.CoverSelection = null;
+        if (selectedItem is null) { return; }
+        if (selectedItem.CoverSelection is null) {
+            selectedItem.CoverSelection = 0;
+        } else if (selectedItem.CoverSelection == selectedItem.CoverUrls.Count - 1) {
+            selectedItem.CoverSelection = null;
         } else {
-            Book.CoverSelection++;
+            selectedItem.CoverSelection++;
         }
     }
 
