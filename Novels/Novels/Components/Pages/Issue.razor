@@ -71,7 +71,7 @@
                         </MudStack>
                     </td>
                     <td><MudTextField T="string" @bind-Value="SelectedItem.Url1" Validation="(Func<string, string>) ValidateUri" Required /></td>
-                    <td rowspan="7" width="440" style="border-left: rgb(224,224,224) 1px solid; border-bottom: 0px none;">
+                    <td rowspan="7" width="420" style="border-left: rgb(224,224,224) 1px solid; border-bottom: 0px none;">
                         @{ var label = Book.Label [nameof (Book.CoverImage)]; }
                         <MudTooltip Disabled="SelectedItem.CoverImage is null && SelectedItem.CoverUrls.Count < 1" Arrow Duration="1000">
                             <TooltipContent>
@@ -83,7 +83,7 @@
                                     @ondrop="@ClearDropArea" @ondragenter="@OnHover" @ondragleave="@ClearDropArea" @ondragend="@ClearDropArea"
                                     InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10" InputStyle="opacity: 0;">
                                     <ActivatorContent>
-                                        <MudPaper MinHeight="600px" MinWidth="400px" Elevation="0" Class="@_dropAreaClass">
+                                        <MudPaper MinHeight="600px" MinWidth="412px" Elevation="0" Class="@_dropAreaClass">
                                                     @if (SelectedItem.CoverImage is null) {
                                                         if (SelectedItem.CoverUrls.Count > 0) {
                                                             if (SelectedItem.CoverSelection is null) {
