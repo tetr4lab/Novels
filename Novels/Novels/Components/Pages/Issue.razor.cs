@@ -372,25 +372,67 @@ public partial class Issue : BookListBase {
     protected const int MAX_ALLOWED_IMAGE_SIZE = 1024 * 1024 * 20;
 
     /// <summary>画像のアップロード</summary>
-    protected async Task UploadFileAsync (IBrowserFile file) {
-        if (UiState.IsLocked || file is null || !IsEditing) { return; }
+    protected async Task<bool> UploadFileAsync (IBrowserFile file) {
+        var success = false;
+        if (UiState.IsLocked || file is null || !IsEditing) { return success; }
         await SetBusyAsync ();
         try {
             using (var fs = file.OpenReadStream (MAX_ALLOWED_IMAGE_SIZE))
             using (var ms = new MemoryStream ()) {
                 await fs.CopyToAsync (ms);
-                SelectedItem.CoverImage = ms.ToArray ();
+                var image = ms.ToArray ();
+                var type = image.DetectImageType ();
+                if (type == "jpeg" || type == "png") {
+                    SelectedItem.CoverImage = image;
+                    success = true;
+                    Snackbar.Add ($"画像をアップロードしました。'{file.Name}'");
+                } else {
+                    Snackbar.Add ($"画像の種別が適合しません。'{file.Name}'", Severity.Warning);
+                }
             }
         }
         catch (System.IO.IOException ex) {
             if (ex.Message.Contains ("exceeds the maximum of")) {
-                Snackbar.Add ($"ファイルサイズが大きすぎます。(Max {MAX_ALLOWED_IMAGE_SIZE:#,0}byte)");
+                Snackbar.Add ($"ファイルサイズが大きすぎます。'{file.Name}' (Max {MAX_ALLOWED_IMAGE_SIZE:#,0}byte)", Severity.Warning);
             } else {
                 throw;
             }
         }
         await SetIdleAsync ();
+        return success;
     }
+
+    /// <summary>ドロップ対象の基礎</summary>
+    protected const string BaseDropAreaClass = "relative rounded-lg pa-1 border-2 border-dashed d-flex align-center justify-center mud-width-full mud-height-full";
+    /// <summary>ドロップ対象の通常時</summary>
+    protected const string DefaultDropAreaClass = $"{BaseDropAreaClass} mud-border-lines-default";
+    /// <summary>ドロップ対象の侵入中</summary>
+    protected const string HoveredDropAreaClass = $"{BaseDropAreaClass} mud-border-primary";
+    /// <summary>ドロップ対象クラス参照</summary>
+    protected string _dropAreaClass = DefaultDropAreaClass;
+    /// <summary>ファイルアップロード参照</summary>
+    protected MudFileUpload<IBrowserFile>? _fileUpload;
+
+    /// <summary>ファイルの入力があった</summary>
+    protected async Task OnInputFileChanged (InputFileChangeEventArgs e) {
+        ClearDropArea ();
+        var files = e.GetMultipleFiles ();
+        if (files is not null && files.Count > 0) {
+            foreach (var file in files) {
+                if (await UploadFileAsync (file)) {
+                    break;
+                }
+            }
+        }
+    }
+
+    /// <summary>ドロップ対象に侵入した</summary>
+    protected void OnHover ()
+        => _dropAreaClass = HoveredDropAreaClass;
+
+    /// <summary>ドロップ対象から外れた</summary>
+    protected void ClearDropArea ()
+        => _dropAreaClass = DefaultDropAreaClass;
 
     /// <summary>画像の抹消</summary>
     protected void DeleteFile () {

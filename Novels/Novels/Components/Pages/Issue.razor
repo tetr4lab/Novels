@@ -71,40 +71,45 @@
                         </MudStack>
                     </td>
                     <td><MudTextField T="string" @bind-Value="SelectedItem.Url1" Validation="(Func<string, string>) ValidateUri" Required /></td>
-                    <td rowspan="7" width="440" style="text-align: center; border-left: rgb(224,224,224) 1px solid; border-bottom: 0px none;">
+                    <td rowspan="7" width="440" style="border-left: rgb(224,224,224) 1px solid; border-bottom: 0px none;">
                         @{ var label = Book.Label [nameof (Book.CoverImage)]; }
-                        <MudFileUpload T="IBrowserFile" Accept=".jpg,.jpeg,.png" FilesChanged="async file => await UploadFileAsync (file)">
-                            <ActivatorContent>
-                                <MudButton Color="Color.Tertiary" Disabled="@(UiState.IsLocked)" Variant="Variant.Outlined" Size="Size.Small" StartIcon="@Icons.Material.Filled.CloudUpload">
-                                    <MudTooltip Disabled="SelectedItem.CoverImage is null && SelectedItem.CoverUrls.Count < 1" Arrow Duration="1000">
-                                        <TooltipContent>
-                                            @(SelectedItem.CoverImage is null ? $"{label}{(SelectedItem.CoverSelection is null ? "なし" : $"候補{SelectedItem.CoverSelection + 1}")} (選択は非保存)" : label)
-                                        </TooltipContent>
-                                        <ChildContent>
-                                            @if (SelectedItem.CoverImage is null) {
-                                                if (SelectedItem.CoverUrls.Count > 0) {
-                                                    if (SelectedItem.CoverSelection is null) {
-                                                        <MudIcon Icon="@Icons.Material.Filled.ImageNotSupported" Size="Size.Large" Class="my-8" />
+                        <MudTooltip Disabled="SelectedItem.CoverImage is null && SelectedItem.CoverUrls.Count < 1" Arrow Duration="1000">
+                            <TooltipContent>
+                                @(SelectedItem.CoverImage is null ? $"{label}{(SelectedItem.CoverSelection is null ? "なし" : $"候補{SelectedItem.CoverSelection + 1}")} (選択は非保存)" : label)
+                            </TooltipContent>
+                            <ChildContent>
+                                <MudFileUpload T="IBrowserFile" Accept=".jpg,.jpeg,.png" title="" @ref="@_fileUpload"
+                                    Hidden="@false" OnFilesChanged="OnInputFileChanged"
+                                    @ondrop="@ClearDropArea" @ondragenter="@OnHover" @ondragleave="@ClearDropArea" @ondragend="@ClearDropArea"
+                                    InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10" InputStyle="opacity: 0;">
+                                    <ActivatorContent>
+                                        <MudPaper MinHeight="600px" MinWidth="400px" Elevation="0" Class="@_dropAreaClass">
+                                                    @if (SelectedItem.CoverImage is null) {
+                                                        if (SelectedItem.CoverUrls.Count > 0) {
+                                                            if (SelectedItem.CoverSelection is null) {
+                                                                <MudIcon Icon="@Icons.Material.Filled.ImageNotSupported" Size="Size.Large" Class="my-8" />
+                                                            } else {
+                                                                <MudImage Width="400" ObjectFit="ObjectFit.Cover" Src="@(SelectedItem.CoverUrls [SelectedItem.CoverSelection.Value])" />
+                                                            }
+                                                        } else {
+                                                            @($"{label}をアップロード")
+                                                        }
                                                     } else {
-                                                        <MudImage Width="400" ObjectFit="ObjectFit.Cover" Src="@(SelectedItem.CoverUrls [SelectedItem.CoverSelection.Value])" />
+                                                        <MudImage Width="400" ObjectFit="ObjectFit.Cover" Src="@(SelectedItem.GetCoverImageSource ())" />
                                                     }
-                                                } else {
-                                                    @($"{label}をアップロード")
-                                                }
-                                            } else {
-                                                <MudImage Width="400" ObjectFit="ObjectFit.Cover" Src="@(SelectedItem.GetCoverImageSource ())" />
-                                            }
-                                        </ChildContent>
-                                    </MudTooltip>
-                                </MudButton>
-                            </ActivatorContent>
-                        </MudFileUpload>
-                        @if (SelectedItem.CoverImage is not null) {
-                            <MudTooltip Text="@($"{label}を削除")" Arrow Duration="1000">
-                                <MudIconButton OnClick="DeleteFile" Icon="@Icons.Material.Filled.DeleteForever" Size="Size.Large" Class="my-4" />
-                            </MudTooltip>
-                        } else if (SelectedItem.CoverUrls.Count > 0) {
-                            <MudStack Row Class="my-4 align-center">
+                                        </MudPaper>
+                                    </ActivatorContent>
+                                </MudFileUpload>
+                            </ChildContent>
+                        </MudTooltip>
+                        <MudStack Row Class="align-center mt-1">
+                            @if (SelectedItem.CoverImage is not null) {
+                                <MudSpacer />
+                                <MudTooltip Text="@($"{label}を削除")" Arrow Duration="1000">
+                                    <MudIconButton OnClick="DeleteFile" Icon="@Icons.Material.Filled.DeleteForever" Size="Size.Large" />
+                                </MudTooltip>
+                                <MudSpacer />
+                            } else if (SelectedItem.CoverUrls.Count > 0) {
                                 <MudIconButton OnClick="PrevCover" Icon="@Icons.Material.Filled.KeyboardArrowLeft" Size="Size.Large" />
                                 <MudSpacer />
                                 @if (SelectedItem.CoverSelection is not null) {
@@ -114,8 +119,8 @@
                                     <MudSpacer />
                                 }
                                 <MudIconButton OnClick="NextCover" Icon="@Icons.Material.Filled.KeyboardArrowRight" Size="Size.Large" />
-                            </MudStack>
-                        }
+                            }
+                        </MudStack>
                     </td>
                 </tr>
                 <tr>
