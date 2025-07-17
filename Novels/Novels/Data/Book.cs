@@ -137,29 +137,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     [Column ("number_of_related_sheets"), VirtualColumn] public int NumberOfRelatedSheets { get; set; } = 0;
 
     /// <summary>表紙画像種別を判定</summary>
-    public string CoverImageType {
-        get {
-            if (CoverImage is not null) {
-                var header = BitConverter.ToString (CoverImage [0..8]).Replace ("-", "");
-                if (header == "89504E470D0A1A0A") {
-                    return "png";
-                }
-                if (header.StartsWith ("FFD8FFE") && header.Length >= 8 && "01238E".Contains (header [7])) {
-                    return "jpeg";
-                }
-                if (header.StartsWith ("474946383761") || header.StartsWith ("474946383961")) {
-                    return "gif";
-                }
-                if (header.StartsWith ("3C3F786D") || header.StartsWith ("3C737667")) {
-                    return "svg+xml";
-                }
-                if (header.StartsWith ("524946463A")) {
-                    return "webp";
-                }
-            }
-            return string.Empty;
-        }
-    }
+    public string CoverImageType => CoverImage.DetectImageType ();
 
     /// <summary>Urlの代表</summary>
     public string Url => Url1 ?? Url2 ?? "";
