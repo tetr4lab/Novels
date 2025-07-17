@@ -194,7 +194,7 @@ public partial class Issue : BookListBase {
                 if (DataSet.Setting.IncludeImage) {
                     // 表紙
                     if (book.CoverImage is not null) {
-                        await doc.AddImageResource (book.CoverImage, book.CoverImageType, true);
+                        await doc.AddImageResource (book.CoverImage, book.CoverImageType.Split ('+') [0], true);
                     } else if (book.CoverUrls.Count > 0 && book.CoverSelection is not null) {
                         await doc.AddImageResource (HttpClient, new Uri (book.CoverUrls [book.CoverSelection.Value]), DataSet.Setting.UserAgent, true);
                     }
@@ -382,12 +382,12 @@ public partial class Issue : BookListBase {
                 await fs.CopyToAsync (ms);
                 var image = ms.ToArray ();
                 var type = image.DetectImageType ();
-                if (type == "jpeg" || type == "png") {
+                if (type != string.Empty) {
                     SelectedItem.CoverImage = image;
                     success = true;
                     Snackbar.Add ($"画像をアップロードしました。'{file.Name}'");
                 } else {
-                    Snackbar.Add ($"画像の種別が適合しません。'{file.Name}'", Severity.Warning);
+                    Snackbar.Add ($"画像の種別が適合しませんでした。'{file.Name}'", Severity.Warning);
                 }
             }
         }

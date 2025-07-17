@@ -78,7 +78,7 @@
                                 @(SelectedItem.CoverImage is null ? $"{label}{(SelectedItem.CoverSelection is null ? "なし" : $"候補{SelectedItem.CoverSelection + 1}")} (選択は非保存)" : label)
                             </TooltipContent>
                             <ChildContent>
-                                <MudFileUpload T="IBrowserFile" Accept=".jpg,.jpeg,.png" title="" @ref="@_fileUpload"
+                                <MudFileUpload T="IBrowserFile" Accept=".jpg,.jpeg,.png,.gif,.svg,.webp" title="" @ref="@_fileUpload"
                                     Hidden="@false" OnFilesChanged="OnInputFileChanged"
                                     @ondrop="@ClearDropArea" @ondragenter="@OnHover" @ondragleave="@ClearDropArea" @ondragend="@ClearDropArea"
                                     InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10" InputStyle="opacity: 0;">
@@ -95,7 +95,7 @@
                                                             @($"{label}をアップロード")
                                                         }
                                                     } else {
-                                                        <MudImage Width="400" ObjectFit="ObjectFit.Cover" Src="@(SelectedItem.GetCoverImageSource ())" />
+                                                        <MudImage Width="400" ObjectFit="ObjectFit.Cover" Src="@(SelectedItem.CoverImageSource)" />
                                                     }
                                         </MudPaper>
                                     </ActivatorContent>

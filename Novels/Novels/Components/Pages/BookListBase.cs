@@ -58,13 +58,3 @@ public class BookListBase : ItemListBase<Book> {
         }
     }
 }
-
-/// <summary>書誌の拡張</summary>
-public static class BookHelper {
-    /// <summary>表紙のイメージsrc</summary>
-    public static string GetCoverImageSource (this Book book) {
-        if (book.CoverImage is null) { return string.Empty; }
-        var type = book.CoverImageType;
-        return book.CoverImage is null ? string.Empty : $"data:image/{book.CoverImageType};base64,{Convert.ToBase64String (book.CoverImage)}";
-    }
-}

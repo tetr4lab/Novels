@@ -139,6 +139,9 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <summary>表紙画像種別を判定</summary>
     public string CoverImageType => CoverImage.DetectImageType ();
 
+    /// <summary>埋め込み表紙画像データ</summary>
+    public string CoverImageSource => CoverImage.ToImageSource ();
+
     /// <summary>Urlの代表</summary>
     public string Url => Url1 ?? Url2 ?? "";
 
