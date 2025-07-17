@@ -345,3 +345,6 @@ revision.info
 # tool
 *.bat
 *.ps1
+
+# Client's launchSettings.json
+*/*.Client/Properties/launchSettings.json
