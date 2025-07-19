@@ -137,7 +137,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     [Column ("number_of_related_sheets"), VirtualColumn] public int NumberOfRelatedSheets { get; set; } = 0;
 
     /// <summary>表紙画像種別を判定</summary>
-    public string CoverImageType => CoverImage.DetectImageType ();
+    public string CoverImageType => CoverImage.DetectImageType () ?? string.Empty;
 
     /// <summary>埋め込み表紙画像データ</summary>
     public string CoverImageSource => CoverImage.ToImageSource ();
