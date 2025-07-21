@@ -17,14 +17,14 @@ Web小説を取得し、EPUBを生成して、Kindleパーソナルドキュメ�
 ### 環境
 #### ビルド
 - .NET 8.0
-  - Microsoft.AspNetCore.Authentication.Google 8.0.16
-  - Microsoft.AspNetCore.Authorization 8.0.16
-- MudBlazor 8.6.0
+  - Microsoft.AspNetCore.Authentication.Google 8.0.18
+  - Microsoft.AspNetCore.Authorization 8.0.18
+- MudBlazor 8.10.0
 - PetaPoco 6.0.683
 - MySqlConnector 2.4.0
 - [AngleSharp](https://github.com/AngleSharp/AngleSharp) 1.3.0
   - The ultimate angle brackets parser library parsing HTML5, MathML, SVG and CSS to construct a DOM based on the official W3C specifications.
-- [MailKit](https://github.com/jstedfast/MailKit) 4.12.1
+- [MailKit](https://github.com/jstedfast/MailKit) 4.13.0
   - A cross-platform .NET library for IMAP, POP3, and SMTP.
 - [QuickEPUB](https://github.com/tetr4lab/QuickEPUB/tree/feature/spine-page-progression)
   - Feat: Implement page-progression-direction attribute for spine. Users can now define the reading direction (LTR or RTL) within the spine element of the EPUB.

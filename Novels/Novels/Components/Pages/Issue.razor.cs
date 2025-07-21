@@ -156,6 +156,7 @@ public partial class Issue : BookListBase {
 
     /// <summary>取得・更新</summary>
     protected async Task<bool> UpdateBookFromSiteAsync (bool withSheets, bool fullUpdate) {
+        UiState.Lock ();
         var result = await DataSet.UpdateBookFromSiteAsync (HttpClient, SelectedItem.Url, UserIdentifier, withSheets, fullUpdate, 
             (value, max) => {
                 if (value == 0) {
@@ -167,14 +168,15 @@ public partial class Issue : BookListBase {
         foreach (var issue in result.Value.issues) {
             Snackbar.Add (issue, Severity.Error);
         }
-        UiState.Unlock ();
+        var rc = false;
         if (result.IsSuccess) {
             if (SelectedItem.Id != result.Value.book.Id) { throw new InvalidOperationException ($"id mismatch {SelectedItem.Id} -> {result.Value.book.Id}"); }
             await ReloadAndFocus (SelectedItem.Id, editing: true);
             await ChangeCurrentBookAsync (SelectedItem);
-            return true;
+            rc = true;
         }
-        return false;
+        UiState.Unlock ();
+        return rc;
     }
 
     /// <summary>発行</summary>
