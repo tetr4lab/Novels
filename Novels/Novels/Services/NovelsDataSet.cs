@@ -20,7 +20,7 @@ public sealed class NovelsDataSet : MySqlDataSet {
     public override async Task InitializeAsync () {
         if (!IsInitialized && !IsInitializeStarted) {
             try {
-                CurrentBookId = await database.FirstOrDefaultAsync<long> ("select `id` from `books` order by `id` desc limit 1;");
+                CurrentBookId = await database.FirstOrDefaultAsync<long> ("select `id` from `books` order by `modified` desc limit 1;");
             }
             catch (Exception e) {
                 System.Diagnostics.Debug.WriteLine ($"Exception: {e.Message}\n{e.StackTrace}");
