@@ -74,7 +74,7 @@
             </tr>
             <tr>
                 <td>@(Setting.Label [nameof (Setting.DefaultCookiesJson)])</td>
-                <td><MudTextField T="string" Validation="@(new Func<string, bool> (CookiesValidate))" @bind-Value="SelectedItem.DefaultCookiesJson" @ref="_cookieField" /></td>
+                <td><MudTextField T="string" Validation="@(new Func<string, string> (JsonValidate))" @bind-Value="SelectedItem.DefaultCookiesJson" @ref="_cookieField" /></td>
             </tr>
             <tr>
                 <td>@(Setting.Label [nameof (Setting.IncludeImage)])</td>
@@ -124,18 +124,19 @@
     /// <summary>クッキーフィールド</summary>
     protected MudTextField<string>? _cookieField = null;
 
-    /// <summary>クッキーの検証</summary>
-    protected bool CookiesValidate (string json) {
+    /// <summary>JSON検証</summary>
+    protected string JsonValidate (string json) {
+        var result = string.Empty;
         try {
-            if (JsonSerializer.Deserialize<Dictionary<string, string>> (json) is not null) {
-                return true;
+            if (JsonSerializer.Deserialize<Dictionary<string, string>> (json) is null) {
+                result = "unknown error";
             }
         }
-        catch {
+        catch (Exception ex) {
+            result = ex.Message;
         }
-        return false;
+        return result;
     }
-
     /// <summary>初期化</summary>
     protected override async Task OnInitializedAsync() {
         await base.OnInitializedAsync ();
