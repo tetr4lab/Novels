@@ -1,12 +1,10 @@
-﻿using System.Collections.Immutable;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
+using System.Diagnostics.CodeAnalysis;
 using MudBlazor;
-using System.Xml.Linq;
 using Novels.Components.Pages;
 using Novels.Services;
 using PetaPoco;
-using System.Data;
 using Tetr4lab;
 
 namespace Novels.Data;
@@ -59,7 +57,7 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
     [Column ("smtp_body")] public string SmtpBody { get; set; } = "";
     [Column ("user_agent")] public string UserAgent { get; set; } = "Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko";
     [Column ("access_interval_time")] public int AccessIntervalTime { get; set; } = 1000;
-    [Column ("default_cookies")] public string DefaultCookiesJson { get; set; } = "{ \"over18\": \"yes\" }";
+    [Column ("default_cookies"), StringSyntax (StringSyntaxAttribute.Json)] public string DefaultCookiesJson { get; set; } = """{ "over18": "yes" }""";
     [Column ("include_image")] public bool IncludeImage { get; set; } = false;
 
     /// <summary>デフォルトクッキーの辞書表現</summary>
