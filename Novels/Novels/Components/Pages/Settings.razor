@@ -84,7 +84,7 @@
                 <td>@(Setting.Label [nameof (Setting.Remarks)])</td>
                 <td>
                     <style>.horizontal-scroll textarea { overflow-x: auto; white-space: nowrap; }</style>
-                    <MudTextField Class="horizontal-scroll" T="string" @bind-Value="SelectedItem.Remarks" Lines="10" />
+                    <MudTextField Class="horizontal-scroll" T="string" @bind-Value="SelectedItem.Remarks" Lines="1" AutoGrow />
                 </td>
             </tr>
         </tbody>

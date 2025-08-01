@@ -41,11 +41,11 @@
                                 @(Sheet.Label [nameof (Sheet.Errata)])
                             </MudTooltip>
                         </td>
-                        <td><MudTextField T="string" Placeholder="@($"error1{Sheet.Separator}correct1{Sheet.Terminator}error2{Sheet.Separator}correct2{Sheet.Terminator}  :")" @bind-Value="Sheet.Errata" Lines="10" /></td>
+                        <td><MudTextField T="string" Placeholder="@($"error1{Sheet.Separator}correct1{Sheet.Terminator}error2{Sheet.Separator}correct2{Sheet.Terminator}  :")" @bind-Value="Sheet.Errata" Lines="3" AutoGrow /></td>
                     </tr>
                     <tr>
                         <td>@(Sheet.Label [nameof (Sheet.Remarks)])</td>
-                        <td><MudTextField T="string" @bind-Value="Sheet.Remarks" Lines="10" /></td>
+                        <td><MudTextField T="string" @bind-Value="Sheet.Remarks" Lines="1" AutoGrow /></td>
                     </tr>
                 </tbody>
             </MudSimpleTable>
