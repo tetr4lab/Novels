@@ -290,7 +290,9 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                             title = Document.QuerySelector ("h1#workTitle")?.TextContent ?? "";
                             break;
                         case Site.Novelup:
-                            title = (Document.QuerySelector ("div.novel_title")?.TextContent ?? "");
+                            title = (Document.QuerySelector ("div.novel_title")?.TextContent
+                                ?? Document.QuerySelector ("h1.storyTitle")?.TextContent
+                                ?? "");
                             break;
                         case Site.Dyreitou:
                             title = Document.QuerySelector ("div.cat-title")?.TextContent ?? "";
@@ -381,7 +383,9 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                             author = Document.QuerySelector ("span#workAuthor-activityName")?.TextContent ?? "";
                             break;
                         case Site.Novelup:
-                            author = (Document.QuerySelector ("div.novel_author")?.TextContent ?? "");
+                            author = (Document.QuerySelector ("div.novel_author")?.TextContent
+                                ?? Document.QuerySelector ("a.storyAuthor")?.TextContent
+                                ?? "");
                             break;
                         case Site.Dyreitou:
                             author = "dy冷凍";
@@ -456,6 +460,9 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                         break;
                     case Site.Novelup:
                         tags = Document.QuerySelectorAll ("div.episode_link a");
+                        if (tags.Length == 0) {
+                            tags = Document.QuerySelectorAll ("div.episodeListItem a.episodeTitle");
+                        }
                         break;
                     case Site.Dyreitou:
                         tags = Document.QuerySelectorAll ("div.mokuji a");
@@ -524,6 +531,9 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                         break;
                     case Site.Novelup:
                         tags = Document.QuerySelectorAll ("div.update_date span span");
+                        if (tags.Length == 0) {
+                            tags = Document.QuerySelectorAll ("div.episodeDate p.publishDate");
+                        }
                         foreach (var tag in tags) {
                             var date = tag.TextContent;
                             if (!string.IsNullOrEmpty (date)) {
@@ -554,17 +564,41 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     }
     protected List<DateTime>? __sheetUpdateDates = null;
 
+    /// <summary>ページ指定</summary>
+    public string Pagenation (int page) {
+        var urlWithoutSlash = Url.EndsWith ('/') ? Url [0..^1] : Url;
+        switch (Site) {
+            case Site.Narou:
+            case Site.Novel18:
+                return $"{urlWithoutSlash}/?p={page}";
+            case Site.Novelup:
+                return $"{urlWithoutSlash}?p={page}";
+        }
+        return $"{Url}?={page}";
+    }
+
     /// <summary>最終ページ</summary>
     public int LastPage {
         get {
-            if ((Site == Site.Narou || Site == Site.Novel18) && __lastPage <= 0 && !string.IsNullOrEmpty (_html) && Document is not null) {
-                var pager = Document.QuerySelector ("a.novelview_pager-last")?.GetAttribute ("href")
-                    ?? Document.QuerySelector ("a.c-pager__item.c-pager__item--last")?.GetAttribute ("href");
-                if (!string.IsNullOrEmpty (pager)) {
-                    var maxpage = pager.Split ("?p=").LastOrDefault ();
-                    if (int.TryParse (maxpage, out var page)) {
-                        __lastPage = page;
-                    }
+            if (__lastPage <= 0 && !string.IsNullOrEmpty (_html) && Document is not null) {
+                switch (Site) {
+                    case Site.Narou:
+                    case Site.Novel18:
+                        var pager = Document.QuerySelector ("a.novelview_pager-last")?.GetAttribute ("href")
+                            ?? Document.QuerySelector ("a.c-pager__item.c-pager__item--last")?.GetAttribute ("href");
+                        if (!string.IsNullOrEmpty (pager)) {
+                            var maxpage = pager.Split ("?p=").LastOrDefault ();
+                            if (int.TryParse (maxpage, out var page)) {
+                                __lastPage = page;
+                            }
+                        }
+                        break;
+                    case Site.Novelup:
+                        var total = Document.QuerySelector ("div.section_pagination p.total_episode_num");
+                        if (total is not null && int.TryParse (total.TextContent.Replace ("総エピソード数：", "").Replace ("話", ""), out var number)) {
+                            __lastPage = (number + 99) / 100;
+                        }
+                        break;
                 }
             }
             return __lastPage;

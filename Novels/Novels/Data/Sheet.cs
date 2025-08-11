@@ -159,6 +159,9 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
                             break;
                         case Site.Novelup:
                             __sheetHonbun = Document.QuerySelector ("div.content")?.InnerHtml ?? "";
+                            if (!__sheetHonbun.Contains ("<br")) {
+                                __sheetHonbun = __sheetHonbun.Replace ("\n", "<br />");
+                            }
                             break;
                         case Site.Dyreitou:
                             var tmp = Document.QuerySelector ("article")?.QuerySelectorAll ("p");

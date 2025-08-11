@@ -209,7 +209,7 @@ public sealed class NovelsDataSet : MySqlDataSet {
                         for (var i = 2; i <= book.LastPage; i++) {
                             await Task.Delay (Setting.AccessIntervalTime);
                             // 追加ページの絶対URLを取得する
-                            var additionalUrl = $"{book.Url}{(book.Url.EndsWith ('/') ? "" : "/")}?p={i}";
+                            var additionalUrl = book.Pagenation (i);
                             using (var message2 = await client.GetWithCookiesAsync (additionalUrl, Setting.DefaultCookies)) {
                                 if (message2.IsSuccessStatusCode && message2.StatusCode == System.Net.HttpStatusCode.OK) {
                                     htmls.Add (await message2.Content.ReadAsStringAsync ());
