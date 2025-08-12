@@ -127,6 +127,7 @@
                     <td>
                         <MudStack Row Spacing="1" Class="align-center">
                             @(Book.Label [nameof (Book.Url2)])
+                            <MudIconButton Disabled="@(UiState.IsLocked || string.IsNullOrEmpty (SelectedItem.Url1) || string.IsNullOrEmpty (SelectedItem.Url2))" OnClick="@(() => { var tmp = SelectedItem.Url1; SelectedItem.Url1 = SelectedItem.Url2; SelectedItem.Url2 = tmp;  })" Icon="@Icons.Material.Filled.SwapVert" />
                             <MudSpacer />
                             <MudIconButton Disabled="@(UiState.IsLocked || IsInvalidUri (SelectedItem.Url2))" OnClick="@(async () => await JSRuntime.OpenUrl (SelectedItem.Url2))" Icon="@Icons.Material.Filled.Link" />
                         </MudStack>
@@ -214,7 +215,7 @@
                 <MudIconButton Disabled="UiState.IsLocked || !IsDirty || !NovelsDataSet.EntityIsValid (SelectedItem)" OnClick="SaveAsync" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
             </MudTooltip>
             <MudSpacer />
-            @if (SelectedItem.NumberOfBrokenLinks > 0) {
+            @if (SelectedItem.NumberOfBrokenLinks > 0 && SelectedItem.Status != BookStatus.Disappeared) {
                 <MudTooltip Arrow="true" Text="リンク切れシートの削除">
                     <MudIconButton Disabled="UiState.IsLocked || IsDirty" OnClick="DeleteBrokenLinkedSheets" Color="Color.Warning" Icon="@Icons.Material.Filled.LinkOff" Variant="Variant.Outlined" Size="Size.Large" />
                 </MudTooltip>

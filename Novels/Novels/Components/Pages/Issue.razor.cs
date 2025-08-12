@@ -55,7 +55,7 @@ public partial class Issue : BookListBase {
                         success++;
                     }
                 }
-                await ReloadAndFocus (force: true);
+                await ReloadAndFocus ();
                 if (success == sheets.Count) {
                     Snackbar.Add ($"リンク切れのシート({sheets.Count})を削除しました。", Severity.Normal);
                 } else {
@@ -110,7 +110,7 @@ public partial class Issue : BookListBase {
                             success++;
                         }
                     }
-                    await ReloadAndFocus (editing: true);
+                    await ReloadAndFocus ();
                     if (success == sheets.Count) {
                         Snackbar.Add ($"{target}を削除しました。", Severity.Normal);
                     } else {
@@ -210,7 +210,7 @@ public partial class Issue : BookListBase {
         var rc = false;
         if (result.IsSuccess) {
             if (SelectedItem.Id != result.Value.book.Id) { throw new InvalidOperationException ($"id mismatch {SelectedItem.Id} -> {result.Value.book.Id}"); }
-            await ReloadAndFocus (SelectedItem.Id, editing: true);
+            await ReloadAndFocus (SelectedItem.Id);
             await ChangeCurrentBookAsync (SelectedItem);
             rc = true;
         }
@@ -391,8 +391,8 @@ public partial class Issue : BookListBase {
     }
 
     /// <summary>再読み込み</summary>
-    protected override async Task ReloadAndFocus (long focusedId = 0L, bool editing = true, bool force = false) {
-        await base.ReloadAndFocus (focusedId != 0L ? focusedId : AppModeService.CurrentBookId, editing, force);
+    protected override async Task ReloadAndFocus (long focusedId = 0L, bool editing = true) {
+        await base.ReloadAndFocus (focusedId != 0L ? focusedId : AppModeService.CurrentBookId, editing);
         SetTitle ();
     }
 

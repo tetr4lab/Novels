@@ -836,6 +836,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         __coverUrls = null;
         __coverSelection = 0;
         // 再パース
+        _ = Author;
         _ = SheetUrls;
         _ = SheetUpdateDates;
         _ = SeriesTitle;
@@ -893,6 +894,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         item.Wish = Wish;
         item.Bookmark = Bookmark;
         item.CoverImage = CoverImage;
+        item.Flash ();
         return item;
     }
 
@@ -914,6 +916,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         destination.Wish = Wish;
         destination.Bookmark = Bookmark;
         destination.CoverImage = CoverImage;
+        destination.Flash ();
         return base.CopyTo (destination);
     }
 
