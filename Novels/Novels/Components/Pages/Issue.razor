@@ -214,6 +214,11 @@
                 <MudIconButton Disabled="UiState.IsLocked || !IsDirty || !NovelsDataSet.EntityIsValid (SelectedItem)" OnClick="SaveAsync" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
             </MudTooltip>
             <MudSpacer />
+            @if (SelectedItem.NumberOfBrokenLinks > 0) {
+                <MudTooltip Arrow="true" Text="リンク切れシートの削除">
+                    <MudIconButton Disabled="UiState.IsLocked || IsDirty" OnClick="DeleteBrokenLinkedSheets" Color="Color.Warning" Icon="@Icons.Material.Filled.LinkOff" Variant="Variant.Outlined" Size="Size.Large" />
+                </MudTooltip>
+            }
             <MudTooltip Arrow="true">
                 <TooltipContent>
                     削除<br />

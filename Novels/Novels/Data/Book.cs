@@ -151,6 +151,9 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <summary>シート未取り込み</summary>
     public bool IsEmpty => NumberOfRelatedSheets <= 0;
 
+    /// <summary>リンク切れの数</summary>
+    public int NumberOfBrokenLinks => IsEmpty ? 0 : NumberOfRelatedSheets - SheetUrls.Count;
+
     /// <summary>外向けの状態</summary>
     /// <remarks>結果が<see cref="_status" />に反映される。</remarks>
     public BookStatus Status {

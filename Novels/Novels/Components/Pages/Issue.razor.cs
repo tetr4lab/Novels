@@ -31,6 +31,45 @@ public partial class Issue : BookListBase {
         StartEdit (true);
     }
 
+    /// <summary>リンク切れシートの削除</summary>
+    protected async Task DeleteBrokenLinkedSheets (MouseEventArgs eventArgs) {
+        if (SelectedItem.IsEmpty || SelectedItem.SheetUrls.Count == SelectedItem.NumberOfRelatedSheets) {
+            Snackbar.Add ($"削除すべきシートがありません。", Severity.Warning);
+            return;
+        }
+        await SetBusyAsync ();
+        var dialogResult = await DialogService.Confirmation ([
+            $"リンク切れのシート({SelectedItem.NumberOfBrokenLinks})を完全に削除します。",
+            SelectedItem.ToString (),
+        ], title: $"リンク切れシートの削除", position: DialogPosition.BottomCenter, acceptionLabel: "削除", acceptionColor: Color.Error, acceptionIcon: Icons.Material.Filled.Delete, onOpend: SetIdleAsync);
+        if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
+            await SetBusyAsync ();
+            try {
+                var sheets = SelectedItem.Sheets.FindAll (x => !SelectedItem.SheetUrls.Contains (x.Url));
+                var success = 0;
+                var count = 0;
+                UiState.Lock (sheets.Count);
+                foreach (var sheet in sheets) {
+                    UiState.UpdateProgress (++count);
+                    if ((await DataSet.RemoveAsync (sheet)).IsSuccess) {
+                        success++;
+                    }
+                }
+                await ReloadAndFocus (force: true);
+                if (success == sheets.Count) {
+                    Snackbar.Add ($"リンク切れのシート({sheets.Count})を削除しました。", Severity.Normal);
+                } else {
+                    Snackbar.Add ($"リンク切れのシートの一部({success}/{sheets.Count})を削除しました。", Severity.Error);
+                }
+            }
+            catch (Exception e) {
+                System.Diagnostics.Debug.WriteLine ($"Exception: {e.Message}\n{e.StackTrace}");
+                Snackbar.Add ($"Exception: {e.Message}", Severity.Error);
+            }
+            await SetIdleAsync ();
+        }
+    }
+
     /// <summary>書籍の削除 (ホームへ遷移)</summary>
     protected async Task DeleteBook (MouseEventArgs eventArgs) {
         var complete = !eventArgs.CtrlKey;
@@ -353,7 +392,7 @@ public partial class Issue : BookListBase {
 
     /// <summary>再読み込み</summary>
     protected override async Task ReloadAndFocus (long focusedId = 0L, bool editing = true, bool force = false) {
-        await base.ReloadAndFocus (focusedId != 0L ? focusedId : AppModeService.CurrentBookId, force: true);
+        await base.ReloadAndFocus (focusedId != 0L ? focusedId : AppModeService.CurrentBookId, editing, force);
         SetTitle ();
     }
 
