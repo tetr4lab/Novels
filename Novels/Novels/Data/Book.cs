@@ -152,7 +152,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public bool IsEmpty => NumberOfRelatedSheets <= 0;
 
     /// <summary>リンク切れの数</summary>
-    public int NumberOfBrokenLinks => IsEmpty ? 0 : NumberOfRelatedSheets - SheetUrls.Count;
+    public int NumberOfBrokenLinks => IsEmpty ? 0 : Sheets.FindAll (x => !SheetUrls.Contains (x.Url)).Count;
 
     /// <summary>外向けの状態</summary>
     /// <remarks>結果が<see cref="_status" />に反映される。</remarks>

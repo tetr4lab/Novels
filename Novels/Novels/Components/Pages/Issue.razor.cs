@@ -33,7 +33,7 @@ public partial class Issue : BookListBase {
 
     /// <summary>リンク切れシートの削除</summary>
     protected async Task DeleteBrokenLinkedSheets (MouseEventArgs eventArgs) {
-        if (SelectedItem.IsEmpty || SelectedItem.SheetUrls.Count == SelectedItem.NumberOfRelatedSheets) {
+        if (SelectedItem.NumberOfBrokenLinks == 0) {
             Snackbar.Add ($"削除すべきシートがありません。", Severity.Warning);
             return;
         }
@@ -191,6 +191,30 @@ public partial class Issue : BookListBase {
             }
         }
         return true;
+    }
+
+    /// <summary>編集完了</summary>
+    /// <remarks>URLが更新されていたら書誌を再取得して更新する</remarks>
+    protected override async Task<bool> Commit () {
+        if (BackupedItem is not null) {
+            if (!NovelsDataSet.EntityIsValid (SelectedItem)) {
+                Snackbar.Add ($"{Book.TableLabel}に不備があります。", Severity.Error);
+            } else if (BackupedItem.Url != SelectedItem.Url) {
+                // URLが更新されていたら書誌を再取得して更新
+                await SetBusyAsync ();
+                if (await UpdateBookFromSiteAsync (false, false)) {
+                    Snackbar.Add ($"{Book.TableLabel}を再取得して更新しました。", Severity.Info);
+                } else {
+                    Snackbar.Add ($"{Book.TableLabel}の再取得と更新に失敗しました。", Severity.Error);
+                }
+                await SetIdleAsync ();
+                return true;
+            } else {
+                // 通常の更新
+                return await base.Commit ();
+            }
+        }
+        return false;
     }
 
     /// <summary>取得・更新</summary>
