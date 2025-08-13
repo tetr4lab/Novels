@@ -247,14 +247,13 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         if (string.IsNullOrEmpty (text) || string.IsNullOrEmpty (Errata)) {
             return text;
         }
-        (string errr, string crct) [] errata = Array.ConvertAll (Errata.Split (Terminator, StringSplitOptions.RemoveEmptyEntries), s => {
-            var v = s.Split (Separator);
-            return (v.Length > 0 ? v [0] : "", v.Length > 1 ? v [1] : "");
-        });
-        foreach (var e in errata) {
-            text = text.Replace (e.errr, e.crct);
-        }
-        return text;
+        List<(string error, string correct)> errata = Errata.Split (Terminator, StringSplitOptions.RemoveEmptyEntries).ToList ()
+            .ConvertAll (s => {
+                var v = s.Split (Separator);
+                return (v [0], v.Length > 1 ? v [1] : "");
+            })
+            .FindAll (x => !string.IsNullOrEmpty (x.Item1));
+        return errata.Aggregate (text, (current, replacer) => current.Replace (replacer.error, replacer.correct));
     }
 
     /// <summary>外向けのHTML</summary>
