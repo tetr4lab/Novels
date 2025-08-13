@@ -47,6 +47,44 @@ Google Chrome
 
 https://zenn.dev/tetr4lab/articles/1946ec08aec508
 
+https://github.com/tetr4lab/BlazorGoogleOAuthMinimal
+
+###### 認証を除去するには
+- `Novels/Novels/Components/Pages/AccessDenied.razor`
+  - 削除
+- `Novels/Novels/Components/Layout/MainLayout.razor`
+  - `<AuthorizeView~>`、`<Authorized>`と`</AuthorizeView>`、`</Authorized>`を削除 (コンテンツは残す)
+  - `<NotAuthorized>`~`</NotAuthorized>`を削除
+- `Novels/Novels/Components/Routes.razor`
+  - `<AuthorizeRouteView>`を`<RouteView>`に変更
+- `Novels/Novels/Components/_Imports.razor`
+  - 以下を削除
+    ```csharp:Novels/Novels/Components/_Imports.razor
+    @using Microsoft.AspNetCore.Authentication
+    @using Microsoft.AspNetCore.Authentication.Cookies
+    @using Microsoft.AspNetCore.Authorization
+    @using Microsoft.AspNetCore.Components.Authorization
+    @attribute [Authorize (Policy = "Users")]
+    ```
+- `Novels/Novels/Program.cs`
+  - 以下を削除
+    ```csharp:Novels/Novels/Program.cs
+    // クッキーとグーグルの認証を構成
+    builder.Services.AddAuthentication (
+        builder.Configuration ["Authentication:Google:ClientId"]!,
+        builder.Configuration ["Authentication:Google:ClientSecret"]!
+    );
+
+    // メールアドレスを保持するクレームを要求する認可用のポリシーを構成
+    await builder.Services.AddAuthorizationAsync (
+        $"database=accounts;{builder.Configuration.GetConnectionString ("Host")}{builder.Configuration.GetConnectionString ("Account")}Allow User Variables=true;",
+        new () {
+            { "Admin", "Administrator" },
+            { "Users", "Private" },
+        }
+    );
+    ```
+
 ## できること
 - Web小説の取得・更新 (なろう、ノクターン、カクヨム、ノベルアップ他)
 - 小説内容の確認、各種メモ、文字校正
