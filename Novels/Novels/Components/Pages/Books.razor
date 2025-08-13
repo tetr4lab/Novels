@@ -7,12 +7,12 @@
 } else {
     if (items.Count > 0) {
         <MudDataGrid T="Book" Items="items" ReadOnly="false" Dense Hover Elevation="0" Breakpoint="Breakpoint.None" @ref="_dataGrid"
-            SortMode="SortMode.None" ColumnResizeMode="ResizeMode.Column" FixedHeader Virtualize
+            SortMode="SortMode.Multiple" AllowUnsorted ColumnResizeMode="ResizeMode.Column" FixedHeader Virtualize
             QuickFilter="FilterFunc" RowClick="OnRowClick"
             Height="calc(100vh - var(--mud-appbar-height) * 2 - 1em)" ItemSize="@RowSize"
         >
             <Columns>
-                <TemplateColumn HeaderClass="px-1" CellClass="py-1 pl-0 pr-1" HeaderStyle="width:3.8em;" CellStyle="text-align:right;">
+                <TemplateColumn Sortable="true" SortBy="@(x => x.Id)" HeaderClass="px-1" CellClass="py-1 pl-0 pr-1" HeaderStyle="width:3.8em;" CellStyle="text-align:right;">
                     <HeaderTemplate>
                         <MudTooltip Text="@($"着目中の{Book.TableLabel}へ")" Placement="Placement.Right" Arrow Duration="1000">
                             <MudLink Disabled="UiState.IsLocked" OnClick="ScrollToCurrent" Typo="Typo.inherit" Color="Color.Default" Underline="Underline.None">@(Book.Label [nameof (Book.Id)])</MudLink>
@@ -29,7 +29,7 @@
                         </MudStack>
                     </CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1" HeaderStyle="width:2em;" CellStyle="text-align: center;" Title="@(Book.Label [nameof (Book.Status)])">
+                <TemplateColumn Sortable="true" SortBy="@(x => x.Status)" HeaderClass="px-0" CellClass="py-1 pl-0 pr-1" HeaderStyle="width:2em;" CellStyle="text-align: center;" Title="@(Book.Label [nameof (Book.Status)])">
                     <CellTemplate>
                         <MudTooltip Style="text-align: left;" Arrow Duration="1000" Delay="500">
                             <TooltipContent>
@@ -48,29 +48,29 @@
                         </MudTooltip>
                     </CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" CellStyle="max-width: 18em; text-overflow: ellipsis;" Title="@(Book.Label [nameof (Book.Title)])">
+                <TemplateColumn Sortable="true" SortBy="@(x => x.Title)" HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" CellStyle="max-width: 18em; text-overflow: ellipsis;" Title="@(Book.Label [nameof (Book.Title)])">
                     <CellTemplate><span title="@(context.Item.Title)">@(context.Item.Title)</span></CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" CellStyle="max-width: 5em; text-overflow: ellipsis;" Title="@(Book.Label [nameof (Book.Author)])">
+                <TemplateColumn Sortable="true" SortBy="@(x => x.Author)" HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" CellStyle="max-width: 5em; text-overflow: ellipsis;" Title="@(Book.Label [nameof (Book.Author)])">
                     <CellTemplate>
                         @{ var author = context.Item.Author.Replace (' ', '\u2423'); }
                         <MudLink Disabled="UiState.IsLocked" OnClick="@(async () => await ChangeFilter (author, context.Item))" title="@($"「{author}」で絞り込み")" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Item.Author)</MudLink>
                     </CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" CellStyle="max-width: 8em; text-overflow: ellipsis;" Title="@(Book.Label [nameof (Book.SeriesTitle)])">
+                <TemplateColumn Sortable="true" SortBy="@(x => x.SeriesTitle)" HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 overflow-hidden text-nowrap" CellStyle="max-width: 8em; text-overflow: ellipsis;" Title="@(Book.Label [nameof (Book.SeriesTitle)])">
                     <CellTemplate>
                         @{ var series = context.Item.SeriesTitle.Replace (' ', '\u2423'); }
                         <MudLink Disabled="UiState.IsLocked" OnClick="@(async () => await ChangeFilter (series, context.Item))" title="@($"「{series}」で絞り込み")" Color="Color.Default" Typo="Typo.inherit" Underline="Underline.None">@(context.Item.SeriesTitle)</MudLink>
                     </CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 text-nowrap" HeaderStyle="width:2em;" CellStyle="text-align: center; max-width: 7em;" Title="@(Book.Label [nameof (Book.Site)])">
+                <TemplateColumn Sortable="true" SortBy="@(x => x.Site)" HeaderClass="px-0" CellClass="py-1 pl-0 pr-1 text-nowrap" HeaderStyle="width:2em;" CellStyle="text-align: center; max-width: 7em;" Title="@(Book.Label [nameof (Book.Site)])">
                     <CellTemplate>
                     <MudTooltip Text="@($"{Book.Label[nameof(Book.Site)]}を開く")" Arrow Duration="1000">
                         <MudChip Disabled="UiState.IsLocked" OnClick="@(async () => await OpenUrl (context.Item))" Target="_blank" T="string" Label="true" Size="Size.Small" Variant="Variant.Outlined" Class="mx-0">@(context.Item.Site)</MudChip>
                     </MudTooltip>
                     </CellTemplate>
                 </TemplateColumn>
-                <TemplateColumn HeaderClass="pr-0" CellClass="py-1 pr-4" HeaderStyle="width:2em;" CellStyle="text-align:center;" Title="@(Book.Label [nameof (Book.NumberOfSheets)])">
+                <TemplateColumn Sortable="true" SortBy="@(x => x.NumberOfSheets)" HeaderClass="pr-0" CellClass="py-1 pr-4" HeaderStyle="width:2em;" CellStyle="text-align:center;" Title="@(Book.Label [nameof (Book.NumberOfSheets)])">
                     <CellTemplate>
                         <MudTooltip Arrow Duration="1000" Delay="500">
                             <ChildContent>

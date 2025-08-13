@@ -109,7 +109,14 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     };
 
     /// <inheritdoc/>
-    public static string BaseSelectSql => @$"select `books`.*, count(`sheets`.`id`) as `number_of_related_sheets` from `books` left join `sheets` on `books`.`id`=`sheets`.`book_id` group by `id`;";
+    public static string BaseSelectSql => """
+        select `books`.*, count(`sheets`.`id`) as `number_of_related_sheets`
+            from `books`
+            left join `sheets` on `books`.`id`=`sheets`.`book_id`
+            group by `id`
+            order by `modified`
+            ;
+        """;
 
     /// <inheritdoc/>
     public static string UniqueKeysSql => "";
