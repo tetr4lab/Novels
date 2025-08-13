@@ -195,14 +195,11 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
     }
 
     /// <summary>リロードして元の位置へ戻る</summary>
-    protected virtual async Task ReloadAndFocus (long focusedId, bool editing = false) {
+    protected virtual async Task ReloadAndFocus (long focusedId) {
         await DataSet.LoadAsync ();
         var item = DataSet.GetList<T> ().Find (item => item.Id == focusedId);
         if (item is not null) {
             SelectedItem = item;
-        }
-        if (editing) {
-            StartEdit (force: true);
         }
         if (_dataGrid is not null) {
             await ScrollToCurrentAsync (focusedId: focusedId);

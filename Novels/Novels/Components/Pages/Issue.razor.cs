@@ -415,8 +415,8 @@ public partial class Issue : BookListBase {
     }
 
     /// <summary>çƒì«Ç›çûÇ›</summary>
-    protected override async Task ReloadAndFocus (long focusedId = 0L, bool editing = true) {
-        await base.ReloadAndFocus (focusedId != 0L ? focusedId : AppModeService.CurrentBookId, editing);
+    protected override async Task ReloadAndFocus (long focusedId = 0L) {
+        await base.ReloadAndFocus (focusedId != 0L ? focusedId : AppModeService.CurrentBookId);
         SetTitle ();
     }
 

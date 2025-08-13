@@ -11,59 +11,55 @@
     <MudProgressCircular Indeterminate="true" />
 } else if (items.Count > 0) {
     if (Book is not null) {
-        if (Sheet is not null) {
-            <NumberNavigationBar Disabled="UiState.IsLocked" Number="@(AppModeService.CurrentSheetIndex)" Min="1" Max="@(items.Count)" OnChangeNumber="OnChageSheetAsync" />
-            @if (!string.IsNullOrEmpty (Sheet.Preface)) {
-                <MudPaper Class="ma-4 pa-2" Elevation="1">
-                    <MudText Typo="Typo.caption">@((MarkupString) Sheet.Preface)</MudText>
-                </MudPaper>
-            }
-            <MudPaper Elevation="0">
-                <MudText Class="mt-2 mb-4"><h2>@(Sheet?.SheetTitle)</h2></MudText>
-                <MudText Typo="Typo.inherit">@((MarkupString) Sheet.SheetHonbun)</MudText>
+        <NumberNavigationBar Disabled="UiState.IsLocked" Number="@(AppModeService.CurrentSheetIndex)" Min="1" Max="@(items.Count)" OnChangeNumber="OnChageSheetAsync" />
+        @if (!string.IsNullOrEmpty (SelectedItem.Preface)) {
+            <MudPaper Class="ma-4 pa-2" Elevation="1">
+                <MudText Typo="Typo.caption">@((MarkupString) SelectedItem.Preface)</MudText>
             </MudPaper>
-            @if (!string.IsNullOrEmpty (Sheet.Afterword)) {
-                <MudPaper Class="ma-4 pa-2" Elevation="1">
-                    <MudText Typo="Typo.caption">@((MarkupString) Sheet.Afterword)</MudText>
-                </MudPaper>
-            }
-            <MudSimpleTable Elevation="0" Dense Bordered>
-                <thead>
-                    <tr>
-                        <th style="width: 10em;"></th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <MudTooltip Text="@($"この{Sheet.TableLabel}にのみ作用")" Arrow="true">
-                                @(Sheet.Label [nameof (Sheet.Errata)])
-                            </MudTooltip>
-                        </td>
-                        <td><MudTextField T="string" Placeholder="@($"error1{Sheet.Separator}correct1{Sheet.Terminator}error2{Sheet.Separator}correct2{Sheet.Terminator}  :")" @bind-Value="Sheet.Errata" Lines="3" AutoGrow /></td>
-                    </tr>
-                    <tr>
-                        <td>@(Sheet.Label [nameof (Sheet.Remarks)])</td>
-                        <td><MudTextField T="string" @bind-Value="Sheet.Remarks" Lines="1" AutoGrow /></td>
-                    </tr>
-                </tbody>
-            </MudSimpleTable>
-            <MudStack Row Class="mt-5 justify-center">
-                <MudTooltip Arrow="true" Text="復旧">
-                    <MudIconButton Disabled="UiState.IsLocked || !IsDirty" OnClick="RevertAsync" Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" />
-                </MudTooltip>
-                <MudTooltip Arrow="true" Text="保存">
-                    <MudIconButton Disabled="UiState.IsLocked || !IsDirty" OnClick="SaveAsync" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
-                </MudTooltip>
-            </MudStack>
-            <NumberNavigationBar Number="@(AppModeService.CurrentSheetIndex)" Min="1" Max="@(items.Count)" OnChangeNumber="OnChageSheetAsync" />
-            <MudScrollToTop TopOffset="1000">
-                <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowCircleUp" />
-            </MudScrollToTop>
-        } else {
-            <MudText>No page found.</MudText>
         }
+        <MudPaper Elevation="0">
+            <MudText Class="mt-2 mb-4"><h2>@(SelectedItem.SheetTitle)</h2></MudText>
+            <MudText Typo="Typo.inherit">@((MarkupString) SelectedItem.SheetHonbun)</MudText>
+        </MudPaper>
+        @if (!string.IsNullOrEmpty (SelectedItem.Afterword)) {
+            <MudPaper Class="ma-4 pa-2" Elevation="1">
+                <MudText Typo="Typo.caption">@((MarkupString) SelectedItem.Afterword)</MudText>
+            </MudPaper>
+        }
+        <MudSimpleTable Elevation="0" Dense Bordered>
+            <thead>
+                <tr>
+                    <th style="width: 10em;"></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <MudTooltip Text="@($"この{Sheet.TableLabel}にのみ作用")" Arrow="true">
+                            @(Sheet.Label [nameof (SelectedItem.Errata)])
+                        </MudTooltip>
+                    </td>
+                    <td><MudTextField T="string" Placeholder="@($"error1{Sheet.Separator}correct1{Sheet.Terminator}error2{Sheet.Separator}correct2{Sheet.Terminator}  :")" @bind-Value="SelectedItem.Errata" Lines="3" AutoGrow /></td>
+                </tr>
+                <tr>
+                    <td>@(Sheet.Label [nameof (SelectedItem.Remarks)])</td>
+                    <td><MudTextField T="string" @bind-Value="SelectedItem.Remarks" Lines="1" AutoGrow /></td>
+                </tr>
+            </tbody>
+        </MudSimpleTable>
+        <MudStack Row Class="mt-5 justify-center">
+            <MudTooltip Arrow="true" Text="復旧">
+                <MudIconButton Disabled="UiState.IsLocked || !IsDirty" OnClick="RevertAsync" Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" />
+            </MudTooltip>
+            <MudTooltip Arrow="true" Text="保存">
+                <MudIconButton Disabled="UiState.IsLocked || !IsDirty" OnClick="SaveAsync" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
+            </MudTooltip>
+        </MudStack>
+        <NumberNavigationBar Number="@(AppModeService.CurrentSheetIndex)" Min="1" Max="@(items.Count)" OnChangeNumber="OnChageSheetAsync" />
+        <MudScrollToTop TopOffset="1000">
+            <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowCircleUp" />
+        </MudScrollToTop>
     } else {
         <MudText>No books found.</MudText>
     }
@@ -79,9 +75,6 @@
 }
 
 @code {
-    /// <summary>着目中のシート</summary>
-    protected Sheet? Sheet { get; set; } = null;
-
     /// <summary>シート番号に依存した設定</summary>
     protected async Task SetSheetAsync (int index) {
         if (Book is not null) {
@@ -92,9 +85,8 @@
                 Cancel ();
             }
             if (Book.Sheets.Count > 0) {
-                Sheet = Book.Sheets [index - 1];
-                SelectedItem = Sheet;
-                AppModeService.SetSectionTitle ($"<span style=\"font-size:80%;\"><a href=\"{Sheet.Url}\" target=\"_blank\" style=\"text-decoration: none;\">『{Book.Title}』 {Book.Author}</a></span>\n{Sheet.OriginalChapterTitle} {Sheet.ChapterSubTitle}");
+                SelectedItem = Book.Sheets [index - 1];
+                AppModeService.SetSectionTitle ($"<span style=\"font-size:80%;\"><a href=\"{SelectedItem.Url}\" target=\"_blank\" style=\"text-decoration: none;\">『{Book.Title}』 {Book.Author}</a></span>\n{SelectedItem.OriginalChapterTitle} {SelectedItem.ChapterSubTitle}");
                 StartEdit ();
             }
             await SetIdleAsync ();
