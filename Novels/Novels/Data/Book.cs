@@ -106,6 +106,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         { nameof (Bookmark), "栞" },
         { nameof (CoverUrls), "表紙画像" },
         { nameof (CoverImage), "表紙画像" },
+        { nameof (Explanation), "概要" },
     };
 
     /// <inheritdoc/>
@@ -434,7 +435,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                         explanation = Document.QuerySelector ("p#introduction")?.InnerHtml ?? "";
                         break;
                     case Site.Novelup:
-                        explanation = (Document.QuerySelector ("div.novel_synopsis")?.InnerHtml ?? "");
+                        explanation = (Document.QuerySelector ("div.novel_synopsis")?.InnerHtml?.Trim ().Replace ("\n", "<br/>") ?? "");
                         break;
                     case Site.Dyreitou:
                         explanation = "";

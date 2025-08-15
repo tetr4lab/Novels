@@ -63,6 +63,12 @@
                     <td colspan="2">@SelectedItem.Author</td>
                 </tr>
                 <tr>
+                    <td>@(Book.Label [nameof (Book.Explanation)])</td>
+                    <td colspan="2">
+                        <MudText Typo="Typo.body2" Style="max-height: 16em; overflow: auto;">@((MarkupString) SelectedItem.Explanation)</MudText>
+                    </td>
+                </tr>
+                <tr>
                     <td>
                         <MudStack Row Spacing="1" Class="align-center">
                             @(Book.Label [nameof (Book.Url1)])
