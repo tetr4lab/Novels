@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using AngleSharp.Html.Parser;
 using MailKit.Net.Smtp;
 using MailKit.Security;
@@ -28,6 +29,11 @@ public partial class Issue : BookListBase {
         var tmp = SelectedItem.Url1;
         SelectedItem.Url1 = SelectedItem.Url2;
         SelectedItem.Url2 = tmp;
+        await ValidateUrls ();
+    }
+
+    /// <summary>URL‚ÌŒŸØ</summary>
+    protected async Task ValidateUrls () {
         if (_url1 is not null) {
             await _url1.FocusAsync ();
             await _url1.BlurAsync ();
@@ -432,6 +438,12 @@ public partial class Issue : BookListBase {
             StartEdit (true);
         }
         return result;
+    }
+
+    /// <summary>•ÒWæÁ</summary>
+    protected override async void Cancel () {
+        base.Cancel ();
+        await ValidateUrls ();
     }
 
     /// <summary>Ä“Ç‚İ‚İ</summary>
