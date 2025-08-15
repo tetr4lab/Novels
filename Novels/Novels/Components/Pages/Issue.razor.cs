@@ -17,6 +17,26 @@ using Tetr4lab;
 namespace Novels.Components.Pages;
 
 public partial class Issue : BookListBase {
+    /// <summary>URL1フィールド</summary>
+    protected MudTextField<string>? _url1 = default;
+
+    /// <summary>URL2フィールド</summary>
+    protected MudTextField<string>? _url2 = default;
+
+    /// <summary>URLの入れ替え</summary>
+    protected async Task ExchangeUrls () {
+        var tmp = SelectedItem.Url1;
+        SelectedItem.Url1 = SelectedItem.Url2;
+        SelectedItem.Url2 = tmp;
+        if (_url1 is not null) {
+            await _url1.FocusAsync ();
+            await _url1.BlurAsync ();
+        }
+        if (_url2 is not null) {
+            await _url2.FocusAsync ();
+            await _url2.BlurAsync ();
+        }
+    }
 
     /// <summary>URI入力の検証</summary>
     protected string ValidateUri (string uri) => uri != "" && IsInvalidUri (uri) ? "bad uri" : "";

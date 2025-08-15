@@ -70,7 +70,7 @@
                             <MudIconButton Disabled="@(UiState.IsLocked || IsInvalidUri (SelectedItem.Url1))" OnClick="@(async () => await JSRuntime.OpenUrl (SelectedItem.Url1))" Icon="@Icons.Material.Filled.Link" />
                         </MudStack>
                     </td>
-                    <td><MudTextField T="string" @bind-Value="SelectedItem.Url1" Validation="(Func<string, string>) ValidateUri" Required /></td>
+                    <td><MudTextField T="string" @bind-Value="SelectedItem.Url1" Validation="(Func<string, string>) ValidateUri" Required @ref="_url1" /></td>
                     <td rowspan="7" width="420" style="border-left: rgb(224,224,224) 1px solid; border-bottom: 0px none;">
                         @{ var label = Book.Label [nameof (Book.CoverImage)]; }
                         <MudTooltip Disabled="SelectedItem.CoverImage is null && SelectedItem.CoverUrls.Count < 1" Arrow Duration="1000">
@@ -127,12 +127,12 @@
                     <td>
                         <MudStack Row Spacing="1" Class="align-center">
                             @(Book.Label [nameof (Book.Url2)])
-                            <MudIconButton Disabled="@(UiState.IsLocked || string.IsNullOrEmpty (SelectedItem.Url1) || string.IsNullOrEmpty (SelectedItem.Url2))" OnClick="@(() => { var tmp = SelectedItem.Url1; SelectedItem.Url1 = SelectedItem.Url2; SelectedItem.Url2 = tmp;  })" Icon="@Icons.Material.Filled.SwapVert" />
+                            <MudIconButton Disabled="@(UiState.IsLocked || IsInvalidUri (SelectedItem.Url2))" OnClick="ExchangeUrls" Icon="@Icons.Material.Filled.SwapVert" />
                             <MudSpacer />
                             <MudIconButton Disabled="@(UiState.IsLocked || IsInvalidUri (SelectedItem.Url2))" OnClick="@(async () => await JSRuntime.OpenUrl (SelectedItem.Url2))" Icon="@Icons.Material.Filled.Link" />
                         </MudStack>
                     </td>
-                    <td><MudTextField T="string" @bind-Value="SelectedItem.Url2" Validation="(Func<string, string>) ValidateUri" /></td>
+                    <td><MudTextField T="string" @bind-Value="SelectedItem.Url2" Validation="(Func<string, string>) ValidateUri" @ref="_url2" /></td>
                 </tr>
                 <tr>
                     <td>@(Book.Label [nameof (Book.Status)])</td>
