@@ -68,9 +68,13 @@ namespace QuickEPUB {
                     "image/svg+xml" => EpubResourceType.SVG,
                     _ => EpubResourceType.JPEG,
                 };
-                var fileName = $"img_{Guid.NewGuid ().ToString ("N")}.{resourceType.ToString ().ToLower ()}"; // ユニークな名前を生成
+                // uriから名前を生成 (同じuriなら必ず同じ名前になるが衝突の可能性もある)
+                var fileName = $"img_{imageUri.AbsolutePath.GetHashCode ()}.{resourceType.ToString ().ToLower ()}";
                 using (var stream = await response.Content.ReadAsStreamAsync ()) {
-                    doc.AddResource (fileName, resourceType, stream, isCover);
+                    // 既に登録されているuriなら多重に登録しない
+                    if (doc.Resources.FirstOrDefault (x => x.OutputPath == fileName) == default) {
+                        doc.AddResource (fileName, resourceType, stream, isCover);
+                    }
                 }
                 return fileName;
             }
