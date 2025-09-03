@@ -115,7 +115,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
             from `books`
             left join `sheets` on `books`.`id`=`sheets`.`book_id`
             group by `id`
-            order by `modified`
+            order by `read` desc, `modified`
             ;
         """;
 
