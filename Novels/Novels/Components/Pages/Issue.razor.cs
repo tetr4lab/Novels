@@ -18,6 +18,9 @@ using Tetr4lab;
 namespace Novels.Components.Pages;
 
 public partial class Issue : BookListBase {
+    /// <summary>書籍更新キュー</summary>
+    [Inject] UpdateBookQueueService UpdateBookQueue { get; set; } = default!;
+
     /// <summary>URL1フィールド</summary>
     protected MudTextField<string>? _url1 = default;
 
@@ -153,29 +156,33 @@ public partial class Issue : BookListBase {
     }
 
     /// <summary>取得と更新の確認</summary>
-    protected async Task<bool> ConfirmUpdateBookAsync (MouseEventArgs eventArgs) {
+    protected async Task ConfirmUpdateBookAsync (MouseEventArgs eventArgs) {
         if (!IsDirty) {
             await SetBusyAsync ();
             var withSheets = !eventArgs.CtrlKey;
             var fullUpdate = eventArgs.ShiftKey || SelectedItem.IsEmpty;
             var operation = SelectedItem.IsEmpty ? "取得" : $"{(withSheets && fullUpdate ? "完全" : "")}更新";
             var target = $"{Book.TableLabel}{(withSheets ? $"と{Sheet.TableLabel}" : "のみ")}";
+            if (withSheets && UpdateBookQueue.Contains (SelectedItem.Id)) {
+                Snackbar.Add ($"{target}は既に予約されています。", Severity.Error);
+                return;
+            }
             var dialogResult = await DialogService.Confirmation ([$"『{SelectedItem.Title}』の{target}を{SelectedItem.Site}から{operation}します。", withSheets ? $"{Book.TableLabel}と{(fullUpdate? "全ての" : "新しい")}{Sheet.TableLabel}を更新します。" : $"{Book.TableLabel}のみを更新し、{Sheet.TableLabel}は更新しません。"], title: $"{target}の{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: withSheets ? Color.Success : Color.Primary, acceptionIcon: Icons.Material.Filled.Download, onOpend: SetIdleAsync);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 // オーバーレイ
                 await SetBusyAsync ();
                 Snackbar.Add ($"{target}の{operation}を開始しました。", Severity.Normal);
-                if (await UpdateBookFromSiteAsync (withSheets, fullUpdate)) {
+                if (withSheets) {
+                    await UpdateBookQueue.EnqueueAsync (new UpdateBookTask { Id = SelectedItem.Id, FullUpdate = fullUpdate, });
+                    Snackbar.Add ($"{target}を{operation}するように予約しました。", Severity.Normal);
+                } else if (await UpdateBookFromSiteAsync (withSheets, fullUpdate)) {
                     Snackbar.Add ($"{target}を{operation}しました。", Severity.Normal);
                 } else {
                     Snackbar.Add ($"{target}の{operation}に失敗しました。", Severity.Error);
                 }
                 await SetIdleAsync ();
-            } else {
-                return false;
             }
         }
-        return true;
     }
 
     /// <summary>発行の確認</summary>
@@ -253,6 +260,7 @@ public partial class Issue : BookListBase {
                 } else {
                     UiState.UpdateProgress (value);
                 }
+                return false; // not cancel
             });
         foreach (var issue in result.Value.issues) {
             Snackbar.Add (issue, Severity.Error);

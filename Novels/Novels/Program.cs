@@ -70,6 +70,10 @@ builder.Services.AddHttpClient ();
 // DataSet
 builder.Services.AddScoped<NovelsDataSet> ();
 
+// 書籍更新サービス
+builder.Services.AddSingleton<UpdateBookQueueService> ();
+builder.Services.AddHostedService<UpdateBookService> ();
+
 var app = builder.Build ();
 
 // Application level Culture

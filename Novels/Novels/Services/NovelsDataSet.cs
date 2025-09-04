@@ -182,6 +182,19 @@ public sealed class NovelsDataSet : MySqlDataSet {
         return result;
     }
 
+    /// <summary>既存書籍の更新</summary>
+    /// <param name="client">HTTPクライアント</param>
+    /// <param name="bookId">対象の書籍のId</param>
+    /// <param name="userIdentifier">ユーザ識別子</param>
+    /// <param name="withSheets">シートを含めるか</param>
+    /// <param name="fullUpdate"></param>
+    /// <param name="progress"></param>
+    /// <returns>書籍と問題のリスト</returns>
+    public async Task<Result<(Book book, List<string> issues)>> UpdateBookFromSiteAsync (HttpClient client, long bookId, string userIdentifier, bool withSheets = false, bool fullUpdate = false, Func<int, int, bool>? progress = null) {
+        var url = GetItemById<Book> (bookId)?.Url ?? throw new KeyNotFoundException ($"book id:{bookId} not found.");
+        return await UpdateBookFromSiteAsync (client, url, userIdentifier, withSheets, fullUpdate, progress);
+    }
+
     /// <summary>書籍の更新</summary>
     /// <param name="client">HTTPクライアント</param>
     /// <param name="url">対象の書籍のURL</param>
@@ -190,7 +203,7 @@ public sealed class NovelsDataSet : MySqlDataSet {
     /// <param name="fullUpdate"></param>
     /// <param name="progress"></param>
     /// <returns>書籍と問題のリスト</returns>
-    public async Task<Result<(Book book, List<string> issues)>> UpdateBookFromSiteAsync (HttpClient client, string url, string userIdentifier, bool withSheets = false, bool fullUpdate = false, Action<int, int>? progress = null) {
+    public async Task<Result<(Book book, List<string> issues)>> UpdateBookFromSiteAsync (HttpClient client, string url, string userIdentifier, bool withSheets = false, bool fullUpdate = false, Func<int, int, bool>? progress = null) {
         var issues = new List<string> ();
         var status = Status.Unknown;
         if (Valid) {
@@ -239,7 +252,7 @@ public sealed class NovelsDataSet : MySqlDataSet {
                         }
                         /// シート
                         if (withSheets && (book.Id == 0 || CurrentBookId == book.Id)) {
-                            progress?.Invoke (0, book.NumberOfSheets);
+                            if (progress?.Invoke (0, book.NumberOfSheets) == true) { throw new OperationCanceledException (); }
                             status = Status.Unknown;
                             for (var index = 0; index < book.SheetUrls.Count; index++) {
                                 string sheetUrl = book.SheetUrls [index];
@@ -281,7 +294,7 @@ public sealed class NovelsDataSet : MySqlDataSet {
                                         issues.Add ($"Failed to get: {sheetUrl} {message.StatusCode} {message.ReasonPhrase}");
                                     }
                                 }
-                                progress?.Invoke (index, book.NumberOfSheets);
+                                if (progress?.Invoke (index, book.NumberOfSheets) == true) { throw new OperationCanceledException (); }
                             }
                             status = issues.Count > 0 ? Status.Unknown : Status.Success;
                         }
