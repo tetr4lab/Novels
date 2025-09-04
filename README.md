@@ -19,7 +19,7 @@ Web小説を取得し、EPUBを生成して、Kindleパーソナルドキュメ�
 - .NET 8.0
   - Microsoft.AspNetCore.Authentication.Google 8.0.18
   - Microsoft.AspNetCore.Authorization 8.0.18
-- MudBlazor 8.10.0
+- MudBlazor 8.12.0
 - PetaPoco 6.0.683
 - MySqlConnector 2.4.0
 - [AngleSharp](https://github.com/AngleSharp/AngleSharp) 1.3.0
