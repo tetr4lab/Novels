@@ -26,7 +26,7 @@
                             @if (SelectedItem.IssuedAt is not null) {
                                 <MudChip T="string" Variant="Variant.Outlined" Class="my-0" Size="Size.Small">
                                     @(Book.Label [nameof (Book.IssuedAt)]): @(SelectedItem.IssuedAt.Value.ToString ("yyyy/MM/dd HH:mm"))
-                                    <MudIconButton Disabled="UiState.IsLocked" OnClick="ConfirmUnIssueBookAsync" Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
+                                    <MudIconButton Disabled="UiState.IsLocked || IsLocked" OnClick="ConfirmUnIssueBookAsync" Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
                                 </MudChip>
                             }
                             <MudSpacer />
@@ -73,10 +73,10 @@
                         <MudStack Row Spacing="1" Class="align-center">
                             @(Book.Label [nameof (Book.Url1)])
                             <MudSpacer />
-                            <MudIconButton Disabled="@(UiState.IsLocked || IsInvalidUri (SelectedItem.Url1))" OnClick="@(async () => await JSRuntime.OpenUrl (SelectedItem.Url1))" Icon="@Icons.Material.Filled.Link" />
+                            <MudIconButton Disabled="@(UiState.IsLocked || IsLocked || IsInvalidUri (SelectedItem.Url1))" OnClick="@(async () => await JSRuntime.OpenUrl (SelectedItem.Url1))" Icon="@Icons.Material.Filled.Link" />
                         </MudStack>
                     </td>
-                    <td><MudTextField T="string" @bind-Value="SelectedItem.Url1" Validation="(Func<string, string>) ValidateUri" Required @ref="_url1" /></td>
+                    <td><MudTextField T="string" Disabled="UiState.IsLocked || IsLocked" @bind-Value="SelectedItem.Url1" Validation="(Func<string, string>) ValidateUri" Required @ref="_url1" /></td>
                     <td rowspan="7" width="420" style="border-left: rgb(224,224,224) 1px solid; border-bottom: 0px none;">
                         @{ var label = Book.Label [nameof (Book.CoverImage)]; }
                         <MudTooltip Disabled="SelectedItem.CoverImage is null && SelectedItem.CoverUrls.Count < 1" Arrow Duration="1000">
@@ -85,6 +85,7 @@
                             </TooltipContent>
                             <ChildContent>
                                 <MudFileUpload T="IBrowserFile" Accept=".jpg,.jpeg,.png,.gif,.svg,.webp" title="" @ref="@_fileUpload"
+                                    Disabled="UiState.IsLocked || IsLocked" 
                                     Hidden="@false" OnFilesChanged="OnInputFileChanged"
                                     @ondrop="@ClearDropArea" @ondragenter="@OnHover" @ondragleave="@ClearDropArea" @ondragend="@ClearDropArea"
                                     InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10" InputStyle="opacity: 0;">
@@ -112,7 +113,7 @@
                             @if (SelectedItem.CoverImage is not null) {
                                 <MudSpacer />
                                 <MudTooltip Text="@($"{label}を削除")" Arrow Duration="1000">
-                                    <MudIconButton OnClick="DeleteFile" Icon="@Icons.Material.Filled.DeleteForever" Size="Size.Large" />
+                                    <MudIconButton Disabled="UiState.IsLocked || IsLocked" OnClick="DeleteFile" Icon="@Icons.Material.Filled.DeleteForever" Size="Size.Large" />
                                 </MudTooltip>
                                 <MudSpacer />
                             } else if (SelectedItem.CoverUrls.Count > 0) {
@@ -120,7 +121,7 @@
                                 <MudSpacer />
                                 @if (SelectedItem.CoverSelection is not null) {
                                     <MudTooltip Text="@($"{label}としてダウンロード")" Arrow Duration="1000">
-                                        <MudIconButton OnClick="DownloadCoverAsync" Icon="@Icons.Material.Filled.SaveAlt" Size="Size.Medium" />
+                                        <MudIconButton Disabled="UiState.IsLocked || IsLocked" OnClick="DownloadCoverAsync" Icon="@Icons.Material.Filled.SaveAlt" Size="Size.Medium" />
                                     </MudTooltip>
                                     <MudSpacer />
                                 }
@@ -133,18 +134,18 @@
                     <td>
                         <MudStack Row Spacing="1" Class="align-center">
                             @(Book.Label [nameof (Book.Url2)])
-                            <MudIconButton Disabled="@(UiState.IsLocked || IsInvalidUri (SelectedItem.Url2))" OnClick="ExchangeUrls" Icon="@Icons.Material.Filled.SwapVert" />
+                            <MudIconButton Disabled="@(UiState.IsLocked || IsLocked || IsInvalidUri (SelectedItem.Url2))" OnClick="ExchangeUrls" Icon="@Icons.Material.Filled.SwapVert" />
                             <MudSpacer />
-                            <MudIconButton Disabled="@(UiState.IsLocked || IsInvalidUri (SelectedItem.Url2))" OnClick="@(async () => await JSRuntime.OpenUrl (SelectedItem.Url2))" Icon="@Icons.Material.Filled.Link" />
+                            <MudIconButton Disabled="@(UiState.IsLocked || IsLocked || IsInvalidUri (SelectedItem.Url2))" OnClick="@(async () => await JSRuntime.OpenUrl (SelectedItem.Url2))" Icon="@Icons.Material.Filled.Link" />
                         </MudStack>
                     </td>
-                    <td><MudTextField T="string" @bind-Value="SelectedItem.Url2" Validation="(Func<string, string>) ValidateUri" @ref="_url2" /></td>
+                    <td><MudTextField T="string" Disabled="UiState.IsLocked || IsLocked" @bind-Value="SelectedItem.Url2" Validation="(Func<string, string>) ValidateUri" @ref="_url2" /></td>
                 </tr>
                 <tr>
                     <td>@(Book.Label [nameof (Book.Status)])</td>
                     <td>
                         <MudStack Row Spacing="5" Class="align-center">
-                            <MudSelect @bind-Value="SelectedItem.Status" Typo="Typo.inherit" AdornmentIcon="@Icons.Material.Filled.ArrowDropDown" AdornmentColor="SelectedItem.StatusBgColor" Dense FitContent>
+                            <MudSelect Disabled="UiState.IsLocked || IsLocked" @bind-Value="SelectedItem.Status" Typo="Typo.inherit" AdornmentIcon="@Icons.Material.Filled.ArrowDropDown" AdornmentColor="SelectedItem.StatusBgColor" Dense FitContent>
                                 @foreach (BookStatus status in Enum.GetValues (typeof (BookStatus))) {
                                     <MudSelectItem T="BookStatus" Value="@status">@(status.ToJString ())</MudSelectItem>
                                 }
@@ -158,8 +159,8 @@
                     <td>@(Book.Label [nameof (Book.Readed)])</td>
                     <td>
                         <MudStack Row Spacing="1" Class="align-center">
-                            <MudCheckBox @bind-Value="SelectedItem.Readed" />
-                            <MudTextField Placeholder="@(Book.Label [nameof (Book.ReadedMemo)])" T="string" @bind-Value="SelectedItem.ReadedMemo" />
+                            <MudCheckBox Disabled="UiState.IsLocked || IsLocked" @bind-Value="SelectedItem.Readed" />
+                            <MudTextField T="string" Disabled="UiState.IsLocked || IsLocked" @bind-Value="SelectedItem.ReadedMemo" Placeholder="@(Book.Label [nameof (Book.ReadedMemo)])" />
                         </MudStack>
                     </td>
                 </tr>
@@ -167,7 +168,7 @@
                     <td>@(Book.Label [nameof (Book.Wish)])</td>
                     <td>
                         <MudStack Row Spacing="1" Class="align-center">
-                            <MudCheckBox @bind-Value="SelectedItem.Wish" />
+                            <MudCheckBox Disabled="UiState.IsLocked || IsLocked" @bind-Value="SelectedItem.Wish" />
                             <MudSpacer />
                         </MudStack>
                     </td>
@@ -178,11 +179,11 @@
                             @(Book.Label [nameof (Book.Errata)])
                         </MudTooltip>
                     </td>
-                    <td><MudTextField T="string" Placeholder="@($"error1{Book.Separator}correct1{Book.Terminator}error2{Book.Separator}correct2{Book.Terminator}  :")" @bind-Value="SelectedItem.Errata" Lines="9" /></td>
+                    <td><MudTextField T="string" Disabled="UiState.IsLocked || IsLocked" Placeholder="@($"error1{Book.Separator}correct1{Book.Terminator}error2{Book.Separator}correct2{Book.Terminator}  :")" @bind-Value="SelectedItem.Errata" Lines="9" /></td>
                 </tr>
                 <tr>
                     <td>@(Book.Label [nameof (Book.Remarks)])</td>
-                    <td><MudTextField T="string" @bind-Value="SelectedItem.Remarks" Lines="9" /></td>
+                    <td><MudTextField T="string" Disabled="UiState.IsLocked || IsLocked" @bind-Value="SelectedItem.Remarks" Lines="9" /></td>
                 </tr>
             </tbody>
         </MudSimpleTable>
@@ -195,7 +196,7 @@
                     <span style="writing-mode: vertical-rl;">で@(Sheet.TableLabel)を含めない）</span>
                 </TooltipContent>
                 <ChildContent>
-                    <MudIconButton Disabled="@(UiState.IsLocked || IsDirty || SelectedItem.Status == BookStatus.Disappeared)" OnClick="ConfirmUpdateBookAsync" Color="Color.Primary" Icon="@(SelectedItem.IsEmpty? Icons.Material.Filled.Download : Icons.Material.Filled.Refresh)" Variant="Variant.Outlined" Size="Size.Large" />
+                    <MudIconButton Disabled="@(UiState.IsLocked || IsLocked || IsDirty || SelectedItem.Status == BookStatus.Disappeared)" OnClick="ConfirmUpdateBookAsync" Color="Color.Primary" Icon="@(SelectedItem.IsEmpty? Icons.Material.Filled.Download : Icons.Material.Filled.Refresh)" Variant="Variant.Outlined" Size="Size.Large" />
                 </ChildContent>
             </MudTooltip>
             <MudTooltip Arrow="true">
@@ -210,20 +211,20 @@
                     }
                 </TooltipContent>
                 <ChildContent>
-                    <MudIconButton Disabled="UiState.IsLocked || SelectedItem.IsEmpty || SelectedItem.IsUpToDateWithIssued || IsDirty" OnClick="ConfirmIssueBookAsync" Color="Color.Tertiary" Icon="@Icons.Material.Filled.Publish" Variant="Variant.Outlined" Size="Size.Large" />
+                    <MudIconButton Disabled="UiState.IsLocked || IsLocked || SelectedItem.IsEmpty || SelectedItem.IsUpToDateWithIssued || IsDirty" OnClick="ConfirmIssueBookAsync" Color="Color.Tertiary" Icon="@Icons.Material.Filled.Publish" Variant="Variant.Outlined" Size="Size.Large" />
                 </ChildContent>
             </MudTooltip>
             <MudSpacer />
             <MudTooltip Arrow="true" Text="復旧">
-                <MudIconButton Disabled="UiState.IsLocked || !IsDirty" OnClick="RevertAsync" Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" />
+                <MudIconButton Disabled="UiState.IsLocked || IsLocked || !IsDirty" OnClick="RevertAsync" Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" />
             </MudTooltip>
             <MudTooltip Arrow="true" Text="保存">
-                <MudIconButton Disabled="UiState.IsLocked || !IsDirty || !NovelsDataSet.EntityIsValid (SelectedItem)" OnClick="SaveAsync" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
+                <MudIconButton Disabled="UiState.IsLocked || IsLocked || !IsDirty || !NovelsDataSet.EntityIsValid (SelectedItem)" OnClick="SaveAsync" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
             </MudTooltip>
             <MudSpacer />
             @if (SelectedItem.NumberOfBrokenLinks > 0 && SelectedItem.Status != BookStatus.Disappeared) {
                 <MudTooltip Arrow="true" Text="リンク切れシートの削除">
-                    <MudIconButton Disabled="UiState.IsLocked || IsDirty" OnClick="DeleteBrokenLinkedSheets" Color="Color.Warning" Icon="@Icons.Material.Filled.LinkOff" Variant="Variant.Outlined" Size="Size.Large" />
+                    <MudIconButton Disabled="UiState.IsLocked || IsLocked || IsDirty" OnClick="DeleteBrokenLinkedSheets" Color="Color.Warning" Icon="@Icons.Material.Filled.LinkOff" Variant="Variant.Outlined" Size="Size.Large" />
                 </MudTooltip>
             }
             <MudTooltip Arrow="true">
@@ -234,7 +235,7 @@
                     <span style="writing-mode: vertical-rl;">で@(Sheet.TableLabel)のみ）</span>
                 </TooltipContent>
                 <ChildContent>
-                    <MudIconButton Disabled="UiState.IsLocked || IsDirty" OnClick="DeleteBook" Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Variant="Variant.Outlined" Size="Size.Large" />
+                    <MudIconButton Disabled="UiState.IsLocked || IsLocked || IsDirty" OnClick="DeleteBook" Color="Color.Error" Icon="@Icons.Material.Filled.Delete" Variant="Variant.Outlined" Size="Size.Large" />
                 </ChildContent>
             </MudTooltip>
         </MudStack>

@@ -18,9 +18,6 @@ using Tetr4lab;
 namespace Novels.Components.Pages;
 
 public partial class Issue : BookListBase {
-    /// <summary>書籍更新キュー</summary>
-    [Inject] UpdateBookQueueService UpdateBookQueue { get; set; } = default!;
-
     /// <summary>URL1フィールド</summary>
     protected MudTextField<string>? _url1 = default;
 

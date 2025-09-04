@@ -24,7 +24,11 @@
                             <MudIcon Icon="@(context.Item.Id == AppModeService.CurrentBookId ? Icons.Material.Filled.DoubleArrow : null)" />
                             <MudSpacer />
                             @(context.Item.Id)
-                            <MudIconButton Disabled="UiState.IsLocked" OnClick="@(async () => await IsshueBook (context.Item))" Style="margin-left: 2px;" Icon="@(context.Item.IsEmpty ? Icons.Material.Filled.Download : context.Item.IsUpdatable && !context.Item.IsErrorForNumberOfSheets ? Icons.Material.Filled.Refresh : context.Item.IsUpToDateWithIssued && !context.Item.IsIssuable ? Icons.Material.Filled.Sync : Icons.Material.Filled.Publish)" Size="Size.Small" />
+                            @if (UpdateBookQueue.Contains (context.Item.Id)) {
+                                <MudProgressCircular Color="Color.Warning" Class="ml-2 mr-1" Style="height:16px; width:16px;" Indeterminate="true" />
+                            } else {
+                                <MudIconButton Disabled="UiState.IsLocked" OnClick="@(async () => await IsshueBook (context.Item))" Style="margin-left: 2px;" Icon="@(context.Item.IsEmpty ? Icons.Material.Filled.Download : context.Item.IsUpdatable && !context.Item.IsErrorForNumberOfSheets ? Icons.Material.Filled.Refresh : context.Item.IsUpToDateWithIssued && !context.Item.IsIssuable ? Icons.Material.Filled.Sync : Icons.Material.Filled.Publish)" Size="Size.Small" />
+                            }
                             <MudIconButton Disabled="UiState.IsLocked" OnClick="@(async () => await OpenBook (context.Item))" Style="margin-right: -6px;" Icon="@Icons.Material.Filled.ViewHeadline" Size="Size.Small" />
                         </MudStack>
                     </CellTemplate>

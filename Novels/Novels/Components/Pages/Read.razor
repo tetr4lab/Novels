@@ -40,20 +40,20 @@
                             @(Sheet.Label [nameof (SelectedItem.Errata)])
                         </MudTooltip>
                     </td>
-                    <td><MudTextField T="string" Placeholder="@($"error1{Sheet.Separator}correct1{Sheet.Terminator}error2{Sheet.Separator}correct2{Sheet.Terminator}  :")" @bind-Value="SelectedItem.Errata" Lines="3" AutoGrow /></td>
+                    <td><MudTextField T="string" Disabled="UiState.IsLocked || IsLocked" Placeholder="@($"error1{Sheet.Separator}correct1{Sheet.Terminator}error2{Sheet.Separator}correct2{Sheet.Terminator}  :")" @bind-Value="SelectedItem.Errata" Lines="3" AutoGrow /></td>
                 </tr>
                 <tr>
                     <td>@(Sheet.Label [nameof (SelectedItem.Remarks)])</td>
-                    <td><MudTextField T="string" @bind-Value="SelectedItem.Remarks" Lines="1" AutoGrow /></td>
+                    <td><MudTextField T="string" Disabled="UiState.IsLocked || IsLocked" @bind-Value="SelectedItem.Remarks" Lines="1" AutoGrow /></td>
                 </tr>
             </tbody>
         </MudSimpleTable>
         <MudStack Row Class="mt-5 justify-center">
             <MudTooltip Arrow="true" Text="復旧">
-                <MudIconButton Disabled="UiState.IsLocked || !IsDirty" OnClick="RevertAsync" Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" />
+                <MudIconButton Disabled="UiState.IsLocked || IsLocked || !IsDirty" OnClick="RevertAsync" Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" />
             </MudTooltip>
             <MudTooltip Arrow="true" Text="保存">
-                <MudIconButton Disabled="UiState.IsLocked || !IsDirty" OnClick="SaveAsync" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
+                <MudIconButton Disabled="UiState.IsLocked || IsLocked || !IsDirty" OnClick="SaveAsync" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
             </MudTooltip>
         </MudStack>
         <NumberNavigationBar Number="@(AppModeService.CurrentSheetIndex)" Min="1" Max="@(items.Count)" OnChangeNumber="OnChageSheetAsync" />
