@@ -34,7 +34,6 @@ public class UpdateBookService : IHostedService {
                             await Task.Delay (16);
                         }
                         _logger.LogInformation ("書籍({Id})の更新を開始しました。", task.Id);
-                        // 書籍を更新
                         var result = await dataSet.UpdateBookFromSiteAsync (httpClient, task.Id, "UpdaterBookTask", true, task.FullUpdate, (_, _) => cancellationToken.IsCancellationRequested);
                         if (result.IsSuccess) {
                             _logger.LogInformation ("書籍({Id})の更新を完了しました。", task.Id);
@@ -47,7 +46,7 @@ public class UpdateBookService : IHostedService {
                         _logger.LogWarning (ex, "書籍({Id})の更新がキャンセルされました。", task.Id);
                     }
                     catch (Exception ex) {
-                        _logger.LogError (ex, "書籍({Id})の更新に失敗しました。\n{Message}\n{StackTrace}", task.Id, ex.Message, ex.StackTrace);
+                        _logger.LogError (ex, "例外が生じて書籍({Id})の更新に失敗しました。\n{Message}\n{StackTrace}", task.Id, ex.Message, ex.StackTrace);
                     }
                     finally {
                         _queue.Completed (task.Id);

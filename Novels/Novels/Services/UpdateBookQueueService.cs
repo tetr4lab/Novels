@@ -22,10 +22,8 @@ public class UpdateBookQueueService {
     public IAsyncEnumerable<UpdateBookTask> DequeueAllAsync () => _channel.Reader.ReadAllAsync ();
 
     /// <summary>処理完了の通知</summary>
-    public void Completed (long Id) {
-        _pendingIds.TryRemove (Id, out _);
-    }
-
+    public void Completed (long Id) => _pendingIds.TryRemove (Id, out _);
+    
     /// <summary>未完了にあるか</summary>
     public bool Contains (long Id) => _pendingIds.ContainsKey (Id);
 }
