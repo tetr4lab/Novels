@@ -191,9 +191,10 @@ public sealed class NovelsDataSet : MySqlDataSet {
     /// <param name="progress"></param>
     /// <returns>書籍と問題のリスト</returns>
     public async Task<Result<(Book book, List<string> issues)>> UpdateBookFromSiteAsync (HttpClient client, long bookId, string userIdentifier, bool withSheets = false, bool fullUpdate = false, Func<int, int, bool>? progress = null) {
-        var url = GetItemById<Book> (bookId)?.Url ?? throw new KeyNotFoundException ($"book id:{bookId} not found.");
-        await SetCurrentBookIdAsync (bookId);
-        return await UpdateBookFromSiteAsync (client, url, userIdentifier, withSheets, fullUpdate, progress);
+        var book = GetItemById<Book> (bookId);
+        if (book.Id != bookId) { throw new KeyNotFoundException ($"book id:{bookId} not found."); }
+        await SetCurrentBookIdAsync (book.Id);
+        return await UpdateBookFromSiteAsync (client, book.Url, userIdentifier, withSheets, fullUpdate, progress);
     }
 
     /// <summary>書籍の更新</summary>

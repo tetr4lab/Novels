@@ -27,13 +27,15 @@ public class UpdateBookService : IHostedService {
                 var httpClient = scope.ServiceProvider.GetRequiredService<HttpClient> ();
                 var dataSet = scope.ServiceProvider.GetRequiredService<NovelsDataSet> ();
                 await dataSet.InitializeAsync ();
+                while (!dataSet.IsReady) {
+                    cancellationToken.ThrowIfCancellationRequested ();
+                    await Task.Delay (16);
+                }
                 await foreach (var task in _queue.DequeueAllAsync ().WithCancellation (cancellationToken)) {
                     try {
-                        while (!dataSet.IsReady) {
-                            cancellationToken.ThrowIfCancellationRequested ();
-                            await Task.Delay (16);
-                        }
+                        cancellationToken.ThrowIfCancellationRequested ();
                         _logger.LogInformation ("書籍({Id})の更新を開始しました。", task.Id);
+                        await dataSet.LoadAsync ();
                         var result = await dataSet.UpdateBookFromSiteAsync (httpClient, task.Id, "UpdaterBookTask", true, task.FullUpdate, (_, _) => cancellationToken.IsCancellationRequested);
                         if (result.IsSuccess) {
                             _logger.LogInformation ("書籍({Id})の更新を完了しました。", task.Id);
