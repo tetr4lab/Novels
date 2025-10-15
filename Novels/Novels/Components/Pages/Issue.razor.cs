@@ -211,11 +211,11 @@ public partial class Issue : BookListBase {
                 await SetBusyAsync ();
                 SelectedItem.NumberOfIsshued = null;
                 SelectedItem.IssuedAt = null;
-                await SetIdleAsync ();
                 Snackbar.Add ($"{Book.TableLabel}の発行記録を抹消しました。", Severity.Normal);
                 if ((await UpdateBookAsync (SelectedItem)).IsFailure) {
                     Snackbar.Add ($"{Book.TableLabel}の保存に失敗しました。", Severity.Normal);
                 }
+                await SetIdleAsync ();
             } else {
                 return false;
             }
@@ -440,6 +440,7 @@ public partial class Issue : BookListBase {
     protected async Task<Result<int>> UpdateBookAsync (Book book) {
         var result = await DataSet.UpdateAsync (book);
         if (result.IsSuccess) {
+            await ReloadAndFocus ();
             StartEdit (true);
         }
         return result;
