@@ -85,9 +85,10 @@ app.UseRequestLocalization (new RequestLocalizationOptions ()
 Thread.CurrentThread.CurrentCulture = new CultureInfo ("ja-JP");
 
 // Application Base Path
-var basePath = builder.Configuration ["AppBasePath"];
+var basePath = builder.Configuration ["AppBasePath"]?.TrimEnd ('/');
 if (!string.IsNullOrEmpty (basePath)) {
     app.UsePathBase (basePath);
+    app.MapBlazorHub ($"{basePath}/_blazor");
 }
 
 // Configure the HTTP request pipeline.
@@ -101,11 +102,11 @@ if (app.Environment.IsDevelopment ()) {
 
 app.UseHttpsRedirection ();
 
-app.UseStaticFiles ();
 app.UseAntiforgery ();
 app.UseAuthentication ();
 app.UseAuthorization ();
 
+app.MapStaticAssets ();
 app.MapRazorComponents<App> ()
     .AddInteractiveServerRenderMode ()
     .AddInteractiveWebAssemblyRenderMode ()
