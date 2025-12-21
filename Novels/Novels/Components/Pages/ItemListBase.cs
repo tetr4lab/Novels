@@ -297,10 +297,7 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
     protected virtual async Task SetAppMode (AppMode appMode) {
         if (AppModeService.CurrentMode != appMode && await ConfirmCancelEditAsync ()) {
             await SetBusyAsync ();
-            if (DataSet.CurrentBookId != AppModeService.CurrentBookId) {
-                // 遅延読み込み
-                await DataSet.SetCurrentBookIdAsync (AppModeService.CurrentBookId);
-            }
+            await DataSet.SetCurrentBookIdAsync (AppModeService.CurrentBookId);
             AppModeService.SetMode (appMode);
         }
     }
