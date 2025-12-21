@@ -53,6 +53,10 @@ public partial class Issue : BookListBase {
     //// <summary>’…–Ú‘Ğ‚Ì•ÏX</summary>
     protected override async Task ChangeCurrentBookAsync (Book book) {
         await base.ChangeCurrentBookAsync (book);
+        if (DataSet.CurrentBookId != AppModeService.CurrentBookId) {
+            // ’x‰„“Ç‚İ‚İ
+            await DataSet.SetCurrentBookIdAsync (AppModeService.CurrentBookId);
+        }
         SetTitle ();
         StartEdit (true);
     }
