@@ -297,11 +297,12 @@ public partial class Issue : BookListBase {
                     }
                 }
                 doc.AddChapter (null, null, "概要", book.Explanation);
+                var imageDict = new Dictionary<string, string> ();
                 foreach (var sheet in book.Sheets) {
                     // Add image resources
-                    var honbun = await ProcessHtmlForEpub (doc, sheet.SheetHonbun, sheet.Url);
-                    var preface = await ProcessHtmlForEpub (doc, sheet.Preface, sheet.Url);
-                    var afterword = await ProcessHtmlForEpub (doc, sheet.Afterword, sheet.Url);
+                    var honbun = await ProcessHtmlForEpub (doc, sheet.SheetHonbun, sheet.Url, imageDict);
+                    var preface = await ProcessHtmlForEpub (doc, sheet.Preface, sheet.Url, imageDict);
+                    var afterword = await ProcessHtmlForEpub (doc, sheet.Afterword, sheet.Url, imageDict);
                     // Add sheet
                     doc.AddChapter (sheet.ChapterTitle, sheet.ChapterSubTitle, sheet.SheetTitle, honbun, afterword, preface);
                 }
@@ -364,7 +365,7 @@ public partial class Issue : BookListBase {
     /// <param name="innerHtml">元のHTML</param>
     /// <param name="url">シートのURL</param>
     /// <returns>処理済みのHTML</returns>
-    protected async Task<string> ProcessHtmlForEpub (Epub doc, string innerHtml, string url) {
+    protected async Task<string> ProcessHtmlForEpub (Epub doc, string innerHtml, string url, Dictionary<string,string> imageDict) {
         var parser = new HtmlParser ();
         var document = parser.ParseDocument (innerHtml);
         var images = document.QuerySelectorAll ("img");
@@ -374,7 +375,10 @@ public partial class Issue : BookListBase {
                     var src = image.GetAttribute ("src");
                     if (!string.IsNullOrEmpty (src)) {
                         try {
-                            var fileName = await doc.AddImageResource (HttpClient, new Uri (new Uri (url), src), DataSet.Setting.UserAgent);
+                            var uri = new Uri (new Uri (url), src);
+                            var fileName = imageDict.ContainsKey (uri.AbsoluteUri)
+                                ? imageDict [uri.AbsoluteUri]
+                                : imageDict [uri.AbsoluteUri] = await doc.AddImageResource (HttpClient, uri, DataSet.Setting.UserAgent);
                             image.SetAttribute ("src", fileName);
                         }
                         catch (Exception ex) {
