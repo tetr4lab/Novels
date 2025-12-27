@@ -58,7 +58,7 @@
         </MudStack>
         <NumberNavigationBar Number="@(AppModeService.CurrentSheetIndex)" Min="1" Max="@(items.Count)" OnChangeNumber="OnChageSheetAsync" />
         <MudScrollToTop TopOffset="1000">
-            <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowCircleUp" />
+            <MudFab StartIcon="@Icons.Material.Filled.ArrowCircleUp" Size="Size.Medium" />
         </MudScrollToTop>
     } else {
         <MudText>No books found.</MudText>
