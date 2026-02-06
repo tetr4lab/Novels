@@ -40,7 +40,9 @@ public abstract class NovelsComponentBase : ComponentBase, IDisposable {
     protected override async Task OnInitializedAsync () {
         await base.OnInitializedAsync ();
         // 購読開始
+        UiState.PropertyChanged -= OnAppLockChanged;
         UiState.PropertyChanged += OnAppLockChanged;
+        AppModeService.PropertyChanged -= OnAppModeChanged;
         AppModeService.PropertyChanged += OnAppModeChanged;
         // 認証・認可
         Identity = await AuthState.GetIdentityAsync ();

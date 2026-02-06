@@ -99,7 +99,9 @@
     /// <summary>初期化 購読開始</summary>
     protected override void OnInitialized () {
         base.OnInitialized ();
+        UiState.PropertyChanged -= OnAppLockChanged;
         UiState.PropertyChanged += OnAppLockChanged;
+        AppModeService.PropertyChanged -= OnAppModeChanged;
         AppModeService.PropertyChanged += OnAppModeChanged;
     }
 
