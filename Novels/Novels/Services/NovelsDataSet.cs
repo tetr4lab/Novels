@@ -154,6 +154,14 @@ public sealed class NovelsDataSet : MySqlDataSet {
                 _id2Book = books.ToDictionary (book => book.Id, book => book);
             }
             ListSet [typeof (Sheet)] = sheets;
+            if (CurrentBookId > 0) {
+                var book = books.Find (x => x.Id == CurrentBookId);
+                if (book is not null && book.NumberOfRelatedSheets != sheets.Count) {
+                    // 着目書籍の関係シート数を実測数で更新
+                    book.NumberOfRelatedSheets = sheets.Count;
+                    await UpdateAsync (book);
+                }
+            }
             if (sheets.Count > 0) {
                 sheets.ForEach (sheet => {
                     sheet.DataSet = this;
