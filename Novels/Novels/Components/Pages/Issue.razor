@@ -84,12 +84,13 @@
                                 @(SelectedItem.CoverImage is null ? $"{label}{(SelectedItem.CoverSelection is null ? "なし" : $"候補{SelectedItem.CoverSelection + 1}")} (選択は非保存)" : label)
                             </TooltipContent>
                             <ChildContent>
+                                <style>.mud-input-opacity0 { opacity: 0; }</style>
                                 <MudFileUpload T="IBrowserFile" Accept=".jpg,.jpeg,.png,.gif,.svg,.webp" title="" @ref="@_fileUpload"
                                     Disabled="UiState.IsLocked || IsLocked" 
                                     Hidden="@false" OnFilesChanged="OnInputFileChanged"
                                     @ondrop="@ClearDropArea" @ondragenter="@OnHover" @ondragleave="@ClearDropArea" @ondragend="@ClearDropArea"
-                                    InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10" InputStyle="opacity: 0;">
-                                    <ActivatorContent>
+                                    InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10 mud-input-opacity0">
+                                    <CustomContent>
                                         <MudPaper MinHeight="600px" MinWidth="412px" Elevation="0" Class="@_dropAreaClass">
                                                     @if (SelectedItem.CoverImage is null) {
                                                         if (SelectedItem.CoverUrls.Count > 0) {
@@ -105,7 +106,8 @@
                                                         <MudImage Width="400" ObjectFit="ObjectFit.Cover" Src="@(SelectedItem.CoverImageSource)" />
                                                     }
                                         </MudPaper>
-                                    </ActivatorContent>
+                                    </CustomContent>
+                                    <SelectedTemplate />
                                 </MudFileUpload>
                             </ChildContent>
                         </MudTooltip>

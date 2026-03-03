@@ -74,7 +74,7 @@
             </tr>
             <tr>
                 <td>@(Setting.Label [nameof (Setting.DefaultCookiesJson)])</td>
-                <td><MudTextField T="string" Validation="@(new Func<string, string> (JsonValidate))" @bind-Value="SelectedItem.DefaultCookiesJson" @ref="_cookieField" /></td>
+                <td><MudTextField T="string" Validation="@(new Func<string, string>(JsonValidate))" @bind-Value="SelectedItem.DefaultCookiesJson" @bind-Error="_cookieError" /></td>
             </tr>
             <tr>
                 <td>@(Setting.Label [nameof (Setting.IncludeImage)])</td>
@@ -84,7 +84,7 @@
                 <td>@(Setting.Label [nameof (Setting.Remarks)])</td>
                 <td>
                     <style>.horizontal-scroll textarea { overflow-x: auto; white-space: nowrap; }</style>
-                    <MudTextField Class="horizontal-scroll" T="string" @bind-Value="SelectedItem.Remarks" Lines="1" AutoGrow />
+                    <MudTextField Class="horizontal-scroll" T="string" @bind-Value="SelectedItem.Remarks" Lines="1" Sizing="InputSizing.Auto" />
                 </td>
             </tr>
         </tbody>
@@ -94,7 +94,7 @@
             <MudIconButton Disabled="UiState.IsLocked || !IsDirty" OnClick="RevertAsync" Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
         <MudTooltip Arrow="true" Text="保存">
-            <MudIconButton Disabled="UiState.IsLocked || !IsDirty || _cookieField?.Error != false" OnClick="SaveAsync" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
+            <MudIconButton Disabled="UiState.IsLocked || !IsDirty || _cookieError" OnClick="SaveAsync" Color="Color.Success" Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" />
         </MudTooltip>
     </MudStack>
 } else {
@@ -120,9 +120,9 @@
             PasswordInputType = InputType.Text;
         }
     }
-
-    /// <summary>クッキーフィールド</summary>
-    protected MudTextField<string>? _cookieField = null;
+   
+    /// <summary>クッキーフィールドエラー</summary>
+    protected bool _cookieError;
 
     /// <summary>JSON検証</summary>
     protected string JsonValidate (string json) {

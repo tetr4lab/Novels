@@ -40,11 +40,11 @@
                             @(Sheet.Label [nameof (SelectedItem.Errata)])
                         </MudTooltip>
                     </td>
-                    <td><MudTextField T="string" Disabled="UiState.IsLocked || IsLocked" Placeholder="@($"error1{Sheet.Separator}correct1{Sheet.Terminator}error2{Sheet.Separator}correct2{Sheet.Terminator}  :")" @bind-Value="SelectedItem.Errata" Lines="3" AutoGrow /></td>
+                    <td><MudTextField T="string" Disabled="UiState.IsLocked || IsLocked" Placeholder="@($"error1{Sheet.Separator}correct1{Sheet.Terminator}error2{Sheet.Separator}correct2{Sheet.Terminator}  :")" @bind-Value="SelectedItem.Errata" Lines="3" Sizing="InputSizing.Auto" /></td>
                 </tr>
                 <tr>
                     <td>@(Sheet.Label [nameof (SelectedItem.Remarks)])</td>
-                    <td><MudTextField T="string" Disabled="UiState.IsLocked || IsLocked" @bind-Value="SelectedItem.Remarks" Lines="1" AutoGrow /></td>
+                    <td><MudTextField T="string" Disabled="UiState.IsLocked || IsLocked" @bind-Value="SelectedItem.Remarks" Lines="1" Sizing="InputSizing.Auto" /></td>
                 </tr>
             </tbody>
         </MudSimpleTable>
