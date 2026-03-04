@@ -160,8 +160,7 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
         if (items is not null) {
             var index = 0;
             if (typeof (T) == typeof (Book)) {
-                var list = AppModeService.FilterText == "" || _dataGrid is null ? items : _dataGrid.FilteredItems.ToList ();
-                index = list.FindIndex (x => x.Id == focusedId);
+                index = (_dataGrid?.FilteredItems.ToList () ?? items).FindIndex (x => x.Id == focusedId);
                 viewportHeightRatio = Books.ViewportHeightRatio;
             } else if (typeof (T) == typeof (Sheet)) {
                 index = AppModeService.CurrentSheetIndex - 1;
