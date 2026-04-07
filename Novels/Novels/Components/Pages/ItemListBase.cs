@@ -10,6 +10,7 @@ using MudBlazor;
 using Novels.Data;
 using Novels.Services;
 using Tetr4lab;
+using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
 namespace Novels.Components.Pages;
 
@@ -209,52 +210,48 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
         }
     }
 
+    /// <summary>比較ルール</summary>
+    protected StringComparison StringComparison => StringComparison.CurrentCultureIgnoreCase;
+
     /// <summary>全ての検索語に対して対象列のどれかが真であれば真を返す</summary>
     protected bool FilterFunc (T item) {
         if (item != null) {
-            foreach (var word in AppModeService.FilterText.Split ([' ', '　', '\t', '\n'])) {
-                if (!string.IsNullOrEmpty (word) && !Any (item.SearchTargets, word)) { return false; }
+            foreach (var filter in AppModeService.Filters) {
+                if (!Any (item.SearchTargets, filter)) { return false; }
             }
             return true;
         }
         return false;
         // 対象カラムのどれかが検索語に適合すれば真を返す
-        bool Any (IEnumerable<string?> targets, string word) {
-            word = word.Replace ('\xA0', ' ').Replace ('␣', ' ');
-            var eq = word.StartsWith ('=');
-            var notEq = word.StartsWith ('!');
-            var not = !notEq && word.StartsWith ('^');
-            word = word [(not || eq || notEq ? 1 : 0)..];
-            var or = word.Split ('|');
+        bool Any (IEnumerable<string?> targets, Services.Filter filter) {
             foreach (var target in targets) {
                 if (!string.IsNullOrEmpty (target)) {
-                    if (eq || notEq) {
+                    if (filter.Equal || filter.NotEqual) {
                         // 検索語が'='で始まる場合は、以降がカラムと完全一致する場合に真/偽を返す
-                        if (or.Length > 1) {
+                        if (filter.OrWords.Length > 1) {
                             // 検索語が'|'を含む場合は、'|'で分割したいずれかの部分と一致する場合に真/偽を返す
-                            foreach (var wd in or) {
-                                if (target == wd) { return eq; }
+                            foreach (var wd in filter.OrWords) {
+                                if (target.Equals (wd, StringComparison)) { return filter.Equal; }
                             }
                         } else {
-                            if (target == word) { return eq; }
+                            if (target.Equals (filter.Word, StringComparison)) { return filter.Equal; }
                         }
                     } else {
                         // 検索語がカラムに含まれる場合に真/偽を返す
-                        if (or.Length > 1) {
+                        if (filter.OrWords.Length > 1) {
                             // 検索語が'|'を含む場合は、'|'で分割したいずれかの部分がカラムに含まれる場合に真/偽を返す
-                            foreach (var wd in or) {
-                                if (target.Contains (wd)) { return !not; }
+                            foreach (var wd in filter.OrWords) {
+                                if (target.Contains (wd, StringComparison)) { return !filter.Not; }
                             }
                         } else {
-                            if (target.Contains (word)) { return !not; }
+                            if (target.Contains (filter.Word, StringComparison)) { return !filter.Not; }
                         }
                     }
                 }
             }
-            return notEq || not ? true : false;
+            return filter.NotEqual || filter.Not ? true : false;
         }
     }
-
     /// <summary>編集開始</summary>
     protected virtual void StartEdit (bool force = false) {
         if (force || !IsEditing) {

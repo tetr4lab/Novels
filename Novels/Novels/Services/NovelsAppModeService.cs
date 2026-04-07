@@ -29,15 +29,21 @@ public class NovelsAppModeService : AppModeService<AppMode> {
 
     /// <summary>検索文字列</summary>
     public string FilterText {
-        get => _filterText;
-        protected set {
-            if (!_filterText.Equals (value)) {
-                _filterText = value;
-                OnPropertyChanged ();
-            }
-        }
+        get => GetProperty (nameof (FilterText), string.Empty);
+        protected set => SetProperty (nameof (FilterText), value);
     }
-    protected string _filterText = string.Empty;
+
+    /// <summary>検索オブジェクト</summary>
+    public List<Filter> Filters {
+        get => GetProperty (nameof (Filters), new List<Filter> ());
+        protected set => SetProperty (nameof (Filters), value);
+    }
+
+    /// <summary>検索テキストの変更</summary>
+    public void SetFilterText (string text) {
+        FilterText = text;
+        Filters = Filter.CreateList (text);
+    }
 
     /// <summary>着目中の書籍</summary>
     public long CurrentBookId {
@@ -66,11 +72,6 @@ public class NovelsAppModeService : AppModeService<AppMode> {
     /// <summary>セクションタイトルの変更</summary>
     public void SetSectionTitle (string title) {
         SectionTitle = string.Join ("<br />", title.Split ('\n'));
-    }
-
-    /// <summary>検索テキストの変更</summary>
-    public void SetFilterText (string text) {
-        FilterText = text;
     }
 
     /// <summary>着目中の書籍とシートの変更</summary>
