@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Novels.Data;
 using Novels.Services;
-using Tetr4lab;
+using Tetr4lab.Razor;
 
 namespace Novels.Components.Pages;
 

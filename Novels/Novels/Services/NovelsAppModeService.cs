@@ -1,4 +1,4 @@
-﻿using Tetr4lab;
+﻿using Tetr4lab.Razor;
 
 namespace Novels.Services;
 

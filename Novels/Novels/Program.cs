@@ -5,7 +5,9 @@ using PetaPoco;
 using Novels.Components;
 using Novels.Components.Pages;
 using Novels.Services;
-using Tetr4lab;
+using Tetr4lab.Auth;
+using Tetr4lab.Razor;
+using Tetr4lab.Server;
 using System.Globalization;
 
 // dotnet coreでマイナーエンコードに対応する予防的措置

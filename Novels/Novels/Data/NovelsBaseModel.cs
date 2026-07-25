@@ -1,7 +1,7 @@
 ﻿using PetaPoco;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
-using Tetr4lab;
+using Tetr4lab.Db;
 
 namespace Novels.Data;
 

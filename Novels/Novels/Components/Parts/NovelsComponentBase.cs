@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Novels.Data;
 using Novels.Services;
-using Tetr4lab;
+using Tetr4lab.Auth;
+using Tetr4lab.Razor;
 
 namespace Novels.Components.Pages;
 

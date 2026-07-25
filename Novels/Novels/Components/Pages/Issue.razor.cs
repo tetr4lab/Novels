@@ -14,6 +14,8 @@ using Novels.Data;
 using Novels.Services;
 using QuickEPUB;
 using Tetr4lab;
+using Tetr4lab.Db;
+using Tetr4lab.Razor;
 
 namespace Novels.Components.Pages;
 

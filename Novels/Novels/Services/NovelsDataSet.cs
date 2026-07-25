@@ -5,6 +5,8 @@ using MySqlConnector;
 using PetaPoco;
 using Novels.Data;
 using Tetr4lab;
+using Tetr4lab.Db;
+using Tetr4lab.Db.MySql;
 using System.Data;
 
 namespace Novels.Services;
