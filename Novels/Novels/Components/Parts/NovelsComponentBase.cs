@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.JSInterop;
 using Novels.Data;
 using Novels.Services;
 using Tetr4lab.Auth;
@@ -12,6 +13,7 @@ namespace Novels.Components.Pages;
 public abstract class NovelsComponentBase : ComponentBase, IDisposable {
     [Inject] protected IAppLockState UiState { get; set; } = null!;
     [Inject] protected NovelsAppModeService AppModeService { get; set; } = null!;
+    [Inject] protected IJSRuntime JSRuntime { get; set; } = null!;
 
     /// <summary>認証状況を得る</summary>
     [CascadingParameter] protected Task<AuthenticationState> AuthState { get; set; } = default!;
@@ -54,4 +56,8 @@ public abstract class NovelsComponentBase : ComponentBase, IDisposable {
         UiState.PropertyChanged -= OnAppLockChanged;
         AppModeService.PropertyChanged -= OnAppModeChanged;
     }
+
+    /// <summary>クリップボードへコピー</summary>
+    protected async Task CopyToClipboard (string text, string? name = null)
+        => await JSRuntime.CopyToClipboard (text);
 }

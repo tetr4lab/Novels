@@ -621,4 +621,13 @@ public partial class Issue : BookListBase {
         }
     }
 
+    /// <summary>デバッグ情報をクリップ</summary>
+    protected virtual async Task GetDubugInfo () {
+        var lines = new List<string> ();
+        for (var i = 0; i < SelectedItem.SheetUrls.Count; i++) {
+            lines.Add ($"{i + 1}: {(i < SelectedItem.SheetUpdateDates.Count ? SelectedItem.SheetUpdateDates [i] : "no date")} {SelectedItem.SheetUrls [i]}");
+        }
+        await CopyToClipboard (string.Join ("\n", lines));
+    }
+
 }

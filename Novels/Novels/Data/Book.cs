@@ -476,10 +476,13 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                         tags = Document.QuerySelectorAll ("div.mokuji a");
                         break;
                     case Site.Kakuyomu:
-                        var regex = new Regex ("(?<=\"__typename\":\"Episode\",\"id\":\")\\d+(?=\")");
-                        foreach (Match match in regex.Matches (_html)) {
-                            if (match.Success) {
-                                sheetUrls.Add ($"{Url}/episodes/{match.Value}");
+                        tags = Document.QuerySelectorAll ("a.widget-toc-episode-episodeTitle");
+                        if (tags is null) {
+                            var regex = new Regex ("(?<=\"__typename\":\"Episode\",\"id\":\")\\d+(?=\")");
+                            foreach (Match match in regex.Matches (_html)) {
+                                if (match.Success) {
+                                    sheetUrls.Add ($"{Url}/episodes/{match.Value}");
+                                }
                             }
                         }
                         break;
@@ -552,12 +555,24 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                         }
                         break;
                     case Site.Kakuyomu:
-                        var regex = new Regex ("(?<=\"publishedAt\":\")[^\"]+(?=\")");
-                        var match = regex.Match (_html);
-                        if (match.Success) {
-                            if (DateTime.TryParse (match.Value, out var dt)) {
-                                for (var i = 0; i < NumberOfSheets; i++) {
-                                    sheetDates.Add (dt);
+                        tags = Document.QuerySelectorAll ("time.widget-toc-episode-datePublished");
+                        if (tags.Length > 0) {
+                            foreach (var tag in tags) {
+                                var date = tag.GetAttribute ("datetime");
+                                if (!string.IsNullOrEmpty (date)) {
+                                    if (DateTime.TryParse (date, out var dt)) {
+                                        sheetDates.Add (dt);
+                                    }
+                                }
+                            }
+                        } else {
+                            var regex = new Regex ("(?<=\"publishedAt\":\")[^\"]+(?=\")");
+                            var match = regex.Match (_html);
+                            if (match.Success) {
+                                if (DateTime.TryParse (match.Value, out var dt)) {
+                                    for (var i = 0; i < NumberOfSheets; i++) {
+                                        sheetDates.Add (dt);
+                                    }
                                 }
                             }
                         }
@@ -581,6 +596,16 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                 return $"{urlWithoutSlash}/?p={page}";
             case Site.Novelup:
                 return $"{urlWithoutSlash}?p={page}";
+            case Site.Kakuyomu: {
+                var atag = Document?.QuerySelector ("div[class^='_workId__workToc_']")?.QuerySelector ("a[class^='WorkTocSection_link_']");
+                if (atag is not null) {
+                    var url = atag.GetAttribute ("href");
+                    if (!string.IsNullOrEmpty (url)) {
+                        return new Uri (new Uri (Url), $"{url}/episode_sidebar").AbsoluteUri;
+                    }
+                }
+                return "";
+            }
         }
         return $"{Url}?={page}";
     }
@@ -606,6 +631,9 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                         if (total is not null && int.TryParse (total.TextContent.Replace ("総エピソード数：", "").Replace ("話", ""), out var number)) {
                             __lastPage = (number + 99) / 100;
                         }
+                        break;
+                    case Site.Kakuyomu:
+                        __lastPage = 2;
                         break;
                 }
             }

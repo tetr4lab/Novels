@@ -214,6 +214,9 @@
                     <MudIconButton Disabled="UiState.IsLocked || IsLocked || SelectedItem.IsEmpty || SelectedItem.IsUpToDateWithIssued || IsDirty" OnClick="ConfirmIssueBookAsync" Color="Color.Tertiary" Icon="@Icons.Material.Filled.Publish" Variant="Variant.Outlined" Size="Size.Large" />
                 </ChildContent>
             </MudTooltip>
+            @* <MudTooltip Text="デバッグ情報をクリップボードにコピー" Arrow Duration="1000">
+                <MudIconButton Disabled="@(UiState.IsLocked || IsLocked || IsDirty)" OnClick="GetDubugInfo" Color="Color.Default" Icon="@Icons.Material.Filled.ContentCopy" Variant="Variant.Outlined" Size="Size.Large" />
+            </MudTooltip> *@
             <MudSpacer />
             <MudTooltip Arrow="true" Text="復旧">
                 <MudIconButton Disabled="UiState.IsLocked || IsLocked || !IsDirty" OnClick="RevertAsync" Color="Color.Error" Icon="@Icons.Material.Filled.ReplayCircleFilled" Variant="Variant.Outlined" Size="Size.Large" />
