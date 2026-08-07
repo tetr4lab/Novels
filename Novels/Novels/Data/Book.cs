@@ -477,7 +477,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                         break;
                     case Site.Kakuyomu:
                         tags = Document.QuerySelectorAll ("a.widget-toc-episode-episodeTitle");
-                        if (tags is null) {
+                        if (tags.Count <= 0) {
                             var regex = new Regex ("(?<=\"__typename\":\"Episode\",\"id\":\")\\d+(?=\")");
                             foreach (Match match in regex.Matches (_html)) {
                                 if (match.Success) {
