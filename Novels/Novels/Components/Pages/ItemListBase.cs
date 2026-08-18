@@ -28,7 +28,6 @@ public class ItemListBase<T> : NovelsComponentBase, IDisposable where T : Novels
     [Inject] protected IAuthorizationService AuthorizationService { get; set; } = null!;
     [Inject] protected IScrollManager ScrollManager { get; set; } = null!;
     [Inject] protected IBrowserViewportService BrowserViewportService { get; set; } = null!;
-    [Inject] protected IJSRuntime JSRuntime { get; set; } = null!;
     [Inject] protected UpdateBookQueueService UpdateBookQueue { get; set; } = null!;
 
     /// <summary>レコードがロックされている</summary>
