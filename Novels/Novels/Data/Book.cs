@@ -138,8 +138,15 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     [Column ("wish")] public bool Wish { get; set; } = false;
     [Column ("bookmark")] public long? Bookmark { get; set; } = null;
     [Column ("cover_image")] public byte []? CoverImage { get; set; } = null;
-        /// <summary>関係先シートの実数</summary>
+    [Column ("issue_title")] public string? _bookName { get; set; } = null;
+    /// <summary>関係先シートの実数</summary>
     [Column ("number_of_related_sheets")] public int NumberOfRelatedSheets { get; set; } = 0;
+
+    /// <summary>発効書名</summary>
+    public string BookName {
+        get => string.IsNullOrWhiteSpace (_bookName) ? MainTitle : _bookName;
+        set => _bookName = string.IsNullOrWhiteSpace (value) ? null : value;
+    }
 
     /// <summary>表紙画像種別を判定</summary>
     public string CoverImageType => CoverImage.DetectImageType () ?? string.Empty;
@@ -926,6 +933,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         item.Wish = Wish;
         item.Bookmark = Bookmark;
         item.CoverImage = CoverImage;
+        item._bookName = _bookName;
         item.Flash ();
         return item;
     }
@@ -948,6 +956,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         destination.Wish = Wish;
         destination.Bookmark = Bookmark;
         destination.CoverImage = CoverImage;
+        destination._bookName = _bookName;
         destination.Flash ();
         return base.CopyTo (destination);
     }
@@ -972,6 +981,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         && Wish == other.Wish
         && Bookmark == other.Bookmark
         && CoverImage == other.CoverImage
+        && _bookName == other._bookName
         && Remarks == other.Remarks
     ;
 
@@ -979,7 +989,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public override int GetHashCode () => HashCode.Combine (
         HashCode.Combine (Url1, Url2, _html, _site, _title, _author, NumberOfIsshued, IssuedAt),
         HashCode.Combine (Readed, ReadedMemo, _status, HtmlBackup, _errata, Wish, Bookmark, Remarks),
-        HashCode.Combine (CoverImage),
+        HashCode.Combine (CoverImage, _bookName),
         base.GetHashCode ());
 
     /// <inheritdoc/>

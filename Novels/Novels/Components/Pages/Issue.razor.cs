@@ -52,9 +52,6 @@ public partial class Issue : BookListBase {
     /// <summary>無効なURI</summary>
     protected bool IsInvalidUri (string? url) => !Uri.IsWellFormedUriString (url, UriKind.Absolute);
 
-    /// <summary>生成書名</summary>
-    protected string BookName { get; set; } = "";
-
     //// <summary>着目書籍の変更</summary>
     protected override async Task ChangeCurrentBookAsync (Book book) {
         await base.ChangeCurrentBookAsync (book);
@@ -193,7 +190,7 @@ public partial class Issue : BookListBase {
         if (!IsDirty) {
             await SetBusyAsync ();
             var issue = !eventArgs.CtrlKey;
-            var title = $"{(string.IsNullOrWhiteSpace (BookName) ? SelectedItem.MainTitle : BookName)}.epub";
+            var title = $"{SelectedItem.BookName}.epub";
             var operation = issue ? "発行" : "生成";
             var dialogResult = await DialogService.Confirmation ([
                 $"『{title}』を{(issue ? $"<{DataSet.Setting.SmtpMailto}>へ発行": "生成してダウンロード")}します。",
@@ -471,7 +468,6 @@ public partial class Issue : BookListBase {
     /// <summary>セクションタイトルを設定</summary>
     protected void SetTitle () {
         AppModeService.SetSectionTitle (SelectedItem is null ? "Issue" : $"<span style=\"font-size:80%;\">『{SelectedItem?.Title ?? ""}』 {SelectedItem?.Author ?? ""}</span>");
-        BookName = SelectedItem?.MainTitle ?? "";
     }
 
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
