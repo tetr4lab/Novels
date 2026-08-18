@@ -185,6 +185,14 @@
                     <td>@(Book.Label [nameof (Book.Remarks)])</td>
                     <td><MudTextField T="string" Disabled="UiState.IsLocked || IsLocked" @bind-Value="SelectedItem.Remarks" Lines="9" /></td>
                 </tr>
+                <tr>
+                    <td>生成書名(.epub)</td>
+                    <td colspan="2" style="border-top: rgb(224,224,224) 1px solid;" >
+                        <MudTooltip Text="生成前に指定が必要です。この名前は保存されません。" Arrow RootClass="mud-width-full">
+                            <MudTextField T="string" Disabled="UiState.IsLocked || IsLocked || SelectedItem.IsEmpty || SelectedItem.IsUpToDateWithIssued || IsDirty" @bind-Value="BookName" />
+                        </MudTooltip>
+                    </td>
+                </tr>
             </tbody>
         </MudSimpleTable>
         <MudStack Row Class="mt-5 justify-center">

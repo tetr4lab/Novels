@@ -52,6 +52,9 @@ public partial class Issue : BookListBase {
     /// <summary>無効なURI</summary>
     protected bool IsInvalidUri (string? url) => !Uri.IsWellFormedUriString (url, UriKind.Absolute);
 
+    /// <summary>生成書名</summary>
+    protected string BookName { get; set; } = "";
+
     //// <summary>着目書籍の変更</summary>
     protected override async Task ChangeCurrentBookAsync (Book book) {
         await base.ChangeCurrentBookAsync (book);
@@ -190,13 +193,14 @@ public partial class Issue : BookListBase {
         if (!IsDirty) {
             await SetBusyAsync ();
             var issue = !eventArgs.CtrlKey;
+            var title = $"{(string.IsNullOrWhiteSpace (BookName) ? SelectedItem.MainTitle : BookName)}.epub";
             var operation = issue ? "発行" : "生成";
             var dialogResult = await DialogService.Confirmation ([
-                $"『{SelectedItem.MainTitle}.epub』を{(issue ? $"<{DataSet.Setting.SmtpMailto}>へ発行": "生成してダウンロード")}します。",
-            ], title: $"『{SelectedItem.MainTitle}.epub』{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: issue ? Color.Success : Color.Primary, acceptionIcon: issue ? Icons.Material.Filled.Publish : Icons.Material.Filled.FileDownload, onOpend: SetIdleAsync);
+                $"『{title}』を{(issue ? $"<{DataSet.Setting.SmtpMailto}>へ発行": "生成してダウンロード")}します。",
+            ], title: $"『{title}』{operation}", position: DialogPosition.BottomCenter, acceptionLabel: operation, acceptionColor: issue ? Color.Success : Color.Primary, acceptionIcon: issue ? Icons.Material.Filled.Publish : Icons.Material.Filled.FileDownload, onOpend: SetIdleAsync);
             if (dialogResult != null && !dialogResult.Canceled && dialogResult.Data is bool ok && ok) {
                 await SetBusyAsync ();
-                await IssueBookAsync (SelectedItem, issue);
+                await IssueBookAsync (SelectedItem, title, issue);
                 await SetIdleAsync ();
             } else {
                 return false;
@@ -277,9 +281,8 @@ public partial class Issue : BookListBase {
     }
 
     /// <summary>発行</summary>
-    protected async Task IssueBookAsync (Book book, bool sendToKindle = true) {
+    protected async Task IssueBookAsync (Book book, string title, bool sendToKindle = true) {
         if (book is not null) {
-            var title = $"{book.MainTitle}.epub";
             Snackbar.Add ($"『{title}』の生成を開始しました。", Severity.Normal);
             var epubPath = Path.GetTempFileName ();
             try {
@@ -468,6 +471,7 @@ public partial class Issue : BookListBase {
     /// <summary>セクションタイトルを設定</summary>
     protected void SetTitle () {
         AppModeService.SetSectionTitle (SelectedItem is null ? "Issue" : $"<span style=\"font-size:80%;\">『{SelectedItem?.Title ?? ""}』 {SelectedItem?.Author ?? ""}</span>");
+        BookName = SelectedItem?.MainTitle ?? "";
     }
 
     /// <summary>最初に着目書籍を切り替えてDataSetの再初期化を促す</summary>
