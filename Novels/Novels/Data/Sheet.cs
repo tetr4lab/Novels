@@ -327,20 +327,8 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     public Sheet () { }
 
     /// <inheritdoc/>
-    public override Sheet Clone () {
-        var item = base.Clone ();
-        item.Book = Book;
-        item.BookId = BookId;
-        item.Url = Url;
-        item._html = _html;
-        item.NovelNumber = NovelNumber;
-        item.SheetUpdatedAt = SheetUpdatedAt;
-        item._errata = _errata;
-        return item;
-    }
-
-    /// <inheritdoc/>
     public override Sheet CopyTo (Sheet destination) {
+        base.CopyTo (destination);
         destination.Book = Book;
         destination.BookId = BookId;
         destination.Url = Url;
@@ -348,7 +336,7 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
         destination.NovelNumber = NovelNumber;
         destination.SheetUpdatedAt = SheetUpdatedAt;
         destination._errata = _errata;
-        return base.CopyTo (destination);
+        return destination;
     }
 
     /// <inheritdoc/>

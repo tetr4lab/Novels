@@ -79,28 +79,8 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
     public Setting () { }
 
     /// <inheritdoc/>
-    public override Setting Clone () {
-        var item = base.Clone ();
-        item.PersonalDocumentLimitSize = PersonalDocumentLimitSize;
-        item.SmtpMailAddress = SmtpMailAddress;
-        item.SmtpServer = SmtpServer;
-        item.SmtpPort = SmtpPort;
-        item.SmtpUserName = SmtpUserName;
-        item.SmtpPassword = SmtpPassword;
-        item.SmtpMailto = SmtpMailto;
-        item.SmtpCc = SmtpCc;
-        item.SmtpBcc = SmtpBcc;
-        item.SmtpSubject = SmtpSubject;
-        item.SmtpBody = SmtpBody;
-        item.UserAgent = UserAgent;
-        item.AccessIntervalTime = AccessIntervalTime;
-        item.DefaultCookiesJson = DefaultCookiesJson;
-        item.IncludeImage = IncludeImage;
-        return item;
-    }
-
-    /// <inheritdoc/>
     public override Setting CopyTo (Setting destination) {
+        base.CopyTo (destination);
         destination.PersonalDocumentLimitSize = PersonalDocumentLimitSize;
         destination.SmtpMailAddress = SmtpMailAddress;
         destination.SmtpServer = SmtpServer;
@@ -116,7 +96,7 @@ public class Setting : NovelsBaseModel<Setting>, INovelsBaseModel {
         destination.AccessIntervalTime = AccessIntervalTime;
         destination.DefaultCookiesJson = DefaultCookiesJson;
         destination.IncludeImage = IncludeImage;
-        return base.CopyTo (destination);
+        return destination;
     }
 
     /// <inheritdoc/>

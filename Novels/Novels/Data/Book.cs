@@ -915,31 +915,8 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     public Book () { }
 
     /// <inheritdoc/>
-    public override Book Clone () {
-        var item = base.Clone ();
-        item.Url1 = Url1;
-        item.Url2 = Url2;
-        item._html = _html;
-        item._site = _site;
-        item._title = _title;
-        item._author = _author;
-        item.NumberOfIsshued = NumberOfIsshued;
-        item.IssuedAt = IssuedAt;
-        item.Readed = Readed;
-        item.ReadedMemo = ReadedMemo;
-        item._status = _status;
-        item.HtmlBackup = HtmlBackup;
-        item._errata = _errata;
-        item.Wish = Wish;
-        item.Bookmark = Bookmark;
-        item.CoverImage = CoverImage;
-        item._bookName = _bookName;
-        item.Flash ();
-        return item;
-    }
-
-    /// <inheritdoc/>
     public override Book CopyTo (Book destination) {
+        base.CopyTo (destination);
         destination.Url1 = Url1;
         destination.Url2 = Url2;
         destination._html = _html;
@@ -958,7 +935,7 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
         destination.CoverImage = CoverImage;
         destination._bookName = _bookName;
         destination.Flash ();
-        return base.CopyTo (destination);
+        return destination;
     }
 
     /// <inheritdoc/>

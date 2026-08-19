@@ -16,17 +16,4 @@ public abstract class NovelsBaseModel<T> : BaseModel<T>, IEquatable<T> where T :
     public static readonly string Separator = "||";
     public static readonly string Terminator = "\n";
 
-    /// <inheritdoc/>
-    public override T Clone () {
-        var item = base.Clone ();
-        item.DataSet = DataSet;
-        return item;
-    }
-
-    /// <inheritdoc/>
-    public override T CopyTo (T destination) {
-        destination.DataSet = DataSet;
-        return base.CopyTo (destination);
-    }
-
 }
