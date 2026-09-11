@@ -806,10 +806,10 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
     /// <summary>文字校正</summary>
     public string? Correct (string? text) {
         text = text?.Replace ("<br>", "<br/>");
-        if (string.IsNullOrEmpty (text) || string.IsNullOrEmpty (Errata)) {
+        if (string.IsNullOrEmpty (text) || string.IsNullOrEmpty (ErrataBookLocal)) {
             return text;
         }
-        List<(string error, string correct)> errata = Errata.Split (Terminator, StringSplitOptions.RemoveEmptyEntries).ToList ()
+        List<(string error, string correct)> errata = ErrataBookLocal.Split (Terminator, StringSplitOptions.RemoveEmptyEntries).ToList ()
             .ConvertAll (s => {
                 var v = s.Split (Separator);
                 return (v [0], v.Length > 1 ? v [1] : "");
@@ -860,6 +860,21 @@ public class Book : NovelsBaseModel<Book>, INovelsBaseModel {
                 _errata = value;
                 Flash ();
             }
+        }
+    }
+
+    /// <summary>正誤表の分割子</summary>
+    protected const string ErrataSplitter = @"(?:^|\n)-+\n";
+
+    /// <summary>書誌の正誤表</summary>
+    public string? ErrataBookLocal => _errata is null ? null : Regex.Split (_errata, ErrataSplitter) [0];
+
+    /// <summary>書籍全体の正誤表(書誌は含まない)</summary>
+    public string? ErrataSheetsGlobal {
+        get {
+            if (_errata is null) { return null; }
+            var errata = Regex.Split (_errata, ErrataSplitter);
+            return errata.Length > 1 ? errata [1] : null;
         }
     }
 

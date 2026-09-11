@@ -244,10 +244,10 @@ public class Sheet : NovelsBaseModel<Sheet>, INovelsBaseModel {
     /// <summary>文字校正</summary>
     public string? Correct (string? text) {
         text = text?.Replace ("<br>", "<br/>");
-        if (string.IsNullOrEmpty (text) || string.IsNullOrEmpty (Errata)) {
+        if (string.IsNullOrEmpty (text) || (string.IsNullOrEmpty (Book.ErrataSheetsGlobal) && string.IsNullOrEmpty (Errata))) {
             return text;
         }
-        List<(string error, string correct)> errata = Errata.Split (Terminator, StringSplitOptions.RemoveEmptyEntries).ToList ()
+        List<(string error, string correct)> errata = ($"{Book.ErrataSheetsGlobal}{Terminator}{Errata}").Split (Terminator, StringSplitOptions.RemoveEmptyEntries).ToList ()
             .ConvertAll (s => {
                 var v = s.Split (Separator);
                 return (v [0], v.Length > 1 ? v [1] : "");
