@@ -175,11 +175,15 @@
                 </tr>
                 <tr>
                     <td>
-                        <MudTooltip Text="@($"{Book.TableLabel}にのみ作用")" Arrow="true">
-                            @(Book.Label [nameof (Book.Errata)])
+                        <MudTooltip Arrow Duration="1000">
+                            <ChildContent>@(Book.Label [nameof (Book.Errata)])</ChildContent>
+                            <TooltipContent><p class="align-left">@(Book.TableLabel)に作用<br />@(Book.Splitter)<br />全@(Sheet.TableLabel)に作用</p></TooltipContent>
                         </MudTooltip>
                     </td>
-                    <td><MudTextField T="string" Disabled="UiState.IsLocked || IsLocked" Placeholder="@($"error1{Book.Separator}correct1{Book.Terminator}error2{Book.Separator}correct2{Book.Terminator}  :")" @bind-Value="SelectedItem.Errata" Lines="9" /></td>
+                    <td>
+                        @{ var placeHolder = $"error1{Book.Separator}correct1{Book.Terminator}error2{Book.Separator}correct2{Book.Terminator}  :"; }
+                        <MudTextField T="string" Disabled="UiState.IsLocked || IsLocked" Placeholder="@($"{placeHolder}\n{Book.Splitter}\n{placeHolder}")" @bind-Value="SelectedItem.Errata" Lines="9" />
+                    </td>
                 </tr>
                 <tr>
                     <td>@(Book.Label [nameof (Book.Remarks)])</td>

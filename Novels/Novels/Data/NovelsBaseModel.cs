@@ -15,5 +15,6 @@ public abstract class NovelsBaseModel<T> : BaseModel<T>, IEquatable<T> where T :
     //public static readonly char Terminator = '\n';
     public static readonly string Separator = "||";
     public static readonly string Terminator = "\n";
+    public static readonly string Splitter = "---";
 
 }
